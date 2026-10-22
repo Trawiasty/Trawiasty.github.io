@@ -1,147 +1,182 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" class="scroll-smooth">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moje Projekty</title>
-
-<style>
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #f5f7fa;
-        color: #333;
-    }
-
-    header {
-        background: #1e293b;
-        color: white;
-        padding: 40px 20px;
-        text-align: center;
-    }
-
-    header h1 {
-        margin: 0;
-        font-size: 2.5rem;
-    }
-
-    header p {
-        margin-top: 10px;
-        opacity: 0.9;
-        line-height: 1.6;
-    }
-
-    main {
-        max-width: 1200px;
-        margin: 40px auto;
-        padding: 0 20px;
-    }
-
-    .projects {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 20px;
-    }
-
-    .card {
-        background: white;
-        border-radius: 12px;
-        padding: 25px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        transition: all 0.2s ease;
-    }
-
-    .card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
-    }
-
-    .card h2 {
-        margin-top: 0;
-        color: #1e293b;
-    }
-
-    .card p {
-        color: #555;
-        min-height: 60px;
-    }
-
-    .card a {
-        display: inline-block;
-        text-decoration: none;
-        background: #2563eb;
-        color: white;
-        padding: 10px 16px;
-        border-radius: 8px;
-        transition: background 0.2s;
-    }
-
-    .card a:hover {
-        background: #1d4ed8;
-    }
-
-    footer {
-        text-align: center;
-        padding: 30px;
-        color: #666;
-        margin-top: 40px;
-        border-top: 1px solid #ddd;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projekty Edukacyjne – Repozytorium GitHub</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+        }
+        /* Subtelne tło gradientowe */
+        .ambient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0f172a 70%);
+        }
+        /* Card Blur Effect */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card:hover {
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+    </style>
 </head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-white antialiased">
 
-<body>
+    <!-- Ambient Background -->
+    <div class="ambient-bg" aria-hidden="true"></div>
 
-<header>
-    <h1>Moje Projekty</h1>
-    <p>
-        Michał Tycjan Grześlak<br>
-        Projekty edukacyjne, multimedialne i eksperymentalne
-    </p>
-</header>
-
-<main>
-
-    <div class="projects">
-
-        <div class="card">
-            <h2>🎭 Mapping Projekcyjny</h2>
-            <p>
-                Narzędzie do przygotowania projekcji i wizualizacji
-                mappingu elewacji budynków.
+    <!-- Main Container -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-12 w-full flex-grow flex flex-col justify-center">
+        
+        <!-- Header / Bio Section -->
+        <header class="text-center mb-12">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-4 shadow-lg">
+                <i class="fa-solid fa-wand-magic-sparkles text-2xl"></i>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-1">
+                Michał Tycjan Grześlak
+            </h1>
+            <p class="text-emerald-400 font-medium text-sm sm:text-base mb-3">
+                Projekty Edukacyjne & Eksperymenty AI
             </p>
-            <a href="/mapping/" target="_blank">
-                Otwórz projekt
-            </a>
-        </div>
-
-        <div class="card">
-            <h2>🚀 Kolejny projekt</h2>
-            <p>
-                Miejsce na opis następnego projektu.
+            <p class="text-slate-400 text-sm sm:text-base max-w-lg mx-auto leading-relaxed">
+                Eksperymentalne aplikacje, symulacje oraz narzędzia edukacyjne tworzone przy wsparciu <span class="text-emerald-400 font-medium">Sztucznej Inteligencji</span>.
             </p>
-            <a href="#">
-                W przygotowaniu
-            </a>
-        </div>
+            
+            <!-- Badge AI + Link do GitHub -->
+            <div class="mt-5 flex flex-wrap justify-center items-center gap-3">
+                <span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-xl border border-emerald-500/20">
+                    <i class="fa-solid fa-robot text-xs"></i>
+                    <span>AI-Assisted Projects</span>
+                </span>
+                <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-xs font-medium bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white px-4 py-2 rounded-xl border border-slate-700/80 transition-all">
+                    <i class="fa-brands fa-github text-sm"></i>
+                    <span>Mój Profil GitHub</span>
+                </a>
+            </div>
+        </header>
 
-        <div class="card">
-            <h2>📚 Materiały edukacyjne</h2>
-            <p>
-                Dokumenty, instrukcje oraz przydatne zasoby do pobrania.
+        <!-- Projects List (Clean Minimal Cards) -->
+        <main class="space-y-4">
+            
+            <!-- Projekt 1: Mapping 3D -->
+            <div class="glass-card rounded-2xl p-5 sm:p-6 transition-all duration-200 hover:-translate-y-0.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <h2 class="text-lg font-bold text-white">Mapping Projekcyjny Elewacji 3D</h2>
+                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">3D & WebGL</span>
+                    </div>
+                    <p class="text-slate-400 text-sm max-w-xl">
+                        Aplikacja webowa do symulacji mappingu 3D na elewacjach budynków. Posiada interaktywne panele pływające, modyfikację właściwości i warstw oraz edycję punktów w pełnym ekranie.
+                    </p>
+                    <div class="flex flex-wrap gap-2 pt-1">
+                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Three.js</span>
+                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">HTML5 Canvas</span>
+                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Tailwind CSS</span>
+                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Font Awesome</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 sm:self-center pt-2 sm:pt-0 border-t sm:border-0 border-slate-800">
+                    <a href="https://github.com" target="_blank" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700 transition-colors flex items-center gap-1.5" title="Kod źródłowy">
+                        <i class="fa-brands fa-github"></i>
+                        <span>Kod</span>
+                    </a>
+                    <a href="#" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-xl transition-colors flex items-center gap-1.5" title="Podgląd Na Żywo">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                        <span>Demo</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Projekt 2: GPS Story Studio -->
+            <div class="glass-card rounded-2xl p-5 sm:p-6 transition-all duration-200 hover:-translate-y-0.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                        <h2 class="text-lg font-bold text-white">GPS Story Studio</h2>
+                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Storytelling</span>
+                    </div>
+                    <p class="text-slate-400 text-sm max-w-xl">
+                        Narzędzie do projektowania interaktywnych opowieści i gier terenowych wyzwalanych lokalizacją GPS użytkownika.
+                    </p>
+                    <div class="flex flex-wrap gap-2 pt-1">
+                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Geolocation API</span>
+                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Leaflet.js</span>
+                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Interactive UI</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 sm:self-center pt-2 sm:pt-0 border-t sm:border-0 border-slate-800">
+                    <a href="https://github.com" target="_blank" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700 transition-colors flex items-center gap-1.5">
+                        <i class="fa-brands fa-github"></i>
+                        <span>Kod</span>
+                    </a>
+                    <a href="#" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-xl transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                        <span>Demo</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Projekt 3: GPX Trail Simulator & Creator -->
+            <div class="glass-card rounded-2xl p-5 sm:p-6 transition-all duration-200 hover:-translate-y-0.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                        <h2 class="text-lg font-bold text-white">GPX Trail Simulator & Creator</h2>
+                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">GIS & Symulacje</span>
+                    </div>
+                    <p class="text-slate-400 text-sm max-w-xl">
+                        Planer tras z profilami wysokościowymi, kalkulatorem marszu wg reguły Naismitha, symulacją micro-dryfu GPS smartwatcha, importem/eksportem GPX oraz eksportem metadanych punktów do JSON.
+                    </p>
+                    <div class="flex flex-wrap gap-2 pt-1">
+                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Leaflet.js</span>
+                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Chart.js</span>
+                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Open-Meteo Elevation API</span>
+                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Lucide Icons</span>
+                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">OpenTopoMap</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 sm:self-center pt-2 sm:pt-0 border-t sm:border-0 border-slate-800">
+                    <a href="https://github.com" target="_blank" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700 transition-colors flex items-center gap-1.5">
+                        <i class="fa-brands fa-github"></i>
+                        <span>Kod</span>
+                    </a>
+                    <a href="#" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-xl transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                        <span>Demo</span>
+                    </a>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Minimal Contact / Footer -->
+        <footer class="mt-12 text-center border-t border-slate-800/80 pt-6">
+            <p class="text-sm font-medium text-slate-400">
+                Michał Tycjan Grześlak
             </p>
-            <a href="#">
-                W przygotowaniu
-            </a>
-        </div>
+        </footer>
 
     </div>
-
-</main>
-
-<footer>
-    Michał Tycjan Grześlak
-</footer>
 
 </body>
 </html>
