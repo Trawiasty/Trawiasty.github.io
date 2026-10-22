@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moje Projekty</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f5f7fa;
+        color: #333;
+    }
+
+    header {
+        background: #1e293b;
+        color: white;
+        padding: 40px 20px;
+        text-align: center;
+    }
+
+    header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+    }
+
+    header p {
+        margin-top: 10px;
+        opacity: 0.9;
+        line-height: 1.6;
+    }
+
+    main {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .projects {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: all 0.2s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    }
+
+    .card h2 {
+        margin-top: 0;
+        color: #1e293b;
+    }
+
+    .card p {
+        color: #555;
+        min-height: 60px;
+    }
+
+    .card a {
+        display: inline-block;
+        text-decoration: none;
+        background: #2563eb;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 8px;
+        transition: background 0.2s;
+    }
+
+    .card a:hover {
+        background: #1d4ed8;
+    }
+
+    footer {
+        text-align: center;
+        padding: 30px;
+        color: #666;
+        margin-top: 40px;
+        border-top: 1px solid #ddd;
+    }
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>Moje Projekty</h1>
+    <p>
+        Michał Tycjan Grześlak<br>
+        Projekty edukacyjne, multimedialne i eksperymentalne
+    </p>
+</header>
+
+<main>
+
+    <div class="projects">
+
+        <div class="card">
+            <h2>🎭 Mapping Projekcyjny</h2>
+            <p>
+                Narzędzie do przygotowania projekcji i wizualizacji
+                mappingu elewacji budynków.
+            </p>
+            <a href="/mapping/" target="_blank">
+                Otwórz projekt
+            </a>
+        </div>
+
+        <div class="card">
+            <h2>🚀 Kolejny projekt</h2>
+            <p>
+                Miejsce na opis następnego projektu.
+            </p>
+            <a href="#">
+                W przygotowaniu
+            </a>
+        </div>
+
+        <div class="card">
+            <h2>📚 Materiały edukacyjne</h2>
+            <p>
+                Dokumenty, instrukcje oraz przydatne zasoby do pobrania.
+            </p>
+            <a href="#">
+                W przygotowaniu
+            </a>
+        </div>
+
+    </div>
+
+</main>
+
+<footer>
+    Michał Tycjan Grześlak
+</footer>
+
+</body>
+</html>
