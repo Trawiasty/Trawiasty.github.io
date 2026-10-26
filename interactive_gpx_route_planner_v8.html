@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planer Trasy GPX z Wysokościami & Smartwatch Simulator</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Chart.js for Elevation Profile -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Custom scrollbars and full-height layout fixes */
+        #map {
+            height: 100%;
+            width: 100%;
+            z-index: 1;
+        }
+        .leaflet-container {
+            font-family: inherit;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Fix Leaflet popup overflow and styling */
+        .leaflet-popup-content-wrapper {
+            padding: 8px 12px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .leaflet-popup-content {
+            margin: 8px 6px;
+            width: 250px !important;
+        }
+        .leaflet-container a.leaflet-popup-close-button {
+            padding: 4px 4px 0 0;
+            color: #94a3b8;
+            font-size: 16px;
+        }
+        .leaflet-container a.leaflet-popup-close-button:hover {
+            color: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 h-screen flex flex-col font-sans overflow-hidden">
+
+    <header class="bg-slate-900 text-white px-4 py-3 shadow-md flex flex-wrap justify-between items-center z-10 shrink-0 gap-2">
+        <div class="flex items-center space-x-3">
+            <div class="p-2 bg-emerald-600 rounded-lg text-white shadow">
+                <i data-lucide="watch" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-base md:text-lg font-bold tracking-wide">GPX Trail Simulator & Creator</h1>
+                <p class="text-xs text-slate-400 hidden sm:block">Generator ścieżek GPX z symulacją smartwatcha i profilami wysokościowymi</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <button id="clear-btn" class="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md border border-slate-700 transition flex items-center space-x-1">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                <span>Wyczyść</span>
+            </button>
+            <!-- Added GPX Import Button & Hidden File Input -->
+            <input type="file" id="import-gpx-file" accept=".gpx" class="hidden">
+            <button id="import-gpx-btn" class="px-3.5 py-1.5 text-xs font-semibold bg-slate-700 hover:bg-slate-600 text-white rounded-md border border-slate-600 shadow transition flex items-center space-x-1.5">
+                <i data-lucide="upload" class="w-4 h-4"></i>
+                <span>Importuj GPX</span>
+            </button>
+            <button id="export-gpx-btn" class="px-4 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-md shadow transition flex items-center space-x-1.5">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                <span>Eksportuj GPX</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        
+        <!-- Left Sidebar Controls -->
+        <aside class="w-full md:w-96 bg-white border-r border-slate-200 flex flex-col z-20 shadow-lg shrink-0 max-h-[50vh] md:max-h-full">
+            
+            <!-- Parameters Form -->
+            <div class="p-4 border-b border-slate-100 space-y-3 bg-slate-50/50">
+                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1.5">
+                    <i data-lucide="sliders" class="w-4 h-4"></i>
+                    <span>Parametry Marszu i Śledzenia</span>
+                </h2>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-600 mb-1">Czas startu wycieczki</label>
+                        <input type="datetime-local" id="start-time" class="w-full text-xs p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-600 mb-1">Gęstość punktów (m)</label>
+                        <input type="number" id="step-distance" value="3" min="1" max="10" step="0.5" class="w-full text-xs p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-600 mb-1">Prędkość bazowa (km/h)</label>
+                        <input type="number" id="base-speed" value="4.0" step="0.1" min="1" max="8" class="w-full text-xs p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <span id="speed-description" class="text-[10px] text-slate-400" aria-live="polite">Spokojny marsz (rekreacyjny)</span>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-600 mb-1">Szum GPS (Smartwatch)</label>
+                        <div class="flex items-center h-8">
+                            <input type="checkbox" id="gps-noise" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 border-slate-300">
+                            <label for="gps-noise" class="ml-2 text-xs text-slate-600">Mikro-dryf</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="p-3 bg-emerald-900 text-white flex justify-between items-center shrink-0">
+                <div>
+                    <p class="text-[10px] uppercase tracking-wider text-emerald-300 font-semibold">Dystans</p>
+                    <p class="text-lg font-bold" id="stat-distance">0.00 km</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-[10px] uppercase tracking-wider text-emerald-300 font-semibold">Czas marszu</p>
+                    <p class="text-lg font-bold" id="stat-time">0h 0m</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] uppercase tracking-wider text-emerald-300 font-semibold">Suma podejść</p>
+                    <p class="text-lg font-bold" id="stat-ascent">0 m</p>
+                </div>
+            </div>
+
+            <!-- Notice Banner -->
+            <div class="p-2.5 border-b border-slate-100 bg-amber-50 text-amber-800 text-xs flex items-start space-x-2">
+                <i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5 text-amber-600"></i>
+                <p>Klikaj na mapie, aby dodawać punkty trasy lub wgraj plik GPX. Przeciągaj punkty, aby je edytować.</p>
+            </div>
+
+            <!-- Waypoints List Container (Targeted safely in JS) -->
+            <div class="flex-1 overflow-y-auto p-3 space-y-2" id="waypoints-list">
+                <div class="text-center py-8 text-slate-400 text-xs" id="empty-state">
+                    Brak punktów na mapie.<br>Kliknij na mapie, aby rozpocząć planowanie trasy.
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Map Display & Chart Drawer -->
+        <main class="flex-1 flex flex-col relative overflow-hidden">
+            <div class="flex-1 relative">
+                <div id="map"></div>
+                
+                <!-- Map Layer Switcher -->
+                <div class="absolute bottom-4 right-4 z-[500] bg-white/90 backdrop-blur-md px-3 py-2 rounded-lg shadow-md border border-slate-200 text-xs space-y-1">
+                    <span class="font-bold text-slate-700 block mb-1">Podkład mapowy:</span>
+                    <label class="flex items-center space-x-1.5 cursor-pointer">
+                        <input type="radio" name="map-layer" value="opentopo" checked class="text-emerald-600 focus:ring-emerald-500">
+                        <span>OpenTopoMap (Topograficzna)</span>
+                    </label>
+                    <label class="flex items-center space-x-1.5 cursor-pointer">
+                        <input type="radio" name="map-layer" value="osm" class="text-emerald-600 focus:ring-emerald-500">
+                        <span>OpenStreetMap France (Standard)</span>
+                    </label>
+                    <label class="flex items-center space-x-1.5 cursor-pointer">
+                        <input type="radio" name="map-layer" value="carto" class="text-emerald-600 focus:ring-emerald-500">
+                        <span>Esri World Topo (Terenowa)</span>
+                    </label>
+                    <label class="flex items-center space-x-1.5 cursor-pointer">
+                        <input type="radio" name="map-layer" value="ortho" class="text-emerald-600 focus:ring-emerald-500">
+                        <span>Ortofotomapa (Esri World Imagery)</span>
+                    </label>
+                </div>
+                
+                <!-- Loading Indicator Overlay -->
+                <div id="loading-spinner" class="hidden absolute top-4 right-4 z-[500] bg-slate-900/80 text-white px-3 py-2 rounded-md text-xs flex items-center space-x-2 shadow-lg">
+                    <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-emerald-400"></i>
+                    <span>Pobieranie danych wysokościowych...</span>
+                </div>
+            </div>
+
+            <!-- Elevation Profile Drawer Bottom Panel -->
+            <div id="elevation-panel" class="h-36 bg-white border-t border-slate-200 p-2 z-10 shrink-0 hidden relative">
+                <div class="flex justify-between items-center mb-1 px-2">
+                    <span class="text-xs font-bold text-slate-600 flex items-center gap-1">
+                        <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-600"></i>
+                        Profil Wysokościowy Trasy
+                    </span>
+                    <button id="close-elevation-btn" title="Zamknij profil wysokościowy" aria-label="Zamknij profil wysokościowy" class="text-slate-400 hover:text-slate-600 text-xs">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div class="h-24 w-full">
+                    <canvas id="elevationChart"></canvas>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // State variables
+        let waypoints = []; // Array of control points: { id, lat, lng, ele, time, title }
+        let denseTrack = []; // High density smartwatch points co 2-4m: { lat, lng, ele, time, distFromStart }
+        let markers = [];
+        let routePolyline = null;
+        let densePolyline = null;
+        let map = null;
+        let elevationChart = null;
+
+        // Base tile layers
+        const tileLayers = {
+            opentopo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                maxZoom: 17,
+                attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
+            }),
+            osm: L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Tiles: <a href="https://www.openstreetmap.fr/">OSM France</a>'
+            }),
+            carto: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 19,
+                attribution: 'Tiles &copy; Esri, HERE, Garmin, USGS, and contributors'
+            }),
+            ortho: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 19,
+                attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics, and other contributors'
+            })
+        };
+
+        // Initialize App on DOM Ready
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+            initDefaultDateTime();
+            initMap();
+            initElevationChart();
+            bindEvents();
+            updateSpeedDescription();
+        });
+
+        function updateSpeedDescription() {
+            const speed = Number(document.getElementById('base-speed')?.value);
+            const label = document.getElementById('speed-description');
+            if (!label) return;
+            if (!Number.isFinite(speed) || speed < 1 || speed > 8) {
+                label.textContent = 'Wybierz prędkość od 1 do 8 km/h';
+            } else if (speed < 2.5) {
+                label.textContent = 'Bardzo wolny spacer';
+            } else if (speed < 3.5) {
+                label.textContent = 'Spokojny spacer';
+            } else if (speed < 4.5) {
+                label.textContent = 'Marsz rekreacyjny – początkujący piechur';
+            } else if (speed < 5.5) {
+                label.textContent = 'Żwawy marsz';
+            } else if (speed < 6.5) {
+                label.textContent = 'Bardzo szybki marsz';
+            } else if (speed < 7.5) {
+                label.textContent = 'Marsz sportowy';
+            } else {
+                label.textContent = 'Tempo sportowe – bardzo szybki marsz / trucht';
+            }
+        }
+
+        function initDefaultDateTime() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const dateTimeInput = document.getElementById('start-time');
+            if (dateTimeInput) {
+                dateTimeInput.value = now.toISOString().slice(0, 16);
+            }
+        }
+
+        // Initialize Leaflet Map centered over Polish Tatras / Mountains region
+        function initMap() {
+            map = L.map('map', {
+                center: [49.2700, 19.9800],
+                zoom: 13,
+                layers: [tileLayers.opentopo]
+            });
+
+            locateDeviceOnStartup();
+
+            // Map Click -> Add Control Point
+            map.on('click', async (e) => {
+                await addWaypoint(e.latlng.lat, e.latlng.lng);
+            });
+
+            // Layer Toggle Event
+            document.querySelectorAll('input[name="map-layer"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    Object.values(tileLayers).forEach(layer => map.removeLayer(layer));
+                    if (tileLayers[e.target.value]) {
+                        tileLayers[e.target.value].addTo(map);
+                    }
+                });
+            });
+        }
+
+        // Center the initial map view on the device location when permission is granted.
+        function locateDeviceOnStartup() {
+            if (!navigator.geolocation) {
+                console.info('Geolokalizacja nie jest dostępna w tej przeglądarce.');
+                return;
+            }
+            let userMovedMap = false;
+            const markInteraction = () => { userMovedMap = true; };
+            map.on('dragstart zoomstart', markInteraction);
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    map.off('dragstart zoomstart', markInteraction);
+                    if (!userMovedMap && waypoints.length === 0) {
+                        map.setView([position.coords.latitude, position.coords.longitude], 15);
+                    }
+                },
+                error => {
+                    map.off('dragstart zoomstart', markInteraction);
+                    console.info('Nie udało się odczytać lokalizacji urządzenia:', error.message);
+                },
+                { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+            );
+        }
+
+        function getHaversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Earth radius in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        // Naismith's Rule calculation for hiking time
+        function calculateSegmentDuration(distMeters, eleDiffMeters, baseSpeedKmH = 4.0) {
+            const baseSpeedMS = (baseSpeedKmH * 1000) / 3600;
+            let durationSec = distMeters / baseSpeedMS;
+
+            // +10 minutes per 100m elevation gain
+            if (eleDiffMeters > 0) {
+                durationSec += (eleDiffMeters / 100) * 600; 
+            } else if (eleDiffMeters < 0) {
+                const drop = Math.abs(eleDiffMeters);
+                durationSec += (drop / 100) * 120; // +2 min per 100m descent
+            }
+
+            return Math.max(durationSec, distMeters / 2.5);
+        }
+
+        // Fetch elevation from Open-Meteo API
+        async function fetchElevation(lat, lng) {
+            try {
+                showLoading(true);
+                const res = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lng}`);
+                const data = await res.json();
+                if (data && data.elevation && data.elevation.length > 0) {
+                    return Math.round(data.elevation[0]);
+                }
+            } catch (err) {
+                console.warn("Elevation API fetch failed, fallback to 200m", err);
+            } finally {
+                showLoading(false);
+            }
+            return 200;
+        }
+
+        async function fetchBatchElevations(coordinates) {
+            if (coordinates.length === 0) return [];
+            try {
+                showLoading(true);
+                const lats = coordinates.map(c => c.lat.toFixed(5)).join(',');
+                const lngs = coordinates.map(c => c.lng.toFixed(5)).join(',');
+                const res = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lats}&longitude=${lngs}`);
+                const data = await res.json();
+                if (data && data.elevation) {
+                    return data.elevation;
+                }
+            } catch (err) {
+                console.warn("Batch elevation fetch failed", err);
+            } finally {
+                showLoading(false);
+            }
+            return coordinates.map(() => 200);
+        }
+
+        function showLoading(show) {
+            const el = document.getElementById('loading-spinner');
+            if (el) {
+                if (show) el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            }
+        }
+
+        async function addWaypoint(lat, lng) {
+            const ele = await fetchElevation(lat, lng);
+            const id = Date.now() + Math.random().toString(36).substr(2, 4);
+            waypoints.push({ id, lat, lng, ele, title: `Punkt ${waypoints.length + 1}` });
+            await recalculateFullRoute();
+        }
+
+        async function updateWaypointPos(id, lat, lng) {
+            const wp = waypoints.find(w => w.id === id);
+            if (!wp) return;
+            wp.lat = lat;
+            wp.lng = lng;
+            wp.ele = await fetchElevation(lat, lng);
+            await recalculateFullRoute();
+        }
+
+        async function removeWaypoint(id) {
+            waypoints = waypoints.filter(w => w.id !== id);
+            await recalculateFullRoute();
+        }
+
+        async function recalculateFullRoute() {
+            if (waypoints.length === 0) {
+                denseTrack = [];
+                renderMapElements();
+                renderWaypointsList();
+                updateStats();
+                updateChart();
+                return;
+            }
+
+            const startTimeInput = document.getElementById('start-time')?.value;
+            const startTime = startTimeInput ? new Date(startTimeInput) : new Date();
+            const stepDist = parseFloat(document.getElementById('step-distance')?.value) || 3.0;
+            const baseSpeed = parseFloat(document.getElementById('base-speed')?.value) || 4.0;
+            const addNoise = document.getElementById('gps-noise')?.checked || false;
+
+            let currentTime = new Date(startTime.getTime());
+            waypoints[0].time = new Date(currentTime.getTime());
+
+            for (let i = 1; i < waypoints.length; i++) {
+                const prev = waypoints[i - 1];
+                const curr = waypoints[i];
+                const dist = getHaversineDistance(prev.lat, prev.lng, curr.lat, curr.lng);
+                const eleDiff = curr.ele - prev.ele;
+                const durationSec = calculateSegmentDuration(dist, eleDiff, baseSpeed);
+                
+                currentTime = new Date(currentTime.getTime() + durationSec * 1000);
+                curr.time = new Date(currentTime.getTime());
+            }
+
+            let newDenseTrack = [];
+            let cumulativeDistMeters = 0;
+
+            for (let i = 0; i < waypoints.length - 1; i++) {
+                const startWp = waypoints[i];
+                const endWp = waypoints[i + 1];
+
+                const segDist = getHaversineDistance(startWp.lat, startWp.lng, endWp.lat, endWp.lng);
+                const numSteps = Math.max(1, Math.floor(segDist / stepDist));
+                const timeSpanMs = endWp.time.getTime() - startWp.time.getTime();
+
+                for (let step = 0; step < numSteps; step++) {
+                    const ratio = step / numSteps;
+                    let lat = startWp.lat + (endWp.lat - startWp.lat) * ratio;
+                    let lng = startWp.lng + (endWp.lng - startWp.lng) * ratio;
+                    
+                    if (addNoise && step > 0) {
+                        lat += (Math.random() - 0.5) * 0.00003;
+                        lng += (Math.random() - 0.5) * 0.00003;
+                    }
+
+                    const interpolatedTime = new Date(startWp.time.getTime() + timeSpanMs * ratio);
+                    const currentPointDist = cumulativeDistMeters + (segDist * ratio);
+
+                    newDenseTrack.push({
+                        lat,
+                        lng,
+                        ele: Math.round(startWp.ele + (endWp.ele - startWp.ele) * ratio),
+                        time: interpolatedTime,
+                        distFromStart: currentPointDist
+                    });
+                }
+                cumulativeDistMeters += segDist;
+            }
+
+            const lastWp = waypoints[waypoints.length - 1];
+            newDenseTrack.push({
+                lat: lastWp.lat,
+                lng: lastWp.lng,
+                ele: lastWp.ele,
+                time: new Date(lastWp.time.getTime()),
+                distFromStart: cumulativeDistMeters
+            });
+
+            if (newDenseTrack.length > 0 && newDenseTrack.length < 150) {
+                const elevations = await fetchBatchElevations(newDenseTrack);
+                newDenseTrack.forEach((pt, idx) => {
+                    if (elevations[idx] !== undefined) pt.ele = Math.round(elevations[idx]);
+                });
+            }
+
+            denseTrack = newDenseTrack;
+
+            renderMapElements();
+            renderWaypointsList();
+            updateStats();
+            updateChart();
+        }
+
+        // Import and parse GPX file
+        async function handleGPXImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const text = e.target.result;
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(text, 'text/xml');
+                
+                const importedWaypoints = [];
+                
+                // 1. Try reading Waypoints (<wpt>)
+                const wpts = xmlDoc.getElementsByTagName('wpt');
+                if (wpts.length > 0) {
+                    for (let i = 0; i < wpts.length; i++) {
+                        const wpt = wpts[i];
+                        const lat = parseFloat(wpt.getAttribute('lat'));
+                        const lon = parseFloat(wpt.getAttribute('lon'));
+                        const eleNode = wpt.getElementsByTagName('ele')[0];
+                        const ele = eleNode ? parseFloat(eleNode.textContent) : null;
+                        if (!isNaN(lat) && !isNaN(lon)) {
+                            importedWaypoints.push({ lat, lng: lon, ele });
+                        }
+                    }
+                } 
+                
+                // 2. Fallback/Alternative: Read Trackpoints (<trkpt>) if no wpts or simplify trackpoints
+                if (importedWaypoints.length === 0) {
+                    const trkpts = xmlDoc.getElementsByTagName('trkpt');
+                    if (trkpts.length > 0) {
+                        // Sample trackpoints down to manageable control points (e.g. approx every 15-20 points)
+                        const totalPts = trkpts.length;
+                        const sampleStep = Math.max(1, Math.floor(totalPts / 15));
+                        
+                        for (let i = 0; i < totalPts; i += sampleStep) {
+                            const pt = trkpts[i];
+                            const lat = parseFloat(pt.getAttribute('lat'));
+                            const lon = parseFloat(pt.getAttribute('lon'));
+                            const eleNode = pt.getElementsByTagName('ele')[0];
+                            const ele = eleNode ? parseFloat(eleNode.textContent) : null;
+                            if (!isNaN(lat) && !isNaN(lon)) {
+                                importedWaypoints.push({ lat, lng: lon, ele });
+                            }
+                        }
+                        
+                        // Ensure last trackpoint is included
+                        const lastPt = trkpts[totalPts - 1];
+                        const lastLat = parseFloat(lastPt.getAttribute('lat'));
+                        const lastLon = parseFloat(lastPt.getAttribute('lon'));
+                        const lastEleNode = lastPt.getElementsByTagName('ele')[0];
+                        const lastEle = lastEleNode ? parseFloat(lastEleNode.textContent) : null;
+                        if (importedWaypoints[importedWaypoints.length - 1]?.lat !== lastLat) {
+                            importedWaypoints.push({ lat: lastLat, lng: lastLon, ele: lastEle });
+                        }
+                    }
+                }
+
+                if (importedWaypoints.length === 0) {
+                    alert('Nie udało się odczytać prawidłowych punktów trasy z wybranego pliku GPX.');
+                    event.target.value = '';
+                    return;
+                }
+
+                // Check missing elevations and fetch if needed
+                showLoading(true);
+                waypoints = [];
+                const coordsNeedingEle = [];
+
+                for (let i = 0; i < importedWaypoints.length; i++) {
+                    const pt = importedWaypoints[i];
+                    const id = Date.now() + Math.random().toString(36).substr(2, 4) + i;
+                    const wpTitle = pt.name || `Punkt ${i + 1}`;
+                    if (pt.ele === null || isNaN(pt.ele)) {
+                        coordsNeedingEle.push({ index: i, lat: pt.lat, lng: pt.lng });
+                        waypoints.push({ id, lat: pt.lat, lng: pt.lng, ele: 200, title: wpTitle });
+                    } else {
+                        waypoints.push({ id, lat: pt.lat, lng: pt.lng, ele: Math.round(pt.ele), title: wpTitle });
+                    }
+                }
+
+                // Fetch missing elevations in batch if any
+                if (coordsNeedingEle.length > 0) {
+                    const fetchedElevations = await fetchBatchElevations(coordsNeedingEle);
+                    coordsNeedingEle.forEach((item, idx) => {
+                        if (fetchedElevations[idx] !== undefined) {
+                            waypoints[item.index].ele = Math.round(fetchedElevations[idx]);
+                        }
+                    });
+                }
+
+                showLoading(false);
+
+                // Fit map view to imported bounds
+                if (waypoints.length > 0) {
+                    const bounds = L.latLngBounds(waypoints.map(w => [w.lat, w.lng]));
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                }
+
+                await recalculateFullRoute();
+                event.target.value = '';
+            };
+
+            reader.readAsText(file);
+        }
+
+        function renderMapElements() {
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+            if (routePolyline) map.removeLayer(routePolyline);
+            if (densePolyline) map.removeLayer(densePolyline);
+
+            if (waypoints.length === 0) return;
+
+            const denseLatLngs = denseTrack.map(pt => [pt.lat, pt.lng]);
+            densePolyline = L.polyline(denseLatLngs, {
+                color: '#059669',
+                weight: 4,
+                opacity: 0.85,
+                lineCap: 'round',
+                lineJoin: 'round'
+            }).addTo(map);
+
+            waypoints.forEach((wp, index) => {
+                const isStart = index === 0;
+                const isEnd = index === waypoints.length - 1;
+
+                let markerColor = '#dc2626';
+                if (isStart) markerColor = '#16a34a';
+                else if (isEnd) markerColor = '#2563eb';
+
+                const customIcon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div style="background-color: ${markerColor}; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.4);">
+                            ${index + 1}
+                           </div>`,
+                    iconSize: [26, 26],
+                    iconAnchor: [13, 13]
+                });
+
+                const marker = L.marker([wp.lat, wp.lng], {
+                    icon: customIcon,
+                    draggable: true
+                }).addTo(map);
+
+                const timeStr = wp.time ? wp.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                const isoTime = wp.time ? wp.time.toISOString() : new Date().toISOString();
+                
+                // Calculate distance from previous point and cumulative distance
+                let prevDistStr = '--';
+                let totalDistStr = '0.00 km';
+                
+                if (index > 0) {
+                    const prevWp = waypoints[index - 1];
+                    const legDist = getHaversineDistance(prevWp.lat, prevWp.lng, wp.lat, wp.lng);
+                    prevDistStr = legDist >= 1000 ? (legDist / 1000).toFixed(2) + ' km' : Math.round(legDist) + ' m';
+                }
+                
+                if (denseTrack.length > 0) {
+                    const trackPt = denseTrack.find(pt => Math.abs(pt.lat - wp.lat) < 0.0001 && Math.abs(pt.lng - wp.lng) < 0.0001);
+                    if (trackPt) {
+                        totalDistStr = (trackPt.distFromStart / 1000).toFixed(2) + ' km';
+                    }
+                }
+
+                const currentTitle = wp.title || `Punkt ${index + 1}`;
+
+                // Custom popup structure with title editing & JSON export capabilities
+                const popupContent = `
+                    <div class="font-sans">
+                        <div class="flex justify-between items-center border-b border-slate-200 pb-2 mb-2 pr-4">
+                            <span class="font-bold text-slate-800 text-xs flex items-center gap-1.5 truncate">
+                                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${markerColor}"></span>
+                                Punkt Trasy #${index + 1}
+                            </span>
+                        </div>
+
+                        <!-- Editable Title / Description Field -->
+                        <div class="mb-2">
+                            <label class="block text-[10px] font-semibold text-slate-500 uppercase tracking-tight mb-1">Tytuł / Opis punktu</label>
+                            <input type="text" id="popup-title-input-${wp.id}" value="${currentTitle.replace(/"/g, '&quot;')}" 
+                                   class="w-full text-xs p-1.5 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 focus:outline-none text-slate-800 font-medium" 
+                                   placeholder="Wpisz nazwę punktu...">
+                        </div>
+
+                        <div class="space-y-1.5 text-xs">
+                            <div class="flex justify-between items-center gap-2">
+                                <span class="text-slate-500 font-medium">Planowany czas:</span>
+                                <span class="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded text-[11px] shrink-0">${timeStr}</span>
+                            </div>
+                            <div class="flex justify-between items-center gap-2">
+                                <span class="text-slate-500 font-medium">Wysokość n.p.m.:</span>
+                                <span class="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-[11px] shrink-0">${wp.ele} m</span>
+                            </div>
+                            <div class="flex justify-between items-center gap-2">
+                                <span class="text-slate-500 font-medium">Dystans od startu:</span>
+                                <span class="font-semibold text-slate-700 text-[11px] shrink-0">${totalDistStr}</span>
+                            </div>
+                            ${index > 0 ? `
+                            <div class="flex justify-between items-center gap-2">
+                                <span class="text-slate-500 font-medium">Odcinek od poprz.:</span>
+                                <span class="font-semibold text-slate-700 text-[11px] shrink-0">${prevDistStr}</span>
+                            </div>` : ''}
+                            <div class="pt-1 mt-1 border-t border-slate-100 text-[10px] text-slate-400 font-mono text-center tracking-tight">
+                                ${wp.lat.toFixed(5)}, ${wp.lng.toFixed(5)}
+                            </div>
+                        </div>
+
+                        <!-- JSON Export Action Controls -->
+                        <div class="mt-2.5 pt-2 border-t border-slate-200 flex space-x-1.5">
+                            <button id="popup-export-json-btn-${wp.id}" class="flex-1 py-1 px-2 bg-slate-800 hover:bg-slate-700 text-white rounded text-[10px] font-semibold transition flex items-center justify-center space-x-1">
+                                <i data-lucide="file-json" class="w-3 h-3"></i>
+                                <span>Pobierz JSON</span>
+                            </button>
+                            <button id="popup-copy-json-btn-${wp.id}" class="py-1 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded text-[10px] font-semibold transition flex items-center justify-center" title="Kopiuj JSON do schowka" aria-label="Kopiuj JSON do schowka">
+                                <i data-lucide="copy" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent, {
+                    closeButton: true,
+                    minWidth: 240,
+                    maxWidth: 260,
+                    className: 'custom-wp-popup'
+                });
+
+                // Attach event listeners after popup opens
+                marker.on('popupopen', () => {
+                    if (window.lucide) lucide.createIcons();
+
+                    const titleInput = document.getElementById(`popup-title-input-${wp.id}`);
+                    const exportBtn = document.getElementById(`popup-export-json-btn-${wp.id}`);
+                    const copyBtn = document.getElementById(`popup-copy-json-btn-${wp.id}`);
+
+                    if (titleInput) {
+                        titleInput.addEventListener('input', (e) => {
+                            wp.title = e.target.value;
+                            renderWaypointsList();
+                        });
+                    }
+
+                    // Helper function to build JSON payload according to spec
+                    const generatePointJSON = () => {
+                        const currentTitleVal = wp.title || `Punkt ${index + 1}`;
+                        const jsonPayload = {
+                            lat: parseFloat(wp.lat.toFixed(6)),
+                            lng: parseFloat(wp.lng.toFixed(6)),
+                            elevation: wp.ele,
+                            datetime: isoTime,
+                            description: currentTitleVal,
+                            artist: "GPX Trail Creator",
+                            copyright: `© ${new Date().getFullYear()} GPX Trail Creator`,
+                            make: "Smartwatch Simulator",
+                            model: "Trail Tracker v1.0",
+                            software: "GPX Trail Creator App"
+                        };
+                        return JSON.stringify(jsonPayload, null, 2);
+                    };
+
+                    if (exportBtn) {
+                        exportBtn.addEventListener('click', () => {
+                            const jsonStr = generatePointJSON();
+                            const blob = new Blob([jsonStr], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `punkt_${index + 1}_${(wp.title || 'waypoint').replace(/\s+/g, '_')}.json`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                        });
+                    }
+
+                    if (copyBtn) {
+                        copyBtn.addEventListener('click', () => {
+                            const jsonStr = generatePointJSON();
+                            const textarea = document.createElement('textarea');
+                            textarea.value = jsonStr;
+                            document.body.appendChild(textarea);
+                            textarea.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(textarea);
+
+                            copyBtn.classList.remove('bg-slate-100', 'text-slate-700');
+                            copyBtn.classList.add('bg-emerald-600', 'text-white');
+                            setTimeout(() => {
+                                copyBtn.classList.remove('bg-emerald-600', 'text-white');
+                                copyBtn.classList.add('bg-slate-100', 'text-slate-700');
+                            }, 1200);
+                        });
+                    }
+                });
+
+                marker.on('dragend', async (e) => {
+                    const newLatLng = e.target.getLatLng();
+                    await updateWaypointPos(wp.id, newLatLng.lat, newLatLng.lng);
+                });
+
+                markers.push(marker);
+            });
+        }
+
+        // FIXED: Safe DOM element access to avoid TypeError classList of null
+        function renderWaypointsList() {
+            const container = document.getElementById('waypoints-list');
+            if (!container) return; // Guard clause
+
+            const emptyState = document.getElementById('empty-state');
+
+            if (waypoints.length === 0) {
+                container.innerHTML = '';
+                if (emptyState) {
+                    container.appendChild(emptyState);
+                    emptyState.classList.remove('hidden');
+                } else {
+                    container.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs" id="empty-state">
+                        Brak punktów na mapie.<br>Kliknij na mapie, aby rozpocząć planowanie trasy.
+                    </div>`;
+                }
+                return;
+            }
+
+            if (emptyState) {
+                emptyState.classList.add('hidden');
+            }
+            
+            container.innerHTML = '';
+
+            waypoints.forEach((wp, idx) => {
+                const timeStr = wp.time ? wp.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                const displayTitle = wp.title || `Punkt ${idx + 1}`;
+                
+                const item = document.createElement('div');
+                item.className = 'bg-slate-50 border border-slate-200 hover:border-emerald-400 rounded-lg p-2.5 flex items-center justify-between text-xs transition shadow-sm';
+                item.innerHTML = `
+                    <div class="flex items-center space-x-2.5 overflow-hidden">
+                        <span class="w-5 h-5 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                            ${idx + 1}
+                        </span>
+                        <div class="truncate">
+                            <div class="font-semibold text-slate-800 flex items-center space-x-1.5 truncate">
+                                <span class="truncate" title="${displayTitle.replace(/"/g, '&quot;')}">${displayTitle}</span>
+                                <span class="text-slate-400 font-normal">(${timeStr})</span>
+                            </div>
+                            <div class="text-[10px] text-slate-500 flex items-center space-x-2 mt-0.5">
+                                <span class="text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded font-semibold text-[9px]">${wp.ele} m n.p.m.</span>
+                                <span class="font-mono text-slate-400 text-[9px]">${wp.lat.toFixed(4)}, ${wp.lng.toFixed(4)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button data-id="${wp.id}" class="delete-wp-btn p-1 text-slate-400 hover:text-red-500 rounded transition shrink-0" title="Usuń punkt" aria-label="Usuń punkt">
+                        <i data-lucide="x" class="w-4 h-4 pointer-events-none"></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+
+            // Delegate delete button events
+            container.querySelectorAll('.delete-wp-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.target.getAttribute('data-id');
+                    if (id) removeWaypoint(id);
+                });
+            });
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function updateStats() {
+            const distEl = document.getElementById('stat-distance');
+            const timeEl = document.getElementById('stat-time');
+            const ascentEl = document.getElementById('stat-ascent');
+
+            if (waypoints.length < 2) {
+                if (distEl) distEl.innerText = '0.00 km';
+                if (timeEl) timeEl.innerText = '0h 0m';
+                if (ascentEl) ascentEl.innerText = '0 m';
+                return;
+            }
+
+            let totalMeters = 0;
+            let totalAscent = 0;
+
+            for (let i = 1; i < denseTrack.length; i++) {
+                const p1 = denseTrack[i - 1];
+                const p2 = denseTrack[i];
+                totalMeters += getHaversineDistance(p1.lat, p1.lng, p2.lat, p2.lng);
+
+                const eleDiff = p2.ele - p1.ele;
+                if (eleDiff > 0) totalAscent += eleDiff;
+            }
+
+            const startTime = waypoints[0].time;
+            const endTime = waypoints[waypoints.length - 1].time;
+            const durationMs = endTime.getTime() - startTime.getTime();
+
+            const hours = Math.floor(durationMs / (1000 * 60 * 60));
+            const minutes = Math.round((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+
+            if (distEl) distEl.innerText = (totalMeters / 1000).toFixed(2) + ' km';
+            if (timeEl) timeEl.innerText = `${hours}h ${minutes}m`;
+            if (ascentEl) ascentEl.innerText = Math.round(totalAscent) + ' m';
+        }
+
+        function initElevationChart() {
+            const ctx = document.getElementById('elevationChart')?.getContext('2d');
+            if (!ctx) return;
+
+            elevationChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Wysokość (m n.p.m.)',
+                        data: [],
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.15)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: { display: true, text: 'Dystans (km)', font: { size: 10 } },
+                            ticks: { font: { size: 9 } }
+                        },
+                        y: {
+                            display: true,
+                            title: { display: true, text: 'Wysokość (m)', font: { size: 10 } },
+                            ticks: { font: { size: 9 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart() {
+            const panel = document.getElementById('elevation-panel');
+            if (!elevationChart || !panel) return;
+
+            if (denseTrack.length < 2) {
+                panel.classList.add('hidden');
+                return;
+            }
+
+            panel.classList.remove('hidden');
+
+            const sampleRate = Math.max(1, Math.floor(denseTrack.length / 80));
+            const sampled = denseTrack.filter((_, idx) => idx % sampleRate === 0);
+
+            elevationChart.data.labels = sampled.map(pt => (pt.distFromStart / 1000).toFixed(2));
+            elevationChart.data.datasets[0].data = sampled.map(pt => pt.ele);
+            elevationChart.update();
+        }
+
+        function exportGPX() {
+            if (denseTrack.length === 0) {
+                alert('Dodaj najpierw punkty na mapie, aby wyeksportować plik GPX.');
+                return;
+            }
+
+            const routeName = `Trasa Wycieczkowa ${new Date().toLocaleDateString('pl-PL')}`;
+            
+            let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+            gpx += `<gpx version="1.1" creator="GPX Smartwatch Simulator App" xmlns="http://www.topografix.com/GPX/1/1">\n`;
+            gpx += `  <metadata>\n`;
+            gpx += `    <name>${routeName}</name>\n`;
+            gpx += `    <time>${new Date().toISOString()}</time>\n`;
+            gpx += `  </metadata>\n`;
+
+            waypoints.forEach((wp, i) => {
+                gpx += `  <wpt lat="${wp.lat}" lon="${wp.lng}">\n`;
+                gpx += `    <ele>${wp.ele}</ele>\n`;
+                gpx += `    <time>${wp.time ? wp.time.toISOString() : new Date().toISOString()}</time>\n`;
+                gpx += `    <name>Punkt ${i + 1}</name>\n`;
+                gpx += `    <sym>Generic</sym>\n`;
+                gpx += `  </wpt>\n`;
+            });
+
+            gpx += `  <trk>\n`;
+            gpx += `    <name>${routeName}</name>\n`;
+            gpx += `    <trkseg>\n`;
+            
+            denseTrack.forEach(pt => {
+                gpx += `      <trkpt lat="${pt.lat.toFixed(6)}" lon="${pt.lng.toFixed(6)}">\n`;
+                gpx += `        <ele>${pt.ele}</ele>\n`;
+                gpx += `        <time>${pt.time.toISOString()}</time>\n`;
+                gpx += `      </trkpt>\n`;
+            });
+
+            gpx += `    </trkseg>\n`;
+            gpx += `  </trk>\n`;
+            gpx += `</gpx>`;
+
+            const blob = new Blob([gpx], { type: 'application/gpx+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `trasa_${new Date().toISOString().slice(0, 10)}.gpx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function bindEvents() {
+            document.getElementById('export-gpx-btn')?.addEventListener('click', exportGPX);
+            
+            // GPX Import bindings
+            const importFileEl = document.getElementById('import-gpx-file');
+            document.getElementById('import-gpx-btn')?.addEventListener('click', () => {
+                importFileEl?.click();
+            });
+            importFileEl?.addEventListener('change', handleGPXImport);
+
+            document.getElementById('clear-btn')?.addEventListener('click', () => {
+                if (waypoints.length > 0) {
+                    waypoints = [];
+                    recalculateFullRoute();
+                }
+            });
+
+            document.getElementById('close-elevation-btn')?.addEventListener('click', () => {
+                document.getElementById('elevation-panel')?.classList.add('hidden');
+            });
+
+            document.getElementById('start-time')?.addEventListener('change', recalculateFullRoute);
+            document.getElementById('step-distance')?.addEventListener('change', recalculateFullRoute);
+            document.getElementById('base-speed')?.addEventListener('input', updateSpeedDescription);
+            document.getElementById('base-speed')?.addEventListener('change', recalculateFullRoute);
+            document.getElementById('gps-noise')?.addEventListener('change', recalculateFullRoute);
+        }
+    </script>
+</body>
+</html>
