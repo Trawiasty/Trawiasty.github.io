@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="pl" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edytor Metadanych EXIF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- piexifjs for reading/modifying EXIF data natively in JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
+    <!-- Leaflet CSS & JS for Interactive Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        #map { height: 200px; border-radius: 0.75rem; z-index: 1; }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased bg-slate-900 text-slate-100">
+
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-indigo-600 rounded-lg text-white">
+                    <i class="fa-solid fa-camera-retro text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">EXIF Master Pro</h1>
+                    <p class="text-xs text-slate-400">Edytor i Czyszczenie Metadanych Zdjęć</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <button id="btn-download" disabled class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors flex items-center space-x-2">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Pobierz Zdjęcie</span>
+                </button>
+                <button id="btn-strip" disabled class="px-4 py-2 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors flex items-center space-x-2" title="Usuń wszystkie dane EXIF">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span class="hidden sm:inline">Usuń EXIF</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 overflow-hidden">
+        
+        <!-- Left Panel: Upload & Image Preview -->
+        <section class="lg:w-1/2 flex flex-col gap-4">
+            <!-- Dropzone / Image Display -->
+            <div id="dropzone" class="relative flex-1 min-h-[350px] border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-800/50 rounded-2xl flex flex-col items-center justify-center p-6 transition-all cursor-pointer group overflow-hidden">
+                <input type="file" id="file-input" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/tiff,image/bmp" class="hidden">
+                
+                <!-- Empty State -->
+                <div id="dropzone-empty" class="flex flex-col items-center text-center space-y-4">
+                    <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-cloud-arrow-up text-3xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-lg font-semibold text-slate-200">Przeciągnij i upuść zdjęcie tutaj</p>
+                        <p class="text-sm text-slate-400 mt-1">lub kliknij, aby wybrać z dysku</p>
+                    </div>
+                    <span class="text-xs text-slate-500 uppercase tracking-wider">Obsługiwane formaty: JPG, PNG, WEBP, GIF, TIFF, BMP</span>
+                </div>
+
+                <!-- Preview State -->
+                <div id="dropzone-preview" class="hidden absolute inset-0 flex items-center justify-center bg-slate-950/80 p-2">
+                    <img id="image-preview" src="" alt="Podgląd zdjęcia" class="max-h-full max-w-full object-contain rounded-lg shadow-2xl">
+                    <button id="btn-change-image" class="absolute top-4 right-4 bg-slate-900/80 hover:bg-slate-800 text-slate-200 p-2 rounded-lg backdrop-blur border border-slate-700 transition-colors" title="Zmień zdjęcie">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Image Basic Quick Stats -->
+            <div id="quick-stats" class="grid grid-cols-3 gap-3 hidden">
+                <div class="bg-slate-800/60 border border-slate-800 p-3 rounded-xl text-center">
+                    <span class="text-xs text-slate-400 block">Nazwa pliku</span>
+                    <span id="stat-filename" class="text-sm font-semibold truncate block text-slate-200">-</span>
+                </div>
+                <div class="bg-slate-800/60 border border-slate-800 p-3 rounded-xl text-center">
+                    <span class="text-xs text-slate-400 block">Wymiary</span>
+                    <span id="stat-dimensions" class="text-sm font-semibold truncate block text-slate-200">-</span>
+                </div>
+                <div class="bg-slate-800/60 border border-slate-800 p-3 rounded-xl text-center">
+                    <span class="text-xs text-slate-400 block">Rozmiar</span>
+                    <span id="stat-filesize" class="text-sm font-semibold truncate block text-slate-200">-</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Panel: EXIF Metadata Tabs & Form -->
+        <section class="lg:w-1/2 flex flex-col bg-slate-800/40 border border-slate-800 rounded-2xl overflow-hidden">
+            
+            <!-- Navigation Tabs -->
+            <div class="flex border-b border-slate-800 bg-slate-800/80">
+                <button id="tab-btn-edit" class="tab-btn flex-1 py-3 px-4 text-sm font-medium text-center border-b-2 border-indigo-500 text-indigo-400 flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>Edycja EXIF</span>
+                </button>
+                <button id="tab-btn-raw" class="tab-btn flex-1 py-3 px-4 text-sm font-medium text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-code"></i>
+                    <span>Surowe Dane</span>
+                </button>
+            </div>
+
+            <!-- Tab Content: Editable Form -->
+            <div id="tab-content-edit" class="flex-1 p-6 overflow-y-auto custom-scrollbar space-y-6">
+                <div id="no-file-notice" class="h-full flex flex-col items-center justify-center text-center text-slate-500 py-12">
+                    <i class="fa-regular fa-image text-4xl mb-3"></i>
+                    <p>Wczytaj plik graficzny, aby wyświetlić i edytować dane EXIF.</p>
+                </div>
+
+                <form id="exif-form" class="hidden space-y-6">
+                    
+                    <!-- Quick Import Bar -->
+                    <div class="bg-indigo-950/40 border border-indigo-800/50 p-3 rounded-xl flex items-center justify-between gap-2">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-file-import text-indigo-400"></i>
+                            <span class="text-xs font-semibold text-slate-200">Importuj dane z pliku (JSON/CSV)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button type="button" id="btn-info-format" class="text-slate-400 hover:text-indigo-300 p-1 text-sm transition-colors" title="Formatowanie plików importu">
+                                <i class="fa-solid fa-circle-question text-base"></i>
+                            </button>
+                            <label class="cursor-pointer px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors flex items-center space-x-1">
+                                <i class="fa-solid fa-upload"></i>
+                                <span>Wczytaj plik</span>
+                                <input type="file" id="import-file-input" accept=".json,.csv,.txt" class="hidden">
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Section: General Info & Author -->
+                    <div class="space-y-4">
+                        <h3 class="text-xs uppercase tracking-wider font-semibold text-indigo-400 flex items-center gap-2">
+                            <i class="fa-solid fa-user text-sm"></i> Informacje o Autorze i Prawach
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Autor / Fotograf (Artist)</label>
+                                <input type="text" id="exif-artist" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors" placeholder="np. Jan Kowalski">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Prawa Autorskie (Copyright)</label>
+                                <input type="text" id="exif-copyright" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors" placeholder="np. © 2026 Jan Kowalski">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Opis Obrazu (ImageDescription)</label>
+                            <input type="text" id="exif-description" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors" placeholder="Krótki opis zdjęcia...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Oprogramowanie (Software)</label>
+                            <input type="text" id="exif-software" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors" placeholder="np. Adobe Photoshop / EXIF Master">
+                        </div>
+                    </div>
+
+                    <hr class="border-slate-800">
+
+                    <!-- Section: Hardware & Camera -->
+                    <div class="space-y-4">
+                        <h3 class="text-xs uppercase tracking-wider font-semibold text-indigo-400 flex items-center gap-2">
+                            <i class="fa-solid fa-camera text-sm"></i> Aparat i Sprzęt
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Producent Aparatu (Make)</label>
+                                <input type="text" id="exif-make" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors" placeholder="np. Sony, Canon, Nikon">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Model Aparatu (Model)</label>
+                                <input type="text" id="exif-model" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors" placeholder="np. Alpha A7 IV">
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="border-slate-800">
+
+                    <!-- Section: Date and Time -->
+                    <div class="space-y-4">
+                        <h3 class="text-xs uppercase tracking-wider font-semibold text-indigo-400 flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-days text-sm"></i> Data i Czas
+                        </h3>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Data Wykonania (DateTimeOriginal)</label>
+                            <input type="datetime-local" id="exif-datetime" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <hr class="border-slate-800">
+
+                    <!-- Section: Geolocation (GPS) -->
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs uppercase tracking-wider font-semibold text-indigo-400 flex items-center gap-2">
+                                <i class="fa-solid fa-location-dot text-sm"></i> Lokalizacja GPS
+                            </h3>
+                            <button type="button" id="btn-remove-gps" class="text-xs text-rose-400 hover:text-rose-300 transition-colors">
+                                <i class="fa-solid fa-location-crosshairs"></i> Usuń pozycję GPS
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Szerokość geogr. (Latitude)</label>
+                                <input type="number" step="any" id="exif-lat" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors" placeholder="52.2297">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Długość geogr. (Longitude)</label>
+                                <input type="number" step="any" id="exif-lng" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors" placeholder="21.0122">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Wysokość n.p.m. (m)</label>
+                                <input type="number" step="any" id="exif-alt" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors" placeholder="np. 87">
+                            </div>
+                        </div>
+
+                        <!-- Interactive Map -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-xs text-slate-400">
+                                <span>Kliknij na mapie, aby wybrać punkt:</span>
+                                <button type="button" id="btn-current-location" class="text-indigo-400 hover:underline">
+                                    <i class="fa-solid fa-crosshairs"></i> Moja lokalizacja
+                                </button>
+                            </div>
+                            <div id="map" class="w-full bg-slate-950"></div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-800 flex justify-end">
+                        <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 shadow-lg shadow-emerald-900/20">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>Zapisz Zmiany w EXIF</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tab Content: Raw JSON Display -->
+            <div id="tab-content-raw" class="hidden flex-1 p-4 overflow-y-auto custom-scrollbar bg-slate-950 font-mono text-xs">
+                <pre id="raw-exif-output" class="text-slate-300 whitespace-pre-wrap leading-relaxed">Brak danych EXIF do wyświetlenia.</pre>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Format Info Modal -->
+    <div id="format-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-question text-indigo-400"></i>
+                    Formatowanie danych do importu
+                </h3>
+                <button id="btn-close-modal" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs text-slate-300 leading-relaxed max-h-[70vh] overflow-y-auto custom-scrollbar pr-1">
+                <p class="text-emerald-400"><strong>Uwaga:</strong> Nie musisz podawać wszystkich pól! Brakujące dane zostaną po prostu pominięte i zachowają swoje dotychczasowe wartości.</p>
+                
+                <h4 class="font-semibold text-slate-200 mt-2">1. Format JSON (Zalecany):</h4>
+                <pre class="bg-slate-950 p-3 rounded-lg text-indigo-300 border border-slate-800 font-mono text-[11px] overflow-x-auto">{
+  "lat": 52.213458,
+  "lng": 21.03663,
+  "elevation": 87,
+  "datetime": "2026-10-19T12:42:44.913Z",
+  "artist": "GPX Trail Creator",
+  "copyright": "© 2026 GPX Trail Creator",
+  "description": "Punkt 18",
+  "make": "Smartwatch Simulator",
+  "model": "Trail Tracker v1.0",
+  "software": "GPX Trail Creator App"
+}</pre>
+
+                <h4 class="font-semibold text-slate-200 mt-3">2. Format CSV (z nagłówkiem):</h4>
+                <pre class="bg-slate-950 p-3 rounded-lg text-indigo-300 border border-slate-800 font-mono text-[11px] overflow-x-auto">lat,lng,elevation,datetime,artist,description
+52.213458,21.03663,87,"2026-10-19T12:42:44.913Z","Jan Kowalski","Punkt 18"</pre>
+
+                <div class="bg-slate-800/60 p-2.5 rounded-lg border border-slate-700/50 space-y-1">
+                    <strong class="text-slate-200 block">Dostępne pola importu:</strong>
+                    <ul class="list-disc list-inside space-y-0.5 text-slate-400">
+                        <li><code class="text-indigo-300">lat</code> / <code class="text-indigo-300">latitude</code> — szerokość geogr.</li>
+                        <li><code class="text-indigo-300">lng</code> / <code class="text-indigo-300">longitude</code> — długość geogr.</li>
+                        <li><code class="text-indigo-300">elevation</code> / <code class="text-indigo-300">alt</code> / <code class="text-indigo-300">altitude</code> — wysokość n.p.m. (metry)</li>
+                        <li><code class="text-indigo-300">datetime</code> / <code class="text-indigo-300">date</code> — data (w tym ISO 8601, ISO z "Z", YYYY-MM-DD itp.)</li>
+                        <li><code class="text-indigo-300">artist</code>, <code class="text-indigo-300">copyright</code>, <code class="text-indigo-300">description</code></li>
+                        <li><code class="text-indigo-300">make</code>, <code class="text-indigo-300">model</code>, <code class="text-indigo-300">software</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button id="btn-modal-ok" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors">
+                    Rozumiem
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2"></div>
+
+    <script>
+        let currentFileDataUrl = null;
+        let currentExifObj = null;
+        let currentFileName = '';
+        let currentFileType = '';
+        let map = null;
+        let mapMarker = null;
+
+        // DOM Elements
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+        const dropzoneEmpty = document.getElementById('dropzone-empty');
+        const dropzonePreview = document.getElementById('dropzone-preview');
+        const imagePreview = document.getElementById('image-preview');
+        const btnChangeImage = document.getElementById('btn-change-image');
+        const quickStats = document.getElementById('quick-stats');
+        const exifForm = document.getElementById('exif-form');
+        const noFileNotice = document.getElementById('no-file-notice');
+        const rawExifOutput = document.getElementById('raw-exif-output');
+        const btnDownload = document.getElementById('btn-download');
+        const btnStrip = document.getElementById('btn-strip');
+        const btnRemoveGps = document.getElementById('btn-remove-gps');
+        const btnCurrentLocation = document.getElementById('btn-current-location');
+
+        // Import & Modal DOM Elements
+        const importFileInput = document.getElementById('import-file-input');
+        const btnInfoFormat = document.getElementById('btn-info-format');
+        const formatModal = document.getElementById('format-modal');
+        const btnCloseModal = document.getElementById('btn-close-modal');
+        const btnModalOk = document.getElementById('btn-modal-ok');
+
+        // Form Inputs
+        const inputArtist = document.getElementById('exif-artist');
+        const inputCopyright = document.getElementById('exif-copyright');
+        const inputDescription = document.getElementById('exif-description');
+        const inputSoftware = document.getElementById('exif-software');
+        const inputMake = document.getElementById('exif-make');
+        const inputModel = document.getElementById('exif-model');
+        const inputDatetime = document.getElementById('exif-datetime');
+        const inputLat = document.getElementById('exif-lat');
+        const inputLng = document.getElementById('exif-lng');
+        const inputAlt = document.getElementById('exif-alt');
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgColors = {
+                success: 'bg-emerald-600',
+                error: 'bg-rose-600',
+                info: 'bg-indigo-600'
+            };
+
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-circle-xmark',
+                info: 'fa-circle-info'
+            };
+
+            toast.className = `${bgColors[type] || bgColors.info} text-white px-4 py-3 rounded-xl shadow-xl flex items-center space-x-3 text-sm transition-all transform translate-y-2 opacity-0 duration-300`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function initMap() {
+            if (map) return;
+            
+            // Default center Warsaw
+            map = L.map('map').setView([52.2297, 21.0122], 6);
+            
+            // Using Esri WorldStreetMap tiles (Reliable & public without strict API key/Origin blocks)
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012',
+                maxZoom: 18
+            }).addTo(map);
+
+            map.on('click', function(e) {
+                const { lat, lng } = e.latlng;
+                updateMapMarker(lat, lng);
+                inputLat.value = lat.toFixed(6);
+                inputLng.value = lng.toFixed(6);
+            });
+        }
+
+        function updateMapMarker(lat, lng) {
+            if (!map) initMap();
+            if (mapMarker) {
+                mapMarker.setLatLng([lat, lng]);
+            } else {
+                mapMarker = L.marker([lat, lng]).addTo(map);
+            }
+            map.setView([lat, lng], 12);
+        }
+
+        function removeMapMarker() {
+            if (mapMarker && map) {
+                map.removeLayer(mapMarker);
+                mapMarker = null;
+            }
+            inputLat.value = '';
+            inputLng.value = '';
+            inputAlt.value = '';
+        }
+
+        // Import Modal Listeners
+        btnInfoFormat.addEventListener('click', () => formatModal.classList.remove('hidden'));
+        btnCloseModal.addEventListener('click', () => formatModal.classList.add('hidden'));
+        btnModalOk.addEventListener('click', () => formatModal.classList.add('hidden'));
+
+        // Import File Handling (JSON / CSV)
+        importFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length === 0) return;
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(evt) {
+                try {
+                    const text = evt.target.result;
+                    let data = {};
+
+                    if (file.name.endsWith('.json')) {
+                        data = JSON.parse(text);
+                    } else {
+                        // Basic CSV Parser
+                        data = parseCSVData(text);
+                    }
+
+                    applyImportedData(data);
+                } catch (err) {
+                    console.error(err);
+                    showToast('Nie udało się przetworzyć pliku importu. Sprawdź formatowanie (ikona ?).', 'error');
+                }
+                importFileInput.value = '';
+            };
+
+            reader.readAsText(file);
+        });
+
+        function parseCSVData(csvText) {
+            const lines = csvText.trim().split(/\r\n|\n/);
+            if (lines.length < 2) throw new Error('Plik CSV wymaga nagłówka i co najmniej jednego wiersza danych');
+            
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, '').toLowerCase());
+            // Match comma separated items ignoring commas inside quotes
+            const rowValues = lines[1].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[1].split(',');
+
+            const result = {};
+            headers.forEach((header, index) => {
+                if (rowValues[index] !== undefined) {
+                    let val = rowValues[index].trim().replace(/^["']|["']$/g, '');
+                    result[header] = val;
+                }
+            });
+
+            return result;
+        }
+
+        function applyImportedData(data) {
+            let updatedCount = 0;
+
+            // GPS Latitude
+            const latVal = data.lat ?? data.latitude ?? data.szerokosc;
+            if (latVal !== undefined && latVal !== '') {
+                const latNum = parseFloat(latVal);
+                if (!isNaN(latNum)) {
+                    inputLat.value = latNum.toFixed(6);
+                    updatedCount++;
+                }
+            }
+
+            // GPS Longitude
+            const lngVal = data.lng ?? data.longitude ?? data.dlugosc;
+            if (lngVal !== undefined && lngVal !== '') {
+                const lngNum = parseFloat(lngVal);
+                if (!isNaN(lngNum)) {
+                    inputLng.value = lngNum.toFixed(6);
+                    updatedCount++;
+                }
+            }
+
+            // GPS Altitude / Elevation
+            const altVal = data.elevation ?? data.altitude ?? data.alt ?? data.wysokosc;
+            if (altVal !== undefined && altVal !== '') {
+                const altNum = parseFloat(altVal);
+                if (!isNaN(altNum)) {
+                    inputAlt.value = Math.round(altNum * 100) / 100;
+                    updatedCount++;
+                }
+            }
+
+            // Update Map Marker if both coordinates exist
+            const lat = parseFloat(inputLat.value);
+            const lng = parseFloat(inputLng.value);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                updateMapMarker(lat, lng);
+            }
+
+            // Robust Date / Time Parsing (Handles ISO-8601, UTC 'Z', milliseconds, etc.)
+            const dateVal = data.datetime ?? data.date ?? data.data;
+            if (dateVal !== undefined && dateVal !== '') {
+                let parsedDate = null;
+
+                // Case 1: EXIF format "YYYY:MM:DD HH:MM:SS"
+                if (typeof dateVal === 'string' && dateVal.includes(':') && dateVal.includes(' ')) {
+                    const parts = dateVal.split(' ');
+                    const datePart = parts[0].replace(/:/g, '-');
+                    const timePart = parts[1];
+                    parsedDate = new Date(`${datePart}T${timePart}`);
+                } else {
+                    // Case 2: Standard Date / ISO String "2026-10-19T12:42:44.913Z"
+                    parsedDate = new Date(dateVal);
+                }
+
+                if (parsedDate && !isNaN(parsedDate.getTime())) {
+                    // Format into "YYYY-MM-DDTHH:MM" required by HTML datetime-local input
+                    const year = parsedDate.getFullYear();
+                    const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(parsedDate.getDate()).padStart(2, '0');
+                    const hours = String(parsedDate.getHours()).padStart(2, '0');
+                    const minutes = String(parsedDate.getMinutes()).padStart(2, '0');
+
+                    inputDatetime.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                    updatedCount++;
+                }
+            }
+
+            // Text fields (only overwrite if present in import file)
+            if (data.artist !== undefined) { inputArtist.value = data.artist; updatedCount++; }
+            if (data.copyright !== undefined) { inputCopyright.value = data.copyright; updatedCount++; }
+            if (data.description !== undefined) { inputDescription.value = data.description; updatedCount++; }
+            if (data.software !== undefined) { inputSoftware.value = data.software; updatedCount++; }
+            if (data.make !== undefined) { inputMake.value = data.make; updatedCount++; }
+            if (data.model !== undefined) { inputModel.value = data.model; updatedCount++; }
+
+            if (updatedCount > 0) {
+                showToast(`Pomyślnie zaimportowano pola (${updatedCount}). Pamiętaj aby zapisać EXIF.`, 'success');
+            } else {
+                showToast('Nie odnaleziono pasujących pól w pliku importu.', 'info');
+            }
+        }
+
+        const tabBtnEdit = document.getElementById('tab-btn-edit');
+        const tabBtnRaw = document.getElementById('tab-btn-raw');
+        const tabContentEdit = document.getElementById('tab-content-edit');
+        const tabContentRaw = document.getElementById('tab-content-raw');
+
+        tabBtnEdit.addEventListener('click', () => switchTab('edit'));
+        tabBtnRaw.addEventListener('click', () => switchTab('raw'));
+
+        function switchTab(tab) {
+            if (tab === 'edit') {
+                tabContentEdit.classList.remove('hidden');
+                tabContentRaw.classList.add('hidden');
+                tabBtnEdit.className = "tab-btn flex-1 py-3 px-4 text-sm font-medium text-center border-b-2 border-indigo-500 text-indigo-400 flex items-center justify-center space-x-2";
+                tabBtnRaw.className = "tab-btn flex-1 py-3 px-4 text-sm font-medium text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center justify-center space-x-2";
+            } else {
+                tabContentEdit.classList.add('hidden');
+                tabContentRaw.classList.remove('hidden');
+                tabBtnRaw.className = "tab-btn flex-1 py-3 px-4 text-sm font-medium text-center border-b-2 border-indigo-500 text-indigo-400 flex items-center justify-center space-x-2";
+                tabBtnEdit.className = "tab-btn flex-1 py-3 px-4 text-sm font-medium text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center justify-center space-x-2";
+            }
+        }
+
+        dropzone.addEventListener('click', () => fileInput.click());
+        btnChangeImage.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fileInput.click();
+        });
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('border-indigo-500', 'bg-slate-800');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('border-indigo-500', 'bg-slate-800');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('border-indigo-500', 'bg-slate-800');
+            if (e.dataTransfer.files.length > 0) {
+                handleFileSelect(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            currentFileName = file.name;
+            currentFileType = file.type;
+
+            // Update stats
+            document.getElementById('stat-filename').innerText = file.name;
+            document.getElementById('stat-filesize').innerText = formatBytes(file.size);
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const initialDataUrl = e.target.result;
+                
+                // Get Image Natural Dimensions and convert PNG/WebP/GIF to JPEG DataURL if necessary
+                const img = new Image();
+                img.onload = function() {
+                    document.getElementById('stat-dimensions').innerText = `${this.width} x ${this.height} px`;
+
+                    // If file is PNG, WEBP, GIF, BMP, convert to JPEG DataURL so piexifjs can inject EXIF tags
+                    if (!file.type.match('image/jpeg.*') && !file.type.match('image/jpg.*')) {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = this.width;
+                        canvas.height = this.height;
+                        const ctx = canvas.getContext('2d');
+                        // Fill white background for transparent PNG/WebP images
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(this, 0, 0);
+                        
+                        // Convert canvas to JPEG DataURL
+                        currentFileDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+                        showToast(`Przekonwertowano plik ${file.type.split('/')[1].toUpperCase()} do formatu JPEG w celu osadzenia danych EXIF.`, 'info');
+                    } else {
+                        currentFileDataUrl = initialDataUrl;
+                    }
+
+                    // Set Preview Image
+                    imagePreview.src = currentFileDataUrl;
+
+                    // Show interface elements
+                    dropzoneEmpty.classList.add('hidden');
+                    dropzonePreview.classList.remove('hidden');
+                    quickStats.classList.remove('hidden');
+                    noFileNotice.classList.add('hidden');
+                    exifForm.classList.remove('hidden');
+                    btnDownload.disabled = false;
+                    btnStrip.disabled = false;
+
+                    // Initialize map if needed
+                    initMap();
+
+                    // Read EXIF with file fallback for system dates
+                    loadExifData(currentFileDataUrl, file);
+                };
+                img.src = initialDataUrl;
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function loadExifData(dataUrl, fileObj = null) {
+            try {
+                currentExifObj = piexif.load(dataUrl);
+                populateFormWithExif(currentExifObj, fileObj);
+                displayRawExif(currentExifObj);
+                showToast('Metadane EXIF zostały pomyślnie wczytane.', 'success');
+            } catch (err) {
+                console.warn('Brak metadanych EXIF lub błędny format:', err);
+                // Create empty EXIF structure
+                currentExifObj = { "0th": {}, "EXIF": {}, "GPS": {}, "1st": {}, "thumbnail": null };
+                clearForm();
+                if (fileObj) {
+                    populateDateFromSystemFile(fileObj);
+                }
+                displayRawExif(currentExifObj);
+                showToast('Zdjęcie nie posiada osobnych nagłówków EXIF. Pobrano podstawową datę pliku z systemu.', 'info');
+            }
+        }
+
+        function populateFormWithExif(exif, fileObj = null) {
+            clearForm();
+
+            // 0th Tag fields
+            if (exif["0th"]) {
+                inputArtist.value = exif["0th"][piexif.ImageIFD.Artist] || '';
+                inputCopyright.value = exif["0th"][piexif.ImageIFD.Copyright] || '';
+                inputDescription.value = exif["0th"][piexif.ImageIFD.ImageDescription] || '';
+                inputSoftware.value = exif["0th"][piexif.ImageIFD.Software] || '';
+                inputMake.value = exif["0th"][piexif.ImageIFD.Make] || '';
+                inputModel.value = exif["0th"][piexif.ImageIFD.Model] || '';
+            }
+
+            // Date Time Extraction Strategy:
+            // 1. EXIF DateTimeOriginal
+            // 2. EXIF DateTimeDigitized
+            // 3. 0th IFD DateTime
+            // 4. Fallback to File system lastModified
+            let extractedDateStr = null;
+
+            if (exif["EXIF"] && exif["EXIF"][piexif.ExifIFD.DateTimeOriginal]) {
+                extractedDateStr = exif["EXIF"][piexif.ExifIFD.DateTimeOriginal];
+            } else if (exif["EXIF"] && exif["EXIF"][piexif.ExifIFD.DateTimeDigitized]) {
+                extractedDateStr = exif["EXIF"][piexif.ExifIFD.DateTimeDigitized];
+            } else if (exif["0th"] && exif["0th"][piexif.ImageIFD.DateTime]) {
+                extractedDateStr = exif["0th"][piexif.ImageIFD.DateTime];
+            }
+
+            if (extractedDateStr) {
+                // EXIF format is typically "YYYY:MM:DD HH:MM:SS" -> convert to "YYYY-MM-DDTHH:MM"
+                const parts = extractedDateStr.split(' ');
+                if (parts.length === 2) {
+                    const datePart = parts[0].replace(/:/g, '-');
+                    const timePart = parts[1].substring(0, 5);
+                    inputDatetime.value = `${datePart}T${timePart}`;
+                }
+            } else if (fileObj) {
+                populateDateFromSystemFile(fileObj);
+            }
+
+            // GPS Data Parsing
+            if (exif["GPS"] && exif["GPS"][piexif.GPSIFD.GPSLatitude] && exif["GPS"][piexif.GPSIFD.GPSLongitude]) {
+                const lat = parseGpsDegrees(exif["GPS"][piexif.GPSIFD.GPSLatitude], exif["GPS"][piexif.GPSIFD.GPSLatitudeRef]);
+                const lng = parseGpsDegrees(exif["GPS"][piexif.GPSIFD.GPSLongitude], exif["GPS"][piexif.GPSIFD.GPSLongitudeRef]);
+
+                if (lat !== null && lng !== null) {
+                    inputLat.value = lat.toFixed(6);
+                    inputLng.value = lng.toFixed(6);
+                    updateMapMarker(lat, lng);
+                }
+
+                // GPS Altitude
+                if (exif["GPS"][piexif.GPSIFD.GPSAltitude]) {
+                    const altArr = exif["GPS"][piexif.GPSIFD.GPSAltitude];
+                    const altRef = exif["GPS"][piexif.GPSIFD.GPSAltitudeRef] || 0;
+                    if (altArr && altArr[1] !== 0) {
+                        let altVal = altArr[0] / altArr[1];
+                        if (altRef === 1) altVal = -altVal; // 1 means below sea level
+                        inputAlt.value = altVal.toFixed(1);
+                    }
+                }
+            } else {
+                removeMapMarker();
+            }
+        }
+
+        function populateDateFromSystemFile(fileObj) {
+            if (!fileObj || !fileObj.lastModified) return;
+            const fileDate = new Date(fileObj.lastModified);
+            if (!isNaN(fileDate.getTime())) {
+                const year = fileDate.getFullYear();
+                const month = String(fileDate.getMonth() + 1).padStart(2, '0');
+                const day = String(fileDate.getDate()).padStart(2, '0');
+                const hours = String(fileDate.getHours()).padStart(2, '0');
+                const minutes = String(fileDate.getMinutes()).padStart(2, '0');
+
+                inputDatetime.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+        }
+
+        function clearForm() {
+            inputArtist.value = '';
+            inputCopyright.value = '';
+            inputDescription.value = '';
+            inputSoftware.value = '';
+            inputMake.value = '';
+            inputModel.value = '';
+            inputDatetime.value = '';
+            inputLat.value = '';
+            inputLng.value = '';
+            inputAlt.value = '';
+            removeMapMarker();
+        }
+
+        function parseGpsDegrees(gpsCoord, ref) {
+            try {
+                const deg = gpsCoord[0][0] / gpsCoord[0][1];
+                const min = gpsCoord[1][0] / gpsCoord[1][1];
+                const sec = gpsCoord[2][0] / gpsCoord[2][1];
+                let coordinate = deg + (min / 60) + (sec / 3600);
+                if (ref === 'S' || ref === 'W') {
+                    coordinate = -coordinate;
+                }
+                return coordinate;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function degToGpsRational(deg) {
+            const absolute = Math.abs(deg);
+            const degrees = Math.floor(absolute);
+            const minutesNotTruncated = (absolute - degrees) * 60;
+            const minutes = Math.floor(minutesNotTruncated);
+            const seconds = Math.round((minutesNotTruncated - minutes) * 60 * 100);
+
+            return [
+                [degrees, 1],
+                [minutes, 1],
+                [seconds, 100]
+            ];
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function displayRawExif(exifObj) {
+            // Clean displayable copy
+            const copy = JSON.parse(JSON.stringify(exifObj));
+            delete copy.thumbnail; // Exclude large thumbnail blob for readability
+            
+            // Format tag keys to human readable if possible
+            rawExifOutput.textContent = JSON.stringify(copy, null, 2);
+        }
+
+        btnRemoveGps.addEventListener('click', () => {
+            removeMapMarker();
+            showToast('Usunięto dane GPS z edytora.', 'info');
+        });
+
+        btnCurrentLocation.addEventListener('click', () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        inputLat.value = lat.toFixed(6);
+                        inputLng.value = lng.toFixed(6);
+                        updateMapMarker(lat, lng);
+                        showToast('Pobrano Twoją aktualną pozycję GPS.', 'success');
+                    },
+                    (err) => {
+                        showToast('Nie udało się pobrać lokalizacji: ' + err.message, 'error');
+                    }
+                );
+            } else {
+                showToast('Twoja przeglądarka nie wspiera geolokalizacji.', 'error');
+            }
+        });
+
+        // Sync inputs with map dynamically
+        [inputLat, inputLng].forEach(input => {
+            input.addEventListener('change', () => {
+                const lat = parseFloat(inputLat.value);
+                const lng = parseFloat(inputLng.value);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    updateMapMarker(lat, lng);
+                }
+            });
+        });
+
+        exifForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            if (!currentFileDataUrl) {
+                showToast('Brak wczytanego zdjęcia.', 'error');
+                return;
+            }
+
+            try {
+                // Ensure base structure and nested IFDs exist defensively
+                const exifObj = currentExifObj || {};
+                if (!exifObj["0th"]) exifObj["0th"] = {};
+                if (!exifObj["EXIF"]) exifObj["EXIF"] = {};
+                if (!exifObj["GPS"]) exifObj["GPS"] = {};
+                if (!exifObj["1st"]) exifObj["1st"] = {};
+                if (!("thumbnail" in exifObj)) exifObj["thumbnail"] = null;
+
+                // Update 0th tags
+                exifObj["0th"][piexif.ImageIFD.Artist] = inputArtist.value || '';
+                exifObj["0th"][piexif.ImageIFD.Copyright] = inputCopyright.value || '';
+                exifObj["0th"][piexif.ImageIFD.ImageDescription] = inputDescription.value || '';
+                exifObj["0th"][piexif.ImageIFD.Software] = inputSoftware.value || '';
+                exifObj["0th"][piexif.ImageIFD.Make] = inputMake.value || '';
+                exifObj["0th"][piexif.ImageIFD.Model] = inputModel.value || '';
+
+                // Update Original Date Time in multiple EXIF fields for max compatibility
+                if (inputDatetime.value) {
+                    const dt = new Date(inputDatetime.value);
+                    if (!isNaN(dt.getTime())) {
+                        const year = dt.getFullYear();
+                        const month = String(dt.getMonth() + 1).padStart(2, '0');
+                        const day = String(dt.getDate()).padStart(2, '0');
+                        const hours = String(dt.getHours()).padStart(2, '0');
+                        const minutes = String(dt.getMinutes()).padStart(2, '0');
+                        const seconds = String(dt.getSeconds()).padStart(2, '0');
+
+                        const formattedDt = `${year}:${month}:${day} ${hours}:${minutes}:${seconds}`;
+                        
+                        // Set in EXIF IFD
+                        exifObj["EXIF"][piexif.ExifIFD.DateTimeOriginal] = formattedDt;
+                        exifObj["EXIF"][piexif.ExifIFD.DateTimeDigitized] = formattedDt;
+                        
+                        // Set in 0th IFD
+                        exifObj["0th"][piexif.ImageIFD.DateTime] = formattedDt;
+                    }
+                } else {
+                    delete exifObj["EXIF"][piexif.ExifIFD.DateTimeOriginal];
+                    delete exifObj["EXIF"][piexif.ExifIFD.DateTimeDigitized];
+                    delete exifObj["0th"][piexif.ImageIFD.DateTime];
+                }
+
+                // Update GPS
+                const lat = parseFloat(inputLat.value);
+                const lng = parseFloat(inputLng.value);
+                const alt = parseFloat(inputAlt.value);
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    exifObj["GPS"][piexif.GPSIFD.GPSLatitudeRef] = lat >= 0 ? 'N' : 'S';
+                    exifObj["GPS"][piexif.GPSIFD.GPSLatitude] = degToGpsRational(lat);
+                    exifObj["GPS"][piexif.GPSIFD.GPSLongitudeRef] = lng >= 0 ? 'E' : 'W';
+                    exifObj["GPS"][piexif.GPSIFD.GPSLongitude] = degToGpsRational(lng);
+
+                    // Optional GPS Altitude
+                    if (!isNaN(alt)) {
+                        exifObj["GPS"][piexif.GPSIFD.GPSAltitudeRef] = alt >= 0 ? 0 : 1;
+                        exifObj["GPS"][piexif.GPSIFD.GPSAltitude] = [Math.round(Math.abs(alt) * 100), 100];
+                    }
+                } else {
+                    exifObj["GPS"] = {};
+                }
+
+                // Dump new EXIF bytes into current image
+                const exifBytes = piexif.dump(exifObj);
+                currentFileDataUrl = piexif.insert(exifBytes, currentFileDataUrl);
+                
+                // Refresh preview & raw output
+                imagePreview.src = currentFileDataUrl;
+                currentExifObj = exifObj;
+                displayRawExif(currentExifObj);
+
+                showToast('Metadane EXIF zostały pomyślnie zaktualizowane w pliku!', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Błąd podczas zapisywania metadanych: ' + err.message, 'error');
+            }
+        });
+
+        btnStrip.addEventListener('click', () => {
+            if (!currentFileDataUrl) return;
+
+            try {
+                // Remove EXIF header
+                currentFileDataUrl = piexif.remove(currentFileDataUrl);
+                imagePreview.src = currentFileDataUrl;
+
+                // Reset internal state & form
+                currentExifObj = { "0th": {}, "EXIF": {}, "GPS": {}, "1st": {}, "thumbnail": null };
+                clearForm();
+                displayRawExif(currentExifObj);
+
+                showToast('Usunięto wszystkie metadane EXIF ze zdjęcia!', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Błąd podczas usuwania EXIF: ' + err.message, 'error');
+            }
+        });
+
+        btnDownload.addEventListener('click', () => {
+            if (!currentFileDataUrl) return;
+
+            const link = document.createElement('a');
+            const nameParts = currentFileName.split('.');
+            if (nameParts.length > 1) nameParts.pop();
+            
+            // Output downloaded file as JPEG to preserve EXIF metadata
+            const newName = `${nameParts.join('.')}_exif_edited.jpg`;
+
+            link.download = newName;
+            link.href = currentFileDataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast(`Pobrano plik: ${newName}`, 'success');
+        });
+    </script>
+</body>
+</html>
