@@ -1,0 +1,1253 @@
+<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GPS Story Studio v86</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><style>body{margin:0;background:#101827;color:#f1f5f9;font:15px system-ui}header{padding:15px 22px;background:#172338;font-size:22px;font-weight:700}main{display:grid;grid-template-columns:330px 1fr;min-height:calc(100vh - 60px)}aside{padding:20px;overflow:auto;background:#1c2940}label{display:block;margin:13px 0 5px}input,select,button{box-sizing:border-box;width:100%;padding:10px;border:1px solid #53627a;border-radius:7px;background:#101827;color:white}button{background:#2d7be8;border:0;margin-top:12px;cursor:pointer;font-weight:600}button:disabled{opacity:.5}.transport{display:grid;grid-template-columns:1fr 1fr;gap:10px}.transport button{margin-top:12px}#map{height:calc(100vh - 60px);min-height:500px}#stage{position:relative;overflow:hidden;background:#111c2b;aspect-ratio:16/9;width:100%;height:auto;align-self:start}#stage.portrait{aspect-ratio:9/16}#stage #map{height:100%;min-height:0;width:100%}main{align-items:start} @media(max-width:800px){#stage{width:100%}#stage #map{height:100%;min-height:0}}#stage .leaflet-container{background:#182c29!important}#stage .leaflet-tile-pane{backface-visibility:hidden;-webkit-backface-visibility:hidden}#stage .leaflet-tile{backface-visibility:visible;-webkit-backface-visibility:visible}#mapTilt{position:absolute;inset:0;transform-origin:50% 50%;will-change:transform;transform:translateZ(0)}#mapTilt #map{height:100%;width:100%;transform:none!important}#photoOverlay{position:absolute;z-index:900;pointer-events:none;display:none;max-width:min(440px,82%);padding:9px;background:white;border-radius:10px;box-shadow:0 5px 22px #0009}#photoOverlay img{display:block;max-width:100%;max-height:min(340px,58vh);object-fit:contain}#photoOverlay:after{content:"";position:absolute;top:100%;left:calc(50% - 8px);border:8px solid transparent;border-top-color:white}#endSummary{display:block;opacity:0;visibility:hidden;transition:opacity 1.1s ease,visibility 1.1s;position:absolute;z-index:950;left:50%;top:50%;bottom:auto;transform:translate(-50%,-50%);width:min(510px,calc(100% - 48px));padding:18px 20px;border-radius:14px;background:rgba(10,20,35,var(--summary-opacity,.67));backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);border:1px solid #ffffff45;color:white;box-shadow:0 8px 32px #000a;text-align:center;pointer-events:none}#endSummary.visible{opacity:1;visibility:visible}#startSummary{position:absolute;inset:0;z-index:960;display:flex;align-items:center;justify-content:center;background:rgba(9,18,31,.48);opacity:0;visibility:hidden;transition:opacity 850ms ease,visibility 850ms;pointer-events:none}#startSummary.visible{opacity:1;visibility:visible}#startSummary .introCard{width:min(530px,calc(100% - 60px));padding:22px 24px;text-align:center;border-radius:16px;background:rgba(10,20,35,var(--summary-opacity,.67));backdrop-filter:blur(9px);border:1px solid #ffffff45;box-shadow:0 8px 32px #000a}#startSummary h2{font-size:23px;margin:0 0 16px}#startSummary .introRows{display:grid;gap:10px}#startSummary .introRow{display:flex;flex-direction:column;gap:2px;font-size:14px}#startSummary .introRow strong{font-size:17px;color:#8ed5ff}textarea{box-sizing:border-box;width:100%;padding:10px;border:1px solid #53627a;border-radius:7px;background:#101827;color:white;font:inherit;resize:vertical}#endSummary h2{margin:0 0 10px;font-size:20px}#endSummary .endNumbers{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:14px}#endSummary strong{display:block;font-size:19px;color:#8ed5ff}#elevation{position:absolute;top:12px;left:12px;right:12px;height:132px;background:rgba(16,24,39,var(--summary-opacity,.67));border:1px solid #60738a;border-radius:9px;z-index:800;padding:7px;box-sizing:border-box;pointer-events:none}#elevation canvas{width:100%;height:88px;display:block}#routeProgressInfo{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:650;color:#e8f5ff;padding:4px 6px 0;white-space:nowrap}#routeProgressInfo span{overflow:hidden;text-overflow:ellipsis}.photo-item input[type=range]{width:100%;padding:0}.photo-item .meta{display:flex;flex-direction:column;flex:1;min-width:0;gap:4px}.photo-item .meta small{font-size:11px}.stats{line-height:1.8;background:#263750;padding:12px;border-radius:9px;margin-top:15px}small{color:#bac9dc}#status{white-space:pre-wrap;color:#b9d8ff;margin-top:12px}.photo{max-width:260px;max-height:190px;object-fit:contain}.leaflet-popup-content{margin:8px} @media(max-width:800px){main{display:block}#map{height:60vh;min-height:350px}} .photo-list{display:grid;gap:9px;margin-top:10px}.photo-item{display:flex;align-items:center;gap:9px;background:#263750;padding:7px;border-radius:8px}.photo-item img{width:64px;height:54px;object-fit:cover;border-radius:5px}.photo-item span{flex:1;min-width:0;overflow-wrap:anywhere;font-size:12px}.photo-item button{width:auto;margin:0;padding:7px 9px;background:#a33c48}.photo-item input{width:16px;height:16px;accent-color:#2d7be8}.photo-item label{margin:0;font-size:12px} #startSummary{position:absolute;inset:0;z-index:850;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .85s ease,visibility .85s ease;background:rgba(16,24,39,var(--summary-opacity,.67));padding:24px;box-sizing:border-box;text-align:center}#startSummary.visible{opacity:1;visibility:visible}#startSummaryContent{width:min(100%,520px);max-height:85%;overflow:hidden}#startSummary h2{font-size:clamp(20px,3vw,35px);margin:0 0 18px;color:#f8fafc}.introRows{display:grid;gap:10px}.introRow{display:flex;flex-direction:column;gap:3px;padding:7px 12px;border-bottom:1px solid #ffffff38}.introRow span{color:#a7c8e9;font-size:12px}.introRow strong{font-size:clamp(13px,2vw,18px);overflow-wrap:anywhere}textarea{box-sizing:border-box;width:100%;padding:10px;border:1px solid #53627a;border-radius:7px;background:#101827;color:white;font:inherit;resize:vertical}/* Leaflet ustawia transform tile-container samodzielnie; nie wolno go nadpisywać. */
+
+body.intro-pending #elevation{visibility:hidden} 
+/* v31: kompaktowy panel wykresu i trzy wskaźniki */
+#elevation{height:100px;padding:6px 8px;}
+#elevation canvas{height:64px;}
+#routeProgressInfo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;gap:4px;padding:3px 1px 0;font-size:clamp(10px,1.5vw,12px);font-weight:650;}
+#routeProgressInfo .metric{display:flex;align-items:center;justify-content:center;gap:4px;min-width:0;white-space:nowrap;}
+#routeProgressInfo .metric span{overflow:hidden;text-overflow:ellipsis;}
+#routeProgressInfo svg{width:15px;height:15px;flex:none;fill:none;stroke:#8ed5ff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+/* v39: minimalne marginesy wewnętrzne panelu; wykres i metryki pozostają widoczne */
+#elevation{height:85px;padding:2px 3px;top:12px;left:12px;right:12px;}
+#elevation canvas{height:60px;}
+#routeProgressInfo{padding:1px 0 0;gap:2px;line-height:17px;}
+#routeProgressInfo .metric{gap:2px;}
+#routeProgressInfo svg{width:13px;height:13px;}
+.orientation-toggle{display:grid;grid-template-columns:1fr 1fr;gap:7px}.orientation-toggle button{margin-top:4px;padding:10px 4px;background:#101827;border:1px solid #53627a;font-size:13px}.orientation-toggle button[aria-pressed="true"]{background:#2d7be8;border-color:#76b0ff;color:white}.style-controls{border:1px solid #53627a;border-radius:10px;padding:10px;margin:12px 0}.style-controls legend{padding:0 5px;font-weight:700}.style-controls input[type=color]{width:100%;height:36px;padding:2px;cursor:pointer}.style-controls input[type=range]{width:100%}
+#endSummary .endPlaces{width:100%;margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,.28);font-size:clamp(10px,1.6vw,13px)}
+#endSummary .endPlaces h3{font-size:1.05em;margin:0 0 5px;font-weight:700}
+#endSummary .endPlaceRow{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:2px 0}
+#endSummary .endPlaceRow span{opacity:.8;flex-shrink:0}
+#endSummary .endPlaceRow strong{font-weight:600;text-align:right;overflow-wrap:anywhere}
+/* v52: 2% inset relative to the video frame, constrained on all screen sizes. */
+#elevation{left:2%;right:2%;top:2%;width:96%;max-width:96%;min-width:0;margin:0;box-sizing:border-box;overflow:hidden;height:min(85px,24%);padding:2px 3px;}
+#elevation canvas{width:100%;max-width:100%;min-width:0;height:min(60px,calc(100% - 20px));}
+#routeProgressInfo{min-width:0;width:100%;box-sizing:border-box;padding:3px 2px 0;gap:4px;font-size:clamp(9px,1.5vw,12px);}
+#routeProgressInfo span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* Styl linii jest przypisywany do SVG ścieżki Leaflet, nie do całej mapy. */
+#stage path.route-pastel{stroke-linecap:round;stroke-linejoin:round;stroke-opacity:.76;filter:url(#gpsPastelTexture)}
+#stage path.route-hand{stroke-linecap:round;stroke-linejoin:round;filter:url(#gpsHandTexture)}
+</style><style>.endRouteSequence{font-size:clamp(12px,2.5vw,17px);line-height:1.5;font-weight:600;overflow-wrap:anywhere;text-align:center;padding:3px 0 5px}.endPlaces h3{margin:3px 0 5px}</style><style id="photoCenterV56">
+/* Zdjęcie jest osobną warstwą nad mapą, zawsze w całości w kadrze. */
+#photoOverlay{box-sizing:border-box;left:50%!important;top:50%!important;
+ width:max-content;max-width:calc(100% - 4%);max-height:calc(100% - 4%);
+ padding:7px;border-radius:8px;overflow:hidden;
+ transform:translate(-50%,-50%) scale(1);transform-origin:center center;
+ will-change:transform,opacity;opacity:1;filter:none;
+ box-shadow:0 8px 30px #000a;}
+#photoOverlay::after{display:none!important;content:none!important}
+#photoOverlay img{display:block;width:auto;height:auto;max-width:calc(100% - 0px);
+ max-height:calc(var(--photo-max-h, 300px));object-fit:contain;border-radius:3px;}
+#photoOverlay.photo-enter{animation:photoEmergeV56 680ms cubic-bezier(.16,.82,.22,1) both;}
+@keyframes photoEmergeV56{from{opacity:0;transform:translate(calc(-50% + var(--photo-dx,0px)),calc(-50% + var(--photo-dy,0px))) scale(.07)}
+ to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@media(prefers-reduced-motion:reduce){#photoOverlay.photo-enter{animation-duration:1ms}}
+</style><style id="textAndSummaryV58">
+#stage{--stage-text-color:#ffffff}
+#stage #startSummary,#stage #startSummary *,#stage #endSummary,#stage #endSummary *,#stage #elevation,#stage #routeProgressInfo,#stage #routeProgressInfo *{color:var(--stage-text-color)!important}
+#stage #routeProgressInfo svg{stroke:var(--stage-text-color)!important}
+#endSummary .endNumbers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 8px;align-items:start}
+#endSummary .endNumbers .summaryMetric{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;text-align:center;overflow-wrap:anywhere}
+#endSummary .summaryMetricLabel{display:flex;align-items:center;justify-content:center;gap:5px;font-size:clamp(11px,1.8vw,14px)}
+#endSummary .summaryMetricLabel svg{width:17px;height:17px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#endSummary .summaryElevation{grid-column:1/-1;justify-self:center;width:100%;max-width:100%;padding-top:6px;border-top:1px solid #ffffff30}
+#endSummary .summaryElevation strong{text-align:center}
+#endSummary{box-sizing:border-box;max-height:94%;overflow:hidden;width:min(510px,96%);padding:clamp(8px,2vw,18px)}
+#endSummary .endPlaces{min-width:0}
+</style><style id="photoCaptionsV85">
+.photo-item .meta .photo-caption-input{width:100%;min-width:0;box-sizing:border-box;margin:3px 0 0;padding:7px 8px;font:12px system-ui;background:#101827;border:1px solid #64748b;border-radius:6px;color:#fff}
+#photoOverlay .photo-caption-display{display:none;max-width:100%;padding:7px 10px;text-align:center;font:600 clamp(12px,1.9vw,17px)/1.35 system-ui;color:#172338;overflow-wrap:anywhere}
+#photoOverlay.has-caption .photo-caption-display{display:block}
+#photoOverlay{max-width:96%;max-height:96%}
+#photoOverlay img{max-height:calc(var(--photo-max-h,300px) - 42px)}
+</style><style id="exportV59">
+body.export-recording{background:#000!important;overflow:hidden!important}
+body.export-recording header,body.export-recording aside{display:none!important}
+body.export-recording main{display:block!important;min-height:100vh!important}
+body.export-recording #stage{position:fixed!important;inset:0!important;margin:auto!important;width:min(100vw,calc(100vh * 16 / 9))!important;height:min(100vh,calc(100vw * 9 / 16))!important;aspect-ratio:16/9!important;max-width:100vw!important;max-height:100vh!important}
+body.export-recording #stage.portrait{width:min(100vw,calc(100vh * 9 / 16))!important;height:min(100vh,calc(100vw * 16 / 9))!important;aspect-ratio:9/16!important}
+#stopExport{background:#b91c1c}
+
+/* v67: niezależne przewijanie ustawień na komputerze; mapa pozostaje na miejscu. */
+@media (min-width:801px){
+  html,body{height:100%;height:100dvh;overflow:hidden}
+  body{display:flex;flex-direction:column}
+  body>header{flex:0 0 auto}
+  body>main{flex:1 1 auto;min-height:0;height:auto;overflow:hidden;display:grid;grid-template-columns:330px minmax(0,1fr);grid-template-rows:minmax(0,1fr);align-items:stretch}
+  body>main>aside{min-height:0;max-height:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable}
+  body>main>#stage{justify-self:center;align-self:center;min-width:0;width:auto;height:auto;max-width:100%;max-height:100%;aspect-ratio:16/9}
+  body>main>#stage:not(.portrait){width:min(100%,calc((100dvh - 65px)*16/9))}
+  body>main>#stage.portrait{height:100%;width:auto;aspect-ratio:9/16}
+}
+</style><style id="leaderStyleCss">.leader-marker{background:transparent!important;border:0!important}.leader-visual{width:42px;height:54px;display:flex;align-items:center;justify-content:center;transform-origin:50% 50%;transition:opacity .2s,transform .16s linear;filter:drop-shadow(0 2px 3px #0009)}.leader-visual .walker-direction{transform-origin:21px 27px;transition:transform .18s linear}.leader-walking .walker-arm-a,.leader-walking .walker-arm-b{transform-box:view-box;transform-origin:21px 22px;animation-duration:.64s;animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate}.leader-walking .walker-leg-a,.leader-walking .walker-leg-b{transform-box:view-box;transform-origin:21px 32px;animation-duration:.64s;animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate}.leader-walking .walker-arm-a,.leader-walking .walker-leg-b{animation-name:walkerForward}.leader-walking .walker-arm-b,.leader-walking .walker-leg-a{animation-name:walkerBackward}@keyframes walkerForward{from{transform:rotate(-23deg)}to{transform:rotate(23deg)}}@keyframes walkerBackward{from{transform:rotate(23deg)}to{transform:rotate(-23deg)}}.walker-direction{transform-box:view-box;transform-origin:center center}.leader-walking svg{overflow:visible}.leader-choices{display:flex;gap:9px;margin:8px 0}.leader-choice{flex:1;cursor:pointer;position:relative}.leader-choice input{position:absolute;opacity:0;width:1px;height:1px}.leader-choice span{height:76px;display:flex;align-items:center;justify-content:center;border:2px solid #53627a;background:#142238;border-radius:10px}.leader-choice svg{width:52px;height:58px}.leader-choice input:checked+span{border-color:#ffb02e;background:#29384c;box-shadow:0 0 0 1px #ffb02e}.leader-choice input:focus-visible+span{outline:3px solid white;outline-offset:2px}/* walker playback state *//* Ruch postaci wyłącznie podczas właściwego odtwarzania trasy. */
+.leader-walking .walker-arm-a,.leader-walking .walker-arm-b,.leader-walking .walker-leg-a,.leader-walking .walker-leg-b{animation-play-state:paused!important}
+body.walker-in-motion .leader-walking .walker-arm-a,body.walker-in-motion .leader-walking .walker-arm-b,body.walker-in-motion .leader-walking .walker-leg-a,body.walker-in-motion .leader-walking .walker-leg-b{animation-play-state:running!important}
+</style><style id="mediaV86">
+.photo-item{display:grid;grid-template-columns:64px minmax(0,1fr) auto auto;align-items:center;gap:8px}
+.photo-item .meta{grid-column:2;min-width:0}
+.photo-item .photo-caption-input{grid-column:1/-1;display:block;width:100%!important;min-width:0;box-sizing:border-box;min-height:66px;resize:vertical;font:13px system-ui}
+.photo-item video{width:64px;height:54px;object-fit:cover;border-radius:5px;background:#101827}
+#photoOverlay video{display:block;max-width:100%;max-height:calc(var(--photo-max-h,300px) - 42px);object-fit:contain;border-radius:3px}
+</style></head><body><header>🧭 GPS Story Studio — v86</header><main><aside><fieldset style="border:1px solid #53627a;border-radius:9px;padding:12px;margin-bottom:16px"><legend>Projekt GPS Story Studio</legend><button type="button" id="saveProject">⬇ Eksport projektu (.zip)</button><label for="openProject">Import projektu (.zip)</label><input type="file" id="openProject" accept=".zip,application/zip"><small>Projekt zawiera GPX, zdjęcia, filmy, lokalny utwór muzyczny i ustawienia. Muzyka online jest zapamiętywana jako wybór utworu.</small></fieldset><label>Plik trasy GPX</label><small>Na Androidzie wybierz „Pliki” → „Przeglądaj”, a następnie GPX. Obsługiwane są także pliki XML.</small><input id="gpx" type="file" accept=".gpx,.xml,application/gpx+xml,application/xml,text/xml,*/*"><button id="loadTest" type="button">Wczytaj testowy GPX Zepp</button><small>Przykładowa trasa jest dołączona do wersji ZIP. W pojedynczym HTML możesz wskazać ją ręcznie.</small><label>Dodaj zdjęcia i filmy z wycieczki</label><input id="photos" type="file" accept="image/*,video/mp4,video/webm,video/quicktime,video/*" multiple><div id="photoList" class="photo-list"></div><small>Zdjęcia i filmy są dopasowywane do GPX na podstawie lokalizacji lub czasu wykonania. Filmy bez metadanych możesz przypisać ręcznie do punktu trasy.</small><label>Tytuł filmu</label><input id="title" value="Moja wycieczka"><label>Rejon wycieczki (miejscowości i nazwane obiekty przy trasie, można poprawić)</label><input id="region" type="text" placeholder="Rejon wycieczki"><label for="routeDescription">Trasa wycieczki (tekst na karcie podsumowania)</label><textarea id="routeDescription" rows="3" placeholder="Nazwy punktów na trasie zostaną uzupełnione automatycznie"></textarea><small>Możesz edytować opis trasy. Automatycznie rozpoznane nazwy są propozycją — wpisany tekst ma pierwszeństwo.</small><label>Uczestnicy wycieczki (oddziel przecinkami lub nowymi wierszami)</label><textarea id="participants" rows="3" placeholder="Imiona uczestników"></textarea><label for="durationSlider">Czas filmu: <output id="durationDisplay">20 s</output></label><input id="durationSlider" type="range" min="10" max="30" step="1" value="20" style="width:100%;accent-color:#f6ad37"><div style="display:flex;justify-content:space-between;font-size:12px;opacity:.8;margin-top:-5px"><span>10 s</span><span>30 s</span></div><label for="duration">Własny czas filmu (sekundy)</label><input id="duration" type="number" min="10" max="3600" step="1" value="20" inputmode="numeric" aria-describedby="durationHint"><div id="durationHint" style="font-size:12px;opacity:.8">Przesuń suwak (10–30 s) lub wpisz własny czas, np. 60 s.</div><label>Czas wyświetlania zdjęcia (sekundy)</label><input id="photoDuration" type="number" min="1" max="30" value="4"><label><input type="checkbox" id="tilt" checked style="width:auto"> Nachylenie mapy podczas animacji</label><label>Nachylenie mapy: <output id="tiltValue">55°</output></label><input id="tiltAngle" type="range" min="0" max="70" value="55" step="1"><label>Przezroczystość tła planszy końcowej i wykresu: <output id="summaryOpacityValue">35%</output></label><input id="summaryOpacity" type="range" min="0" max="100" value="35" step="1"><label>Orientacja kadru filmu</label><div class="orientation-toggle" role="group" aria-label="Orientacja kadru"><button type="button" id="aspectLandscape" aria-pressed="true">▭ Poziomo 16:9</button><button type="button" id="aspectPortrait" aria-pressed="false">▯ Pionowo 9:16</button></div><input type="hidden" id="aspect" value="landscape"><small>Tylko GPS zdjęć: najbliższy odcinek śladu. Nie korzystamy z czasu ani kolejności plików.</small><label>Oddalenie mapy podczas animacji: <output id="zoomValue">500 m</output> (skala orientacyjna na 100 px)</label><input id="zoomDistance" type="range" min="200" max="2000" step="50" value="500"><small>200 m = maksymalne zbliżenie; przesuwając w prawo oddalasz mapę. Zmiana działa również w trakcie odtwarzania.</small><fieldset class="style-controls"><legend>Wygląd trasy i proporczyków</legend><label>Wygląd punktu wiodącego</label><div class="leader-choices" role="group" aria-label="Wygląd punktu wiodącego"><label class="leader-choice"><input type="radio" name="leaderChoice" value="point" checked><span><svg viewBox="0 0 56 62" aria-hidden="true"><circle cx="28" cy="31" r="10" fill="#ffb02e" stroke="white" stroke-width="3"/></svg></span></label><label class="leader-choice"><input type="radio" name="leaderChoice" value="walker"><span><svg viewBox="0 0 42 54" aria-hidden="true"><g fill="none" stroke="#ffb02e" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="21" cy="9" r="7" fill="#ffb02e" stroke="none"/><path d="M21 19V31M21 21L10 26L5 26M21 21L31 25L37 27M21 31L13 40L5 42M21 31L29 40L34 49"/></g></svg></span></label><label class="leader-choice"><input type="radio" name="leaderChoice" value="car"><span><svg viewBox="0 0 56 62" aria-hidden="true"><path d="M17 12Q17 7 22 7H34Q39 7 39 12L44 25V50Q44 54 40 54H16Q12 54 12 50V25Z" fill="#ffb02e" stroke="white" stroke-width="2"/><path d="M19 25l3-11h12l3 11Z" fill="#a9e4ff"/><rect x="18" y="36" width="20" height="10" rx="3" fill="#24364a"/></svg></span></label></div><select id="leaderStyle" aria-label="Wybrany wygląd punktu wiodącego" hidden><option value="point" selected>Punkt</option><option value="walker">Ludzik</option><option value="car">Samochodzik</option></select><small>Wybierz obrazek. Ludzik ma ruchome ręce i nogi oraz zwraca się w kierunku marszu.</small><label for="routeLineStyle">Styl rysowania trasy</label><select id="routeLineStyle"><option value="classic" selected>Klasyczny (domyślny)</option><option value="pastel">Kredki pastelowe</option><option value="hand">Linia odręczna</option></select><small>Styl dotyczy rysowanej trasy i jej animowanego końca.</small><label for="routeColor">Kolor linii trasy</label><input id="routeColor" type="color" value="#ffb02e"><label for="routeWidth">Grubość linii: <output id="routeWidthValue">3 px</output></label><input id="routeWidth" type="range" min="1" max="16" step="1" value="3"><label for="flagColor">Kolor proporczyków i punktu wiodącego</label><input id="flagColor" type="color" value="#ffb02e"><label for="flagWidth">Grubość proporczyków: <output id="flagWidthValue">1 px</output></label><input id="flagWidth" type="range" min="1" max="7" step="0.5" value="1"><small>Kolor dotyczy również punktu wiodącego na trasie. Grubość proporczyka zmienia szerokość drzewca i obrysu chorągiewki.</small></fieldset><label for="allTextColor">Kolor wszystkich napisów na animacji</label><input id="allTextColor" type="color" value="#ffffff"><small>Dotyczy planszy początkowej, podsumowania, opisów, wartości oraz linii profilu wysokości.</small><label>Wygładzanie trasy</label><small>Animacja korzysta z co trzeciego punktu GPX i płynnie interpoluje położenie między nimi. Oryginalne punkty służą do dopasowania zdjęć i obliczeń.</small><label>Podkład mapy</label><select id="layer"><option value="esri">Ortofotomapa Esri World Imagery</option><option value="osm">OpenStreetMap</option></select><label for="mapQuality">Jakość mapy satelitarnej</label><select id="mapQuality"><option value="standard">Standardowa</option><option value="high" selected>Wysoka (zalecana)</option><option value="maximum">Maksymalna</option></select><small>Wysoka pobiera kafelki o jeden poziom szczegółowości wyżej, maksymalna o dwa poziomy (większy transfer danych). Maksymalna dodatkowo zwiększa kontrast. Szczegółowość ogranicza źródło Esri. Podkład OpenStreetMap pozostaje w standardowej jakości.</small><section id="musicSettings" style="margin-top:16px;padding:12px;border:1px solid #53627a;border-radius:9px;background:#172338"><strong>♫ Podkład muzyczny</strong><label for="musicSource">Źródło muzyki</label><select id="musicSource"><option value="online" selected>Biblioteka online</option><option value="local">Własny plik z urządzenia</option><option value="none">Bez muzyki</option></select><div id="onlineMusicSettings"><label for="musicMood">Nastrój</label><select id="musicMood"><option value="all">Wszystkie</option><option value="calm">Spokojny</option><option value="happy">Pogodny</option><option value="energy">Energetyczny</option><option value="adventure">Przygoda / działanie</option></select><label for="onlineTrack">Wybierz utwór</label><select id="onlineTrack"></select><small id="musicCredit">Wybierz utwór, aby zobaczyć informacje o autorze i licencji.</small><button type="button" id="copyMusicCredit">⧉ Kopiuj informację o autorze i licencji</button><small>Muzyka jest przesyłana bezpośrednio z serwera autora. Potrzebne jest połączenie z internetem.</small></div><div id="localMusicSettings" hidden><label for="musicFile">Wybierz plik MP3, M4A, OGG lub WAV</label><input id="musicFile" type="file" accept="audio/*,.mp3,.m4a,.ogg,.wav"></div><label for="musicVolume">Głośność: <output id="musicVolumeValue">35%</output></label><input id="musicVolume" type="range" min="0" max="100" step="1" value="35"><label style="display:flex;align-items:center;gap:7px"><input id="musicLoop" type="checkbox" checked style="width:auto"> Powtarzaj, jeśli utwór jest krótszy od animacji</label><button type="button" id="musicPreview">▶ Odsłuchaj muzykę</button><small id="musicInfo" role="status">Wybierz utwór z biblioteki online i użyj odsłuchu.</small></section><div class="stats" id="stats">Wczytaj plik GPX, aby zobaczyć parametry trasy.</div><button id="play" disabled>▶ Odtwórz animację</button><div class="transport"><button id="stop" disabled>⏸ Pauza</button><button id="reset" type="button">↺ Reset</button></div><label for="exportFormat">Format eksportu</label><select id="exportFormat"><option value="mp4">MP4 (H.264) — eksperymentalnie</option><option value="webm">WebM — zgodność z przeglądarką</option></select><label for="exportResolution">Rozdzielczość docelowa</label><select id="exportResolution"><option value="720">HD 720p — zalecane na słabszych urządzeniach</option><option value="1080" selected>Full HD 1080p</option></select><label for="exportFps">Klatki na sekundę</label><select id="exportFps"><option value="25">25 FPS</option><option value="30" selected>30 FPS</option></select><button id="export" disabled>🎬 Eksportuj film (MP4 / WebM)</button><button id="stopExport" type="button" hidden>■ Zakończ nagrywanie i zapisz</button><small id="exportHelp">Eksport przez nagrywanie karty przeglądarki. Wybierz „Ta karta” i włącz udostępnianie dźwięku karty, aby zapisać muzykę. Najlepiej działa w Chrome lub Edge na komputerze. Na Androidzie funkcja może być niedostępna. MP4 jest kodowane natywnie, gdy przeglądarka to umożliwia, lub konwertowane lokalnie przez FFmpeg.wasm (wymaga internetu i pamięci RAM). Rozdzielczość dotyczy konwersji; natywny zapis zależy od udostępnionego obrazu.</small><div id="status"></div></aside><div id="stage"><div id="mapTilt"><div id="map"></div></div><div id="startSummary" aria-live="polite"><div id="startSummaryContent"></div></div><div id="endSummary" aria-live="polite"></div><div id="photoOverlay"><img alt="Zdjęcie z trasy"><video playsinline muted preload="metadata" style="display:none" aria-label="Film z trasy"></video><div class="photo-caption-display"></div></div><div id="elevation"><canvas id="elevCanvas"></canvas><div id="routeProgressInfo"><span class="metric" title="Czas od startu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="routeElapsed">—</span></span><span class="metric" title="Przebyty dystans"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/><path d="M7 19h6a4 4 0 0 0 0-8h-2a4 4 0 0 1 0-8h6"/></svg><span id="routeDistance">0,00 km</span></span><span class="metric" title="Aktualna wysokość"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 20 9 7l4 6 3-4 6 11z"/></svg><span id="routeAltitude">— m</span></span></div></div></div></main><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script><script>
+const $=id=>document.getElementById(id),map=L.map('map',{zoomControl:true,fadeAnimation:false,zoomAnimation:true}).setView([52.23,21.01],11);let base,pts=[],photos=[],line,marker,raf,playing=false,started=0,elapsed=0,photoPopup,activePhoto=null,animationPts=[],lastDrawIndex=0,lastCamera=0,lastCameraMove=0,cameraPos=null,routeStats=null,finishTimer=null,musicEndTimer=null,cameraFrame=0,photoStops=[],photoFlags=[],playTimeline=[],totalTimeline=0,lastFrameTime=0,tailLine=null,paused=false,pauseStarted=0,pausedAt=0,introTimer=null,introRunning=false,regionRequestId=0,routePlaceNames=null,routeDistances=[],routeTotalDistance=0;const TEST_GPX='Zepp20261017140024_edytowany (1).gpx';const tiles={esri:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',osm:'https://tile.openstreetmap.org/{z}/{x}/{y}.png'};function setLayer(){
+  const kind=$('layer').value;
+  const quality=$('mapQuality').value;
+  // ArcGIS World Imagery serves 256x256 tiles. Never request 512/1024px
+  // tiles at that URL: the service does not provide them.
+  const old=base;
+  // Kafelki Esri zawsze mają 256 px. Przy wysokiej jakości wyświetlamy
+  // kafelki z wyższego poziomu zoomu w mniejszym obszarze CSS,
+  // zamiast rozciągać pojedynczy obraz przy nachyleniu mapy.
+  const detail=kind==='esri'?(quality==='maximum'?2:quality==='high'?1:0):0;
+  const retina=false;
+  base=L.tileLayer(tiles[kind],{
+    tileSize:256/Math.pow(2,detail),
+    zoomOffset:detail,
+    detectRetina:retina,
+    maxZoom:19,
+    maxNativeZoom:19-detail,
+    keepBuffer:24,
+    updateWhenIdle:false,
+    updateWhenZooming:true,
+    crossOrigin:true,
+    attribution:kind==='esri'?'Tiles © Esri and contributors':'© OpenStreetMap contributors'
+  });
+  // A modest contrast adjustment for maximum mode; no unsupported tile requests.
+  if(kind==='esri' && quality==='maximum'){
+    base.on('tileload', e=>{e.tile.style.filter='contrast(1.07) saturate(1.05)'});
+  }
+  let cleaned=false;
+  const cleanup=()=>{if(cleaned)return;cleaned=true;if(old&&map.hasLayer(old))map.removeLayer(old)};
+  if(old){
+    base.once('load',cleanup);
+    setTimeout(cleanup,12000);
+  }
+  base.addTo(map);
+}
+$('layer').onchange=setLayer;
+$('mapQuality').onchange=setLayer;
+setLayer();$('zoomDistance').oninput=()=>{const v=+$('zoomDistance').value;$('zoomValue').textContent=v>=1000?(v/1000).toFixed(2).replace('.',',')+' km':v+' m';if(playing){const c=map.getCenter();map.setView(c,cameraZoom200m(c.lat),{animate:false});cameraPos=map.project(c,map.getZoom());}};function distance(a,b){let r=Math.PI/180,dy=(b.lat-a.lat)*r,dx=(b.lng-a.lng)*r,s=Math.sin(dy/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dx/2)**2;return 6371000*2*Math.atan2(Math.sqrt(s),Math.sqrt(1-s))}// Proporczyki zdjęć: dodawane tylko po dotarciu do miejsca fotografii.
+// SVG jest wewnątrz znacznika Leaflet i nie wymaga zewnętrznych ikon.
+const photoFlagLayer=L.layerGroup().addTo(map);
+function clearPhotoFlags(){
+  photoFlagLayer.clearLayers();
+  for(const flag of photoFlags){if(map.hasLayer(flag.marker))map.removeLayer(flag.marker);flag.shown=false;}
+  photoFlags=[];
+  if(typeof fixedFlags!=='undefined')fixedFlags.replaceChildren();
+}
+ // Korekta rozmiaru nakładek dla powiększenia płaszczyzny mapy 3D.
+ // Zachowujemy szerokości w pikselach ekranu, a nie w pikselach przeskalowanej mapy.
+ let mapVisualScale=1;
+ function keepOverlayScreenSize(){
+   const inv=1/Math.max(1,mapVisualScale);
+   const width=Number($('routeWidth').value);
+   for(const route of [line,tailLine]){
+     if(route && route.setStyle)route.setStyle({opacity:0,weight:width*inv,
+       dashArray:$('routeLineStyle').value==='pastel'?`${Math.max(2,width*.8)*inv} ${Math.max(.5,width*.15)*inv}`:null});
+   }
+   // CSS scale jest niezależne od transform:rotate(), więc nie zakłóca
+   // kierunku marszu ani animacji kończyn.
+   const visual=marker?.getElement?.()?.querySelector('.leader-visual');
+   if(visual)visual.style.scale=String(inv);scheduleFixedOverlay();
+ }
+// v77: rysowanie trasy i punktu wiodącego w pikselach ekranu.
+// Nakładka nie jest dzieckiem pochylanej mapy, więc jej grubość i rozmiar
+// nie zależą od skali, powiększenia ani perspektywy CSS.
+const fixedOverlay=document.createElementNS('http://www.w3.org/2000/svg','svg');
+fixedOverlay.id='fixedRouteOverlay';
+fixedOverlay.setAttribute('aria-hidden','true');
+fixedOverlay.style.cssText='position:absolute;inset:0;width:100%;height:100%;z-index:450;pointer-events:none;overflow:hidden';
+const fixedRoutePath=document.createElementNS('http://www.w3.org/2000/svg','path');
+const fixedTailPath=document.createElementNS('http://www.w3.org/2000/svg','path');
+for(const el of [fixedRoutePath,fixedTailPath]){el.setAttribute('fill','none');el.setAttribute('stroke-linecap','round');el.setAttribute('stroke-linejoin','round');fixedOverlay.appendChild(el)}
+$('stage').appendChild(fixedOverlay);
+const fixedLeader=document.createElement('div');fixedLeader.id='fixedLeaderOverlay';
+fixedLeader.style.cssText='position:absolute;z-index:455;pointer-events:none;width:42px;height:54px;transform:translate(-50%,-50%)';
+$('stage').appendChild(fixedLeader);
+// Proporczyki jako wektorowa nakładka ekranowa: nie podlegają skalowaniu
+// ani rasteryzacji przez transformację perspektywiczną mapy.
+const fixedFlags=document.createElement('div');
+fixedFlags.id='fixedFlagsOverlay';
+fixedFlags.style.cssText='position:absolute;inset:0;z-index:453;pointer-events:none;overflow:hidden';
+$('stage').appendChild(fixedFlags);
+function refreshFixedFlags(){
+ fixedFlags.replaceChildren();
+ for(const flag of photoFlags){
+   const el=document.createElement('div');
+   el.style.cssText='position:absolute;width:24px;height:34px;transform:translate(-6px,-31px);transform-origin:0 0;will-change:left,top';
+   el.innerHTML=flagIcon(flag.tilt).options.html;
+   flag.screenElement=el;
+   fixedFlags.appendChild(el);
+ }
+ scheduleFixedOverlay();
+}
+
+let fixedOverlayPending=false;
+function scheduleFixedOverlay(){if(fixedOverlayPending)return;fixedOverlayPending=true;requestAnimationFrame(()=>{fixedOverlayPending=false;renderFixedOverlay()})}
+function projectToStage(latlng,matrix,w,h){
+ const pt=map.latLngToContainerPoint(latlng);
+ // DOMMatrix jest identyczną macierzą, którą przeglądarka stosuje do mapTilt.
+ const q=matrix.transformPoint(new DOMPoint(pt.x-w/2,pt.y-h/2,0,1));
+ const d=q.w||1;
+ return [(w/2+q.x/d),(h/2+q.y/d)];
+}
+function renderFixedOverlay(){
+ const stage=$('stage'),w=stage.clientWidth,h=stage.clientHeight;
+ if(!w||!h)return;
+ fixedOverlay.setAttribute('viewBox',`0 0 ${w} ${h}`);
+ let matrix;
+ try{matrix=new DOMMatrix(getComputedStyle($('mapTilt')).transform)}catch(e){matrix=new DOMMatrix()}
+ const style=currentRouteStyle();
+ for(const path of [fixedRoutePath,fixedTailPath]){
+   path.setAttribute('stroke',style.color);
+   path.setAttribute('stroke-width',String(Number($('routeWidth').value)));
+   path.setAttribute('opacity',String(style.opacity));
+   path.setAttribute('stroke-dasharray',$('routeLineStyle').value==='pastel'?'5 1.2':'none');
+ }
+ function pathData(layer){
+   if(!layer)return '';
+   const points=layer.getLatLngs();if(!points||!points.length)return '';
+   const stride=Math.max(1,Math.ceil(points.length/2400));let d='';
+   for(let i=0;i<points.length;i+=stride){const [x,y]=projectToStage(points[i],matrix,w,h);if(Number.isFinite(x)&&Number.isFinite(y))d+=(d?'L':'M')+x.toFixed(2)+' '+y.toFixed(2)+' '}
+   if(points.length>1&&(points.length-1)%stride!==0){const [x,y]=projectToStage(points.at(-1),matrix,w,h);d+='L'+x.toFixed(2)+' '+y.toFixed(2)}
+   return d;
+ }
+ fixedRoutePath.setAttribute('d',pathData(line));
+ fixedTailPath.setAttribute('d',pathData(tailLine));
+ // Pozycja jest przeliczana z geografii na ekran, a sam SVG pozostaje
+ // w natywnej rozdzielczości CSS, bez rozciągania przy pochylaniu mapy.
+ for(const flag of photoFlags){
+   const el=flag.screenElement;
+   if(!el)continue;
+   el.style.display=flag.shown?'block':'none';
+   if(!flag.shown)continue;
+   const [fx,fy]=projectToStage(flag.marker.getLatLng(),matrix,w,h);
+   el.style.left=fx+'px';el.style.top=fy+'px';
+   const original=flag.marker.getElement();
+   if(original)original.style.visibility='hidden';
+ }
+
+ if(marker&&map.hasLayer(marker)){
+   const [x,y]=projectToStage(marker.getLatLng(),matrix,w,h);
+   fixedLeader.style.display=leaderVisible?'block':'none';
+   fixedLeader.style.left=x+'px';fixedLeader.style.top=y+'px';
+   const original=marker.getElement();if(original)original.style.visibility='hidden';
+   const mode=$('leaderStyle').value;
+   if(fixedLeader.dataset.mode!==mode||fixedLeader.dataset.color!==$('flagColor').value){
+     fixedLeader.innerHTML=leaderIcon().options.html;
+     fixedLeader.dataset.mode=mode;fixedLeader.dataset.color=$('flagColor').value;
+   }
+   const visual=fixedLeader.querySelector('.leader-visual');
+   if(visual){visual.style.opacity=leaderVisible?'1':'0';visual.style.transform=mode==='car'?`rotate(${leaderBearing}deg)`:'none';visual.style.scale='1'}
+   const direction=fixedLeader.querySelector('.walker-direction');if(direction)direction.style.transform=`scaleX(${leaderFacing})`;
+ }else fixedLeader.style.display='none';
+}
+function currentRouteStyle(){
+ const style=$('routeLineStyle').value, width=Number($('routeWidth').value);
+ return {color:$('routeColor').value,weight:width,opacity:style==='pastel'?.82:1,lineCap:'round',lineJoin:'round',
+   dashArray:style==='pastel'?`${Math.max(2,width*.8)} ${Math.max(.5,width*.15)}`:null};
+}
+function ensureRouteFilters(){
+ if(document.getElementById('gpsRouteFilters'))return;
+ const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+ svg.id='gpsRouteFilters';svg.setAttribute('width','0');svg.setAttribute('height','0');
+ svg.style.cssText='position:absolute;pointer-events:none;overflow:hidden';
+ svg.innerHTML=`<defs>
+ <filter id="gpsPastelTexture" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.22" numOctaves="2" seed="7" result="grain"/><feDisplacementMap in="SourceGraphic" in2="grain" scale="0.85" xChannelSelector="R" yChannelSelector="G"/></filter>
+ <filter id="gpsHandTexture" x="-30%" y="-30%" width="160%" height="160%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="13" result="waviness"/><feDisplacementMap in="SourceGraphic" in2="waviness" scale="2.1" xChannelSelector="R" yChannelSelector="G"/></filter>
+ </defs>`;
+ document.body.appendChild(svg);
+}
+function applyRouteLineStyle(){
+ ensureRouteFilters();const mode=$('routeLineStyle').value;
+ for(const layer of [line,tailLine]){
+   const el=layer?.getElement?.();if(!el)continue;
+   el.classList.remove('route-pastel','route-hand');
+   if(mode==='pastel')el.classList.add('route-pastel');
+   if(mode==='hand')el.classList.add('route-hand');el.style.opacity='0';
+ }
+}
+function flagIcon(tilt=0){
+ const color=$('flagColor').value,w=Number($('flagWidth').value);
+ const stem=(w+0.7).toFixed(1),outline=(w*0.7).toFixed(1);
+ return L.divIcon({className:'photo-flag-icon',html:`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="34" viewBox="0 0 24 34" aria-hidden="true"><g transform="rotate(${tilt} 6 31)"><path d="M6 31V3" stroke="#fff" stroke-width="${(w+2.4).toFixed(1)}" stroke-linecap="round"/><path d="M6 31V3" stroke="#24364a" stroke-width="${stem}" stroke-linecap="round"/><path d="M7 4L21 7.5 7 16Z" fill="${color}" stroke="#fff" stroke-width="${outline}" stroke-linejoin="round"/></g></svg>`,iconSize:[24,34],iconAnchor:[6,31]});
+}
+// Punkt wiodący: marker HTML zamiast SVG, dzięki czemu dostępne są animacje postaci.
+let leaderBearing=0,leaderVisible=true,leaderFacing=1;
+function leaderIcon(){
+ const mode=$('leaderStyle').value,c=$('flagColor').value;
+ let art='';
+ if(mode==='walker')art=`<svg viewBox="0 0 42 54" width="21" height="27" aria-hidden="true"><g class="walker-direction" style="transform:scaleX(${leaderFacing})" fill="none" stroke="${c}" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="21" cy="9" r="7" fill="${c}" stroke="none"/><path d="M21 19V32"/><g class="walker-arm-a"><path d="M21 22L17 31L15 38"/></g><g class="walker-arm-b"><path d="M21 22L25 31L27 38"/></g><g class="walker-leg-a"><path d="M21 32L18 42L17 50"/></g><g class="walker-leg-b"><path d="M21 32L24 42L25 50"/></g></g></svg>`; else if(mode==='car')art=`<svg viewBox="0 0 42 54" width="42" height="54" aria-hidden="true"><path d="M10 13Q10 7 17 6H25Q32 7 32 13L36 23V42Q36 46 32 46H10Q6 46 6 42V23Z" fill="${c}" stroke="#fff" stroke-width="2.5"/><path d="M12 22L15 13H27L30 22Z" fill="#a9e4ff"/><rect x="11" y="32" width="20" height="9" rx="3" fill="#203148"/><rect x="4" y="25" width="5" height="11" rx="2" fill="#111827"/><rect x="33" y="25" width="5" height="11" rx="2" fill="#111827"/><rect x="11" y="44" width="7" height="3" rx="1" fill="#ffdb81"/><rect x="24" y="44" width="7" height="3" rx="1" fill="#ffdb81"/></svg>`;
+ else art=`<svg viewBox="0 0 42 48" width="42" height="48" aria-hidden="true"><circle cx="21" cy="24" r="8" fill="${c}" stroke="white" stroke-width="2.5"/></svg>`;
+ const rotation=mode==='car'?`rotate(${leaderBearing}deg)`:'';
+ return L.divIcon({className:'leader-marker',html:`<div class="leader-visual ${mode==='walker'?'leader-walking':''}" style="transform:${rotation};opacity:${leaderVisible?1:0}">${art}</div>`,iconSize:[42,54],iconAnchor:[21,27]});
+}
+function refreshLeader(){if(marker&&marker.setIcon)marker.setIcon(leaderIcon());fixedLeader.dataset.mode='';keepOverlayScreenSize();scheduleFixedOverlay();}
+function setLeaderVisible(show){leaderVisible=show;if(marker&&marker.getElement()){const v=marker.getElement().querySelector('.leader-visual');if(v)v.style.opacity=show?'1':'0';}scheduleFixedOverlay();}
+function setLeaderBearing(a,b){if(!a||!b)return;const lat=(a.lat+b.lat)*Math.PI/360;const dx=(b.lng-a.lng)*Math.cos(lat),dy=b.lat-a.lat;if(Math.abs(dx)+Math.abs(dy)<1e-10)return;leaderBearing=Math.atan2(dx,dy)*180/Math.PI; if(marker?.getElement()){const v=marker.getElement().querySelector('.leader-visual');if($('leaderStyle').value==='car'&&v)v.style.transform=`rotate(${leaderBearing}deg)`;if($('leaderStyle').value==='walker'){const facing=dx<0?-1:1;if(facing!==leaderFacing){leaderFacing=facing;const d=marker.getElement().querySelector('.walker-direction');if(d)d.style.transform=`scaleX(${leaderFacing})`;}}}}
+$('leaderStyle').addEventListener('change',refreshLeader);document.querySelectorAll('input[name="leaderChoice"]').forEach(r=>r.addEventListener('change',()=>{if(r.checked){$('leaderStyle').value=r.value;refreshLeader();}}));
+function updateRouteAndFlags(){
+ $('routeWidthValue').textContent=$('routeWidth').value+' px';
+ $('flagWidthValue').textContent=$('flagWidth').value+' px';
+ if(line)line.setStyle({...currentRouteStyle(),opacity:0});if(tailLine)tailLine.setStyle({...currentRouteStyle(),opacity:0});applyRouteLineStyle();scheduleFixedOverlay();
+ for(const flag of photoFlags)flag.marker.setIcon(flagIcon(flag.tilt));
+ refreshFixedFlags();
+ refreshLeader();
+}
+for(const id of ['routeColor','routeWidth','flagColor','flagWidth','routeLineStyle'])$(id).addEventListener('input',updateRouteAndFlags);
+function preparePhotoFlags(){
+  clearPhotoFlags();
+  if(animationPts.length<2)return;
+  for(const [flagIndex,stop] of photoStops.entries()){
+    const f=Math.max(0,Math.min(1,stop.progress));
+    const pos=f*(animationPts.length-1),i=Math.min(animationPts.length-2,Math.floor(pos));
+    const a=animationPts[i],b=animationPts[i+1],t=pos-i;
+    const location=[a.lat+(b.lat-a.lat)*t,a.lng+(b.lng-a.lng)*t];
+    const tilt=[-7,5,-3,8,-5,4,0][flagIndex%7];
+    const icon=flagIcon(tilt);
+    const flag=L.marker(location,{icon,interactive:false,keyboard:false,zIndexOffset:300});
+    photoFlags.push({progress:f,photo:stop.photo,marker:flag,shown:false,tilt});
+  }
+  refreshFixedFlags();
+}
+// Flaga pojawia się dokładnie przy wyświetleniu przypisanego zdjęcia,
+// nie przy wstępnym przygotowaniu mapy ani wskutek samego postępu trasy.
+function revealPhotoFlagForPhoto(photo){
+  if(!photo)return;
+  for(const flag of photoFlags){
+    if(flag.photo===photo&&!flag.shown){
+      flag.marker.addTo(photoFlagLayer);
+      flag.shown=true;
+      scheduleFixedOverlay();
+    }
+  }
+}
+function revealAllReachedPhotoFlags(){
+  for(const flag of photoFlags){
+    if(!flag.shown){flag.marker.addTo(photoFlagLayer);flag.shown=true;}
+  }
+  scheduleFixedOverlay();
+}
+function reset(){$('photoOverlay').querySelector('video')?.pause();photoRevealToken++;document.body.classList.remove('walker-in-motion');stopMusic();clearPhotoFlags();document.body.classList.remove('intro-pending');paused=false;pauseStarted=0;pausedAt=0;$('stop').textContent='⏸ Pauza';$('stop').disabled=true;$('play').disabled=pts.length<2;cancelAnimationFrame(finishRaf);clearTimeout(finishTimer);clearTimeout(musicEndTimer);musicEndTimer=null;clearTimeout(introTimer);introRunning=false;$('startSummary').classList.remove('visible');map.stop();lastDrawIndex=0;lastCamera=0;lastCameraMove=0;cameraPos=null;$('endSummary').classList.remove('visible');$('endSummary').replaceChildren();fixedRoutePath.setAttribute('d','');fixedTailPath.setAttribute('d','');fixedLeader.style.display='none';$('mapTilt').style.transition='none';$('mapTilt').style.transform='translateZ(0)';$('photoOverlay').style.display='none';activePhoto=null;playing=false;cancelAnimationFrame(raf);elapsed=0;if(line)map.removeLayer(line);if(tailLine)map.removeLayer(tailLine);tailLine=null;if(marker)map.removeLayer(marker);if(photoPopup)map.closePopup(photoPopup);if(pts.length){line=L.polyline([],{...currentRouteStyle(),renderer:routeWideRenderer}).addTo(map);tailLine=L.polyline([],{...currentRouteStyle(),renderer:routeWideRenderer}).addTo(map);applyRouteLineStyle();leaderVisible=true;marker=L.marker([animationPts.length?animationPts[0].lat:pts[0].lat,animationPts.length?animationPts[0].lng:pts[0].lng],{icon:leaderIcon(),interactive:false,keyboard:false,zIndexOffset:450}).addTo(map)}}$('stop').onclick=()=>{
+  if(introRunning){return;}if(!playing && !paused)return;
+  if(!paused){
+    paused=true;document.body.classList.remove('walker-in-motion');pauseStarted=performance.now();cancelAnimationFrame(raf);musicAudio.pause();$('photoOverlay').querySelector('video')?.pause();
+    $('stop').textContent='▶ Wznów';$('status').textContent='Animacja wstrzymana.';
+  }else{
+    const now=performance.now();started+=now-pauseStarted;paused=false;pauseStarted=0;
+    lastCamera=now;document.body.classList.add('walker-in-motion');playMusic();if(activePhoto?.kind==='video')$('photoOverlay').querySelector('video')?.play().catch(()=>{});$('stop').textContent='⏸ Pauza';
+    $('status').textContent='Animacja wznowiona.';raf=requestAnimationFrame(frame);
+  }
+};
+$('reset').onclick=()=>{
+  reset();drawElevation(0);
+  if(pts.length){map.fitBounds(L.latLngBounds(pts.map(p=>[p.lat,p.lng])),{padding:[35,35],animate:false});}
+  $('status').textContent=pts.length?'Animacja cofnięta do początku. GPX i zdjęcia zachowane.':'Gotowe do wczytania trasy.';
+};$('gpx').onchange=async e=>{let f=e.target.files[0];if(f)await loadGpxText(await f.text())};async function loadGpxText(raw){originalGpxText=raw;++regionRequestId;routePlaceNames=null;$('routeDescription').value='';$('routeDescription').dataset.edited='false';reset();$('status').textContent='Wczytywanie GPX…';try{let xml=new DOMParser().parseFromString(raw,'application/xml');let nodes=[...xml.getElementsByTagName('trkpt')];if(!nodes.length)nodes=[...xml.getElementsByTagName('rtept')];pts=nodes.map(n=>({lat:+n.getAttribute('lat'),lng:+n.getAttribute('lon'),ele:+(n.getElementsByTagName('ele')[0]?.textContent||'NaN'),time:Date.parse(n.getElementsByTagName('time')[0]?.textContent||'')})).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng));if(pts.length<2){$('status').textContent='Brak wystarczającej liczby punktów GPX.';return}let km=0,up=0,down=0;for(let i=1;i<pts.length;i++){km+=distance(pts[i-1],pts[i]);if(Number.isFinite(pts[i].ele)&&Number.isFinite(pts[i-1].ele)){let d=pts[i].ele-pts[i-1].ele;if(d>0)up+=d;else down-=d}}let t=pts.at(-1).time-pts[0].time;routeStats={km,up,down,t};routeTotalDistance=km;routeDistances=[0];for(let i=1;i<pts.length;i++)routeDistances.push(routeDistances[i-1]+distance(pts[i-1],pts[i]));$('stats').textContent=`Dystans: ${(km/1000).toFixed(2)} km\nPodejścia: +${Math.round(up)} m\nZejścia: −${Math.round(down)} m\nCzas GPS: ${Number.isFinite(t)&&t>0?Math.floor(t/3600000)+' h '+Math.floor(t%3600000/60000)+' min':'brak danych'}\nPunkty: ${pts.length}`;$('stats').style.whiteSpace='pre-line';animationPts=buildAnimationPoints();reset();if(line)line.setLatLngs([]);if(tailLine)tailLine.setLatLngs([]);assignPhotos();drawElevation(0);map.fitBounds(L.latLngBounds(pts.map(p=>[p.lat,p.lng])),{padding:[35,35]});$('play').disabled=false;$('export').disabled=false;$('status').textContent='Trasa wczytana. Możesz uruchomić animację.';updateRegionFromMap()}catch(err){$('status').textContent='Błąd wczytywania GPX: '+(err?.message||String(err));console.error(err)}}; $('loadTest').onclick=async()=>{try{let r=await fetch('./'+encodeURIComponent(TEST_GPX));if(!r.ok)throw Error('Nie znaleziono testowego GPX obok HTML');await loadGpxText(await r.text())}catch(e){$('status').textContent='Nie można automatycznie otworzyć pliku testowego w tej przeglądarce. Wybierz go ręcznie w polu GPX. '+e.message}};function localExifDate(value){
+  if(value instanceof Date)return Number.isFinite(value.getTime())?value.getTime():NaN;
+  if(typeof value==='number')return value;
+  if(typeof value!=='string')return NaN;
+  const str=value.trim();
+  // EXIF DateTimeOriginal to zwykle lokalny czas aparatu bez strefy.
+  const m=str.match(/^(\d{4})[:\-](\d{2})[:\-](\d{2})[ T](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|[+\-]\d{2}:?\d{2})?$/i);
+  if(!m)return Date.parse(str);
+  if(m[8]){const offset=m[8].length===5&&m[8]!=='Z'?m[8].slice(0,3)+':'+m[8].slice(3):m[8];return Date.parse(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}${offset}`);}
+  // Strefa przeglądarki odpowiada zwykle lokalnej strefie, w której wykonano zdjęcie.
+  return new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6],+(m[7]||'0').padEnd(3,'0').slice(0,3)).getTime();
+}
+function routeAnchorAtTime(ms){
+  if(!Number.isFinite(ms))return null;
+  let best=null;
+  for(let j=0;j<pts.length-1;j++){
+    const a=pts[j],b=pts[j+1];if(!Number.isFinite(a.time)||!Number.isFinite(b.time))continue;
+    const low=Math.min(a.time,b.time),high=Math.max(a.time,b.time);
+    const t=a.time===b.time?0:Math.max(0,Math.min(1,(ms-a.time)/(b.time-a.time)));
+    const delta=ms<low?low-ms:ms>high?ms-high:0;
+    if(!best||delta<best.delta)best={j,t,delta,anchor:{lat:a.lat+(b.lat-a.lat)*t,lng:a.lng+(b.lng-a.lng)*t}};
+    if(delta===0)break;
+  }
+  return best;
+}
+function animationProgressFor(anchor){
+  const path=animationPts.length>1?animationPts:pts;
+  if(path.length<2)return null;
+  let best=null,along=0,total=0;
+  const lengths=[];for(let j=0;j<path.length-1;j++){let d=distance(path[j],path[j+1]);lengths.push(d);total+=d;}
+  const lat0=anchor.lat*Math.PI/180;
+  for(let j=0;j<path.length-1;j++){
+    const a=path[j],b=path[j+1],x=(a.lng-anchor.lng)*Math.cos(lat0)*111195,y=(a.lat-anchor.lat)*111195;
+    const vx=(b.lng-a.lng)*Math.cos(lat0)*111195,vy=(b.lat-a.lat)*111195;
+    const den=vx*vx+vy*vy,t=den?Math.max(0,Math.min(1,-(x*vx+y*vy)/den)):0;
+    const d=Math.hypot(x+t*vx,y+t*vy),pos=along+t*lengths[j];
+    if(!best||d<best.d-0.05||(Math.abs(d-best.d)<0.05&&pos<best.pos))best={d,pos};
+    along+=lengths[j];
+  }
+  return best?Math.max(0,Math.min(1,best.pos/(total||1))):null;
+}
+function assignPhotos(){
+  for(const p of photos){
+    p.index=null;p.progress=null;p.anchor=null;p.method='';
+    if(pts.length>=2&&Number.isFinite(p.manualProgress)){p.progress=Math.max(0,Math.min(1,p.manualProgress));const path=animationPts.length>1?animationPts:pts;p.anchor=path[Math.min(path.length-1,Math.round(p.progress*(path.length-1)))];p.method='Ręcznie wskazane miejsce na trasie';continue;}
+    if(pts.length<2){p.method='Wczytaj trasę GPX';continue;}
+    if(p.gps){
+      p.anchor={lat:p.gps.lat,lng:p.gps.lng};
+      p.progress=animationProgressFor(p.anchor);
+      p.method='GPS zdjęcia: '+p.gps.lat.toFixed(5)+', '+p.gps.lng.toFixed(5);
+    }else if(Number.isFinite(p.takenAt)){
+      const found=routeAnchorAtTime(p.takenAt);
+      if(found&&found.delta<=5*60*1000){
+        p.anchor=found.anchor;p.progress=animationProgressFor(found.anchor);
+        p.method='Czas EXIF → GPX: '+new Date(p.takenAt).toLocaleString('pl-PL')+(found.delta?' · różnica '+Math.round(found.delta/1000)+' s':'');
+      }else if(found){p.method='Godzina zdjęcia poza czasem GPX (najbliższy punkt: '+Math.round(found.delta/60000)+' min różnicy)';}
+      else p.method='GPX nie zawiera znaczników czasu — nie można dopasować zdjęcia';
+    }else p.method='Brak GPS i daty wykonania w EXIF';
+  }
+  renderPhotos();
+  schedulePhotoCaptionLookup();
+}
+function updateRouteProgress(fraction){
+  fraction=Math.max(0,Math.min(1,fraction));
+  const km=(routeTotalDistance*fraction/1000).toFixed(2).replace('.',',');
+  $('routeDistance').textContent=km+' km';
+  let elapsedMs=NaN;
+  if(routeDistances.length===pts.length&&routeTotalDistance>0){
+    const target=routeTotalDistance*fraction;
+    let lo=0,hi=routeDistances.length-1;
+    while(lo+1<hi){const m=(lo+hi)>>1;if(routeDistances[m]<=target)lo=m;else hi=m;}
+    const a=pts[lo],b=pts[Math.min(lo+1,pts.length-1)];
+    if(Number.isFinite(a.time)&&Number.isFinite(b.time)&&Number.isFinite(pts[0].time)){
+      const span=routeDistances[Math.min(lo+1,pts.length-1)]-routeDistances[lo];
+      const u=span>0?(target-routeDistances[lo])/span:0;
+      elapsedMs=a.time+(b.time-a.time)*u-pts[0].time;
+    }
+  }
+  if(Number.isFinite(elapsedMs)&&elapsedMs>=0){
+    const sec=Math.floor(elapsedMs/1000);
+    $('routeElapsed').textContent=Math.floor(sec/3600)+' h '+String(Math.floor(sec%3600/60)).padStart(2,'0')+' min';
+  }else $('routeElapsed').textContent='—';
+}
+function drawElevation(fraction=0){
+ updateRouteProgress(fraction);
+ const canvas=$('elevCanvas'),box=$('elevation');
+ const dpr=window.devicePixelRatio||1,w=Math.max(1,canvas.getBoundingClientRect().width),h=64;
+ canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
+ const c=canvas.getContext('2d');c.scale(dpr,dpr);c.clearRect(0,0,w,h);
+ c.fillStyle=$('allTextColor')?.value||'#ffffff';c.font='12px system-ui';
+ if(pts.length<2){$('routeAltitude').textContent='— m';c.fillText('Brak danych wysokości',8,35);return}
+ // Odrzucamy izolowane, ręcznie dodane wysokości na krańcach śladu.
+ // Nie modyfikujemy oryginalnego GPX ani parametrów trasy.
+ const elev=pts.map(p=>Number.isFinite(p.ele)?p.ele:null);
+ const jump=12;
+ let first=0,last=elev.length-1;
+ while(first<last && (elev[first]===null || (elev[first+1]!==null && Math.abs(elev[first]-elev[first+1])>jump)))first++;
+ while(last>first && (elev[last]===null || (elev[last-1]!==null && Math.abs(elev[last]-elev[last-1])>jump)))last--;
+ const valid=[];for(let i=first;i<=last;i++)if(elev[i]!==null)valid.push({i,e:elev[i]});
+ if(valid.length<2){$('routeAltitude').textContent='— m';c.fillText('Brak danych wysokości',8,35);return}
+ const min=Math.min(...valid.map(p=>p.e)),rawMax=Math.max(...valid.map(p=>p.e));const max=rawMax===min?min+1:rawMax;
+ const x=i=>8+i/Math.max(1,pts.length-1)*(w-16);
+ const y=e=>h-12-(e-min)/(max-min)*(h-33);
+ const idx=Math.min(pts.length-1,Math.max(0,Math.floor(fraction*(pts.length-1))));
+ // Pierwszy i ostatni punkt otrzymują wysokość najbliższego wiarygodnego pomiaru.
+ const samples=[{i:0,e:valid[0].e},...valid,{i:pts.length-1,e:valid[valid.length-1].e}];
+ c.strokeStyle=$('allTextColor').value;c.lineWidth=2;c.lineJoin='round';c.lineCap='round';c.beginPath();
+ let drawn=false;for(let j=0;j<samples.length;j++){
+  const p=samples[j];if(p.i>idx){if(j>0){const a=samples[j-1];const t=(idx-a.i)/(p.i-a.i||1);c.lineTo(x(idx),y(a.e+(p.e-a.e)*t))}break}
+  if(!drawn){c.moveTo(x(p.i),y(p.e));drawn=true}else c.lineTo(x(p.i),y(p.e));
+ }
+ c.stroke();
+ let current=valid[0].e;if(idx>=valid[valid.length-1].i)current=valid[valid.length-1].e;
+ else if(idx>valid[0].i){let lo=0,hi=valid.length-1;while(lo+1<hi){let mid=(lo+hi)>>1;if(valid[mid].i<=idx)lo=mid;else hi=mid}let a=valid[lo],b=valid[hi];current=a.e+(b.e-a.e)*(idx-a.i)/(b.i-a.i||1)}
+ $('routeAltitude').textContent=Math.round(current)+' m';
+}
+function renderPhotos(){
+  const list=$('photoList');list.replaceChildren();
+  [...photos].sort((a,b)=>(a.progress??Infinity)-(b.progress??Infinity)).forEach(p=>{
+    const row=document.createElement('div');row.className='photo-item';
+    const thumb=document.createElement(p.kind==='video'?'video':'img');thumb.src=p.url;if(p.kind==='video'){thumb.muted=true;thumb.preload='metadata';thumb.playsInline=true;}else thumb.alt='Miniatura zdjęcia';
+    const meta=document.createElement('div');meta.className='meta';
+    const name=document.createElement('span');name.textContent=p.name;
+    const info=document.createElement('small');info.textContent=(p.method||'')+(Number.isFinite(p.progress)?' · '+(p.progress*100).toFixed(1)+'% trasy':'');
+    const captionInput=document.createElement('textarea');captionInput.rows=2;captionInput.className='photo-caption-input';captionInput.placeholder='Krótki opis zdjęcia (możesz edytować)';captionInput.setAttribute('aria-label','Opis zdjęcia: '+p.name);captionInput.value=p.caption||'';
+    captionInput.oninput=()=>{p.caption=captionInput.value;p.captionEdited=true;if(activePhoto===p)updateActivePhotoCaption(p)};
+    meta.append(name,info);if(p.kind==='video'){const where=document.createElement('label');where.textContent='Pozycja filmu na trasie (%)';const percent=document.createElement('input');percent.type='number';percent.min='0';percent.max='100';percent.step='1';percent.style.width='100%';percent.value=Number.isFinite(p.manualProgress)?Math.round(p.manualProgress*100):Number.isFinite(p.progress)?Math.round(p.progress*100):'';percent.placeholder='0–100';percent.onchange=()=>{p.manualProgress=percent.value.trim()===''?null:Math.max(0,Math.min(1,Number(percent.value)/100));assignPhotos();};where.append(percent);meta.append(where);}row.append(thumb,meta);row.append(captionInput);
+    const label=document.createElement('label');const check=document.createElement('input');check.type='checkbox';check.checked=p.enabled;check.disabled=!Number.isFinite(p.progress);
+    check.onchange=()=>{p.enabled=check.checked};label.append(check,document.createTextNode(' Film'));
+    const del=document.createElement('button');del.textContent='Usuń';del.onclick=()=>{photos=photos.filter(x=>x!==p);URL.revokeObjectURL(p.url);assignPhotos()};
+    row.append(label,del);list.append(row);
+  });
+}
+$('photos').onchange=async e=>{
+  let files=[...e.target.files];
+  for(let f of files){
+    const isVideo=f.type.startsWith('video/')||/\.(mp4|webm|mov|m4v)$/i.test(f.name);if(!f.type.startsWith('image/')&&!isVideo)continue;
+    let gps=null,takenAt=NaN,exifError='';
+    try{
+      if(isVideo)throw Error('Video: użyj daty pliku');
+      const data=await exifr.parse(f,{gps:true,exif:true,tiff:true,ifd0:true,translateValues:false});
+      if(Number.isFinite(data?.latitude)&&Number.isFinite(data?.longitude))gps={lat:data.latitude,lng:data.longitude};
+      // Data jako tekst, aby zachować lokalną godzinę aparatu zamiast niejawnej konwersji UTC.
+      const rawDate=data?.DateTimeOriginal??data?.CreateDate??data?.DateTimeDigitized??data?.ModifyDate;
+      takenAt=localExifDate(rawDate);
+      if(!Number.isFinite(takenAt)){
+        const raw=await exifr.parse(f,{pick:['DateTimeOriginal','CreateDate','DateTimeDigitized','OffsetTimeOriginal'],translateValues:false});
+        takenAt=localExifDate(raw?.DateTimeOriginal??raw?.CreateDate??raw?.DateTimeDigitized);
+      }
+    }catch(err){if(!isVideo){exifError=String(err?.message||err);console.warn('EXIF',f.name,err);}}
+    if(isVideo) takenAt=Number.isFinite(f.lastModified)?f.lastModified:NaN;
+    photos.push({kind:isVideo?'video':'image',url:URL.createObjectURL(f),gps,takenAt,exifError,name:f.name,enabled:true,index:null,progress:null,caption:"",captionEdited:false,captionLocationKey:"",manualProgress:null});
+  }
+  e.target.value='';assignPhotos();
+};
+function photoAnchorOnStage(photo){
+  const stage=$('stage'),pt=photo.anchor||photo.gps;
+  const w=stage.clientWidth,h=stage.clientHeight;
+  if(!pt)return {x:w/2,y:h/2};
+  const pos=map.latLngToContainerPoint([pt.lat,pt.lng]);
+  const angle=playing&&$('tilt').checked?Number($('tiltAngle').value)*Math.PI/180:0;
+  const c=Math.cos(angle),sn=Math.sin(angle);
+  const depth=Math.max(2400,h*16);
+  const scale=angle?Math.min(9,1.18/Math.max(.08,c-h*sn/(2*depth))):1;
+  const dx=(pos.x-w/2)*scale,dy=(pos.y-h/2)*scale;
+  const factor=depth/(depth-dy*sn);
+  return {x:w/2+dx*factor,y:h/2+dy*c*factor};
+}
+function updateActivePhotoCaption(p){const box=$('photoOverlay');const el=box.querySelector('.photo-caption-display');if(!el)return;const label=(p.caption||'').trim();el.textContent=label;box.classList.toggle('has-caption',!!label)}
+let photoRevealToken=0;
+async function showPhoto(p){
+  activePhoto=p;
+  const token=++photoRevealToken;
+  const box=$('photoOverlay'),stage=$('stage'),img=box.querySelector('img'),vid=box.querySelector('video');
+  const isVideo=p.kind==='video';img.style.display=isVideo?'none':'block';vid.style.display=isVideo?'block':'none';vid.pause();
+  // Nie pokazuj kontenera ani jednej klatki, dopóki przeglądarka nie
+  // zdekoduje zdjęcia. Eliminuje to białe mignięcie przy zmianie src.
+  box.style.display='none';
+  box.classList.remove('photo-enter');
+  if(isVideo){if(vid.src!==p.url){vid.src=p.url;vid.load();}vid.currentTime=0;vid.muted=true;vid.playsInline=true;}else if(img.src!==p.url)img.src=p.url;
+  try{
+    if(isVideo){await new Promise(resolve=>{if(vid.readyState>=2)return resolve();const done=()=>resolve();vid.addEventListener('loadeddata',done,{once:true});vid.addEventListener('error',done,{once:true});setTimeout(done,2500)});}else{
+    if(img.decode)await img.decode();
+    else if(!img.complete)await new Promise(resolve=>{img.addEventListener('load',resolve,{once:true});img.addEventListener('error',resolve,{once:true})});}
+  }catch(e){}
+  if(token!==photoRevealToken||activePhoto!==p)return;
+  updateActivePhotoCaption(p);
+  box.style.setProperty('--photo-max-h',Math.max(32,stage.clientHeight*.90-14)+'px');
+  const point=photoAnchorOnStage(p);
+  box.style.setProperty('--photo-dx',(point.x-stage.clientWidth/2)+'px');
+  box.style.setProperty('--photo-dy',(point.y-stage.clientHeight/2)+'px');
+  box.style.display='block';
+  void box.offsetWidth;
+  box.classList.add('photo-enter');
+  if(isVideo&&!paused)vid.play().catch(()=>{});
+}
+
+function positionPhoto(){
+  if(!activePhoto)return;
+  const stage=$('stage'),box=$('photoOverlay');
+  box.style.setProperty('--photo-max-h',Math.max(32,stage.clientHeight*.90-14)+'px');
+  // Po pojawieniu się zdjęcie pozostaje na środku, także przy ruchu mapy.
+}
+// Próbkowanie co 3 punkty, interpolacja po odległości, by uniknąć skoków i drgań GPS.
+function buildAnimationPoints(){
+  if(pts.length<2)return [];
+  // Pomiń nieruchome punkty i odosobniony punkt startowy, ale zachowaj oryginalny GPX.
+  let source=pts;let start=0;
+  while(start<pts.length-2&&distance(pts[start],pts[start+1])<1.5)start++;
+  if(start<pts.length-3&&distance(pts[start+1],pts[start+2])>120&&distance(pts[start+2],pts[start+3])<35)start+=2;else if(start<pts.length-2&&distance(pts[start],pts[start+1])>150&&distance(pts[start+1],pts[start+2])<35)start++;
+  source=pts.slice(start);
+  const key=[];for(let i=0;i<source.length;i+=3){if(!key.length||distance(key.at(-1),source[i])>0.5)key.push(source[i]);}
+  if(distance(key.at(-1),source.at(-1))>0.5)key.push(source.at(-1));if(key.length<2)key.push(source.at(-1));
+  const dist=[0];for(let i=1;i<key.length;i++)dist.push(dist[i-1]+distance(key[i-1],key[i]));
+  const total=dist.at(-1);if(total<=0)return [key[0],key[key.length-1]].map(p=>({...p}));
+  const count=Math.max(2,Math.min(4000,Math.ceil(total/3)+1));
+  const result=[];let seg=0;
+  for(let i=0;i<count;i++){
+    const d=total*i/(count-1);
+    while(seg<dist.length-2&&dist[seg+1]<d)seg++;
+    const span=dist[seg+1]-dist[seg];const t=span>0?(d-dist[seg])/span:0;
+    result.push({lat:key[seg].lat+(key[seg+1].lat-key[seg].lat)*t,lng:key[seg].lng+(key[seg+1].lng-key[seg].lng)*t});
+  }
+  return result;
+}
+function cameraZoom200m(lat){
+  // Ok. 200 m na 100 px przy aktualnej szerokości geograficznej.
+  const metersPerPixel=Number($('zoomDistance').value||200)/100;
+  return Math.max(1,Math.min(19,Math.log2(156543.03392*Math.cos(lat*Math.PI/180)/metersPerPixel)));
+}
+// Wspólna oś czasu: odcinki ruchu i postoje na zdjęcia, bez skoków postępu.
+function prepareTimeline(){
+  // Nie dopasowuj ponownie zdjęć. Każde zdjęcie ma stałą pozycję z GPS albo czasu EXIF.
+  // Ślad animacji może pomijać sztuczny punkt startowy: przeliczamy JEDYNIE odległość
+  // oryginalnego zakotwiczenia na ułamek śladu animowanego, bez zmiany zdjęcia.
+  const selected=photos.filter(p=>p.enabled&&Number.isFinite(p.progress));
+  const stops=selected.map(p=>({photo:p,progress:p.progress})).sort((a,b)=>a.progress-b.progress);
+  const duration=Math.max(10,+$('duration').value||90)*1000;
+  const photoMs=Math.max(1,+$('photoDuration').value||4)*1000;
+  // Czas wyświetlania każdego zdjęcia jest dokładnie taki, jak w formularzu.
+  // Nigdy nie skracamy postojów w celu dopasowania ich do długości filmu.
+  const stopMs=photoMs;
+  const photoTotalMs=stops.length*stopMs;
+  const travelMs=duration; // Ustawiony czas dotyczy wyłącznie rysowania trasy.
+  // Postoje fotograficzne wydłużają całkowity czas odtwarzania.
+  
+  const segments=[];let prev=0,time=0;
+  for(const stop of stops){
+    const at=Math.max(prev,Math.min(1,stop.progress));
+    if(at>prev){const dt=(at-prev)*travelMs;segments.push({kind:'move',from:prev,to:at,start:time,end:time+dt});time+=dt;}
+    segments.push({kind:'photo',photo:stop.photo,from:at,to:at,start:time,end:time+stopMs});time+=stopMs;prev=at;
+  }
+  if(prev<1){const dt=(1-prev)*travelMs;segments.push({kind:'move',from:prev,to:1,start:time,end:time+dt});time+=dt;}
+  playTimeline=segments;totalTimeline=time;photoStops=stops;
+  // Łączny czas = czas rysowania trasy + suma czasów wyświetlania zdjęć.
+}
+function frame(now){
+  if(!playing||paused)return;
+  elapsed=Math.min(totalTimeline,now-started);
+  let segment=playTimeline.find(s=>elapsed>=s.start&&elapsed<s.end)||playTimeline.at(-1);
+  let fraction=1,shown=null;
+  if(segment){
+    if(segment.kind==='photo'){fraction=segment.from;shown=segment.photo;}
+    else{
+      const u=Math.max(0,Math.min(1,(elapsed-segment.start)/Math.max(1,segment.end-segment.start)));
+      // Łagodne hamowanie i ruszanie w pobliżu każdego zdjęcia.
+      const edge=.12;
+      const smooth=x=>x*x*(3-2*x);
+      const eased=u<edge?edge*smooth(u/edge):u>1-edge?1-edge+edge*smooth((u-1+edge)/edge):u;
+      fraction=segment.from+(segment.to-segment.from)*eased;
+    }
+  }
+  fraction=Math.max(0,Math.min(1,fraction));
+  const n=animationPts.length;
+  const progress=fraction*(n-1),idx=Math.min(n-1,Math.floor(progress));
+  const a=animationPts[idx],b=animationPts[Math.min(n-1,idx+1)],t=progress-idx;
+  const current={lat:a.lat+(b.lat-a.lat)*t,lng:a.lng+(b.lng-a.lng)*t};
+  drawElevation(fraction);
+  if(shown)revealPhotoFlagForPhoto(shown);
+  // Część ukończona jest aktualizowana tylko po przekroczeniu kolejnego
+  // punktu. W każdej klatce zmienia się wyłącznie krótki odcinek końcowy.
+  // Dzięki temu nie przebudowujemy całej wielotysięcznej polilinii 60 razy/s.
+  if(idx!==lastDrawIndex){
+    const fixed=[];
+    for(let j=0;j<=idx;j++)fixed.push([animationPts[j].lat,animationPts[j].lng]);
+    line.setLatLngs(fixed);applyRouteLineStyle();
+    lastDrawIndex=idx;
+  }
+  if(tailLine)tailLine.setLatLngs([[a.lat,a.lng],[current.lat,current.lng]]);applyRouteLineStyle();
+  marker.setLatLng([current.lat,current.lng]);setLeaderBearing(a,b);scheduleFixedOverlay();
+  // Kamera jest liczona w KAŻDEJ klatce, bez 90 ms przerw i progu 3 px.
+  // Stała czasowa filtra zapewnia niezależność płynności od FPS.
+  const dt=Math.min(64,Math.max(1,now-lastCamera));
+  const z=map.getZoom();
+  const desired=map.project([current.lat,current.lng],z);
+  if(!cameraPos)cameraPos=map.project(map.getCenter(),z);
+  // Krótkie płynne przejęcie kamery po intro: nie ruszaj kafelków
+  // w chwili kończenia transformacji 3D. Potem użyj sprawdzonego
+  // mechanizmu śledzenia z v19, bez ograniczania FPS.
+  if(now>=cameraWarmupUntil){
+    const alpha=1-Math.exp(-dt/180);
+    cameraPos=L.point(cameraPos.x+(desired.x-cameraPos.x)*alpha,cameraPos.y+(desired.y-cameraPos.y)*alpha);
+    const centerPx=map.project(map.getCenter(),z);
+    if(centerPx.distanceTo(cameraPos)>0.65){
+      // panTo(..., animate:false) resets the Leaflet tile grid on every frame.
+      // panBy with a small pixel offset moves the existing pane instead,
+      // preserving loaded satellite tiles during camera tracking.
+      const shift=cameraPos.subtract(centerPx);
+      map.panBy(shift,{animate:false,noMoveStart:true});
+    }
+  }
+  lastCamera=now;
+  if(shown){if(activePhoto!==shown)showPhoto(shown);else positionPhoto();}
+  else if(activePhoto){photoRevealToken++;activePhoto=null;$('photoOverlay').querySelector('video')?.pause();$('photoOverlay').style.display='none';}
+  if(elapsed<totalTimeline)raf=requestAnimationFrame(frame);
+  else{playing=false;$('stop').disabled=true;line.addLatLng([animationPts.at(-1).lat,animationPts.at(-1).lng]);finishAnimation();}
+}
+
+// SVG o rozszerzonym obszarze renderowania: pełny ślad pozostaje
+// narysowany także poza aktualnym kadrem w trakcie flyTo.
+const routeWideRenderer=L.svg({padding:2});
+let finishRaf=0;
+function smoothFinishToBounds(bounds,duration){
+  // Leaflet's native fly animation interpolates zoom and position together.
+  // Repeated setView(animate:false) caused tile snapping on every frame.
+  cancelAnimationFrame(finishRaf);
+  map.stop();
+  // 4% is the MINIMUM clear space at EACH edge, not a fixed margin.
+  // fitBounds preserves the route aspect ratio, so the unused space on the
+  // other axis naturally grows (for example a tall route in a wide frame).
+  const size=map.getSize();
+  const minX=Math.ceil(size.x*0.04);
+  const minY=Math.ceil(size.y*0.04);
+  const padding=L.point(minX*2,minY*2);
+  let targetZoom=Math.min(17,map.getBoundsZoom(bounds,false,padding));
+  // Avoid numerical rounding at the exact 4% boundary. Leaflet's zoomSnap
+  // may also round the computed zoom up, so verify the projected extents.
+  const fitsAtZoom=z=>{
+    const nw=map.project(bounds.getNorthWest(),z);
+    const se=map.project(bounds.getSouthEast(),z);
+    return Math.abs(se.x-nw.x)<=size.x-2*minX-1 &&
+           Math.abs(se.y-nw.y)<=size.y-2*minY-1;
+  };
+  while(targetZoom>map.getMinZoom()&&!fitsAtZoom(targetZoom))targetZoom-=0.05;
+  map.flyTo(bounds.getCenter(),targetZoom,{
+    animate:true,
+    duration:duration/1000,
+    easeLinearity:0.18,
+    noMoveStart:true
+  });
+}
+function finishAnimation(){
+  document.body.classList.remove('walker-in-motion');
+  // Muzyka gra bez przerwy podczas prostowania i oddalania mapy.
+  // Wyciszanie rozpoczyna się dopiero po zakończeniu ruchu kamery.
+  clearTimeout(musicEndTimer);
+  // Animate the 3D perspective back to flat during the same camera flight.
+  const mapElement=$('mapTilt');
+  mapElement.style.transition='transform 2800ms cubic-bezier(.22,.61,.36,1)';
+  // Force a style flush so the browser transitions from the current tilt.
+  void mapElement.offsetHeight;
+  applyTilt(true);
+  activePhoto=null;$('photoOverlay').style.display='none';
+  // Najpierw wyłącz perspektywę, następnie pokaż całą trasę.
+  
+  // Jeden ciągły zoom i pan, sterowane tą samą osią czasu; bez flyToBounds
+  // (które przy dużej zmianie zoomu potrafi gwałtownie przeskakiwać).
+  // Finish drawing the complete route BEFORE zooming out. Otherwise the
+  // final segment can remain in the temporary tail renderer and disappear
+  // when Leaflet rebuilds its SVG renderer during flyTo.
+  revealAllReachedPhotoFlags();
+  const fullRoute=animationPts.map(p=>[p.lat,p.lng]);
+  if(line){line.setLatLngs(fullRoute);line.redraw();applyRouteLineStyle();scheduleFixedOverlay();}
+  if(tailLine)tailLine.setLatLngs([]);scheduleFixedOverlay();
+  const bounds=L.latLngBounds(fullRoute);
+  smoothFinishToBounds(bounds,2800);
+  drawElevation(1);
+  const st=routeStats||{km:0,up:0,down:0,t:NaN};
+  const time=Number.isFinite(st.t)&&st.t>0?Math.floor(st.t/3600000)+' h '+Math.floor(st.t%3600000/60000)+' min':'brak danych';
+  const title=document.createElement('h2');title.textContent=$('title').value.trim()||'Podsumowanie trasy';
+  const numbers=document.createElement('div');numbers.className='endNumbers';
+  const summaryIcons={
+    'Dystans':'<path d="M3 18c4-1 4-7 8-7s3 5 7 3 1-8 4-9"/><circle cx="3" cy="18" r="1.5"/><circle cx="22" cy="5" r="1.5"/>',
+    'Czas':'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/>',
+    'Podejścia':'<path d="m3 18 7-10 4 5 3-4 4 9"/><path d="M12 5V2m-3 3 3-3 3 3"/>',
+    'Zejścia':'<path d="m3 18 7-10 4 5 3-4 4 9"/><path d="M12 1v5m-3-3 3 3 3-3"/>',
+    'Profil wysokości':'<path d="M2 20 8 9l4 6 3-4 7 9"/><path d="M2 22h20"/>'
+  };
+  function appendSummaryMetric(label,value,fullWidth=false){
+    const cell=document.createElement('div');cell.className='summaryMetric'+(fullWidth?' summaryElevation':'');
+    const strong=document.createElement('strong');strong.textContent=value;
+    const labelRow=document.createElement('div');labelRow.className='summaryMetricLabel';
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');svg.innerHTML=summaryIcons[label]||'';
+    const caption=document.createElement('span');caption.textContent=label;labelRow.append(svg,caption);cell.append(strong,labelRow);numbers.append(cell);
+  }
+  for(const [label,value] of [['Dystans',(st.km/1000).toFixed(2)+' km'],['Czas',time],['Podejścia','+'+Math.round(st.up)+' m'],['Zejścia','−'+Math.round(st.down)+' m']])appendSummaryMetric(label,value);
+  const places=document.createElement('div');places.className='endPlaces';places.id='endPlaces';
+  fillEndPlaces(places);
+  const elevationValues=pts.map(p=>p.ele).filter(Number.isFinite);if(elevationValues.length){const minEle=Math.min(...elevationValues),maxEle=Math.max(...elevationValues);appendSummaryMetric('Profil wysokości',Math.round(minEle)+'–'+Math.round(maxEle)+' m',true);}const panel=$('endSummary');panel.replaceChildren(title,numbers,places);finishTimer=setTimeout(()=>panel.classList.add('visible'),2950);
+  musicEndTimer=setTimeout(()=>{musicEndTimer=null;fadeOutMusic(3000);},3000);
+  $('status').textContent='Animacja zakończona — widok całej trasy i podsumowanie.';
+  if(exportActive){clearTimeout(exportTimeout);exportTimeout=setTimeout(()=>{if(exportActive)endExport();},6800);}
+}
+
+// Nazwy pięciu miejsc wzdłuż trasy: start, 15%, 50%, 85%, meta.
+// Jedna kolejka zapytań reverse-geocoding (Nominatim: maks. 1/s).
+const routePlaceLabels=['Start','Punkt 1 (15%)','Punkt 2 (50%)','Punkt 3 (85%)','Meta'];
+function fillEndPlaces(container){
+  container.replaceChildren();
+  const heading=document.createElement('h3');
+  heading.textContent='Trasa';
+  container.append(heading);
+  // Zachowaj kolejność punktów GPX. Sąsiednie identyczne nazwy pokazuj tylko raz.
+  // Nie łącz odległych wystąpień tej samej nazwy: powrót do miejscowości
+  // na końcu trasy jest istotną informacją.
+  const places=[];
+  for(const raw of (routePlaceNames||[])){
+    const name=typeof raw==='string'?raw.trim():'';
+    if(!name)continue;
+    if(places.length && places[places.length-1].toLocaleLowerCase('pl')===name.toLocaleLowerCase('pl'))continue;
+    places.push(name);
+  }
+  const value=document.createElement('div');
+  value.className='endRouteSequence';
+  value.textContent=$('routeDescription').value.trim()||(places.length?places.join(' – '):'Odczytywanie miejsc na trasie…');
+  container.append(value);
+}
+$('routeDescription').addEventListener('input',()=>{ $('routeDescription').dataset.edited='true'; const panel=$('endPlaces');if(panel)fillEndPlaces(panel); });
+function updateRouteDescriptionSuggestion(){
+  const places=[];
+  for(const raw of routePlaceNames||[]){const name=typeof raw==='string'?raw.trim():'';if(name&&(!places.length||places[places.length-1].toLocaleLowerCase('pl')!==name.toLocaleLowerCase('pl')))places.push(name);}
+  if($('routeDescription').dataset.edited!=='true')$('routeDescription').value=places.join(' – ');
+  const panel=$('endPlaces');if(panel)fillEndPlaces(panel);
+}
+function routePointAtFraction(f){
+  if(pts.length<2)return null;
+  const total=routeTotalDistance;
+  if(!(total>0))return pts[Math.round(f*(pts.length-1))];
+  const target=f*total;
+  let lo=1,hi=routeDistances.length-1;
+  while(lo<hi){const mid=(lo+hi)>>1;if(routeDistances[mid]<target)lo=mid+1;else hi=mid;}
+  const i=lo,span=routeDistances[i]-routeDistances[i-1];
+  const t=span>0?(target-routeDistances[i-1])/span:0;
+  return {lat:pts[i-1].lat+(pts[i].lat-pts[i-1].lat)*t,lng:pts[i-1].lng+(pts[i].lng-pts[i-1].lng)*t};
+}
+// Jedno zbiorcze zapytanie Overpass o nazwane obiekty blisko 5 punktów trasy.
+// Nominatim pozostaje źródłem nazw miejscowości; awaria Overpass nie blokuje aplikacji.
+async function fetchNearbyNamedLandmarks(locations,request){
+  // Nie pobieraj wszystkich budynków: tylko obiekty z nazwą i rozpoznawalną kategorią.
+  const filters=['historic','tourism','memorial','monument','man_made','building','amenity','leisure','natural'];
+  const clauses=[];
+  for(const p of locations){
+    for(const key of filters){
+      const value=key==='building'?'["building"!="yes"]':'';
+      clauses.push(`nwr(around:160,${p.lat.toFixed(6)},${p.lng.toFixed(6)})["name"]["${key}"]${value};`);
+    }
+  }
+  const query='[out:json][timeout:18];('+clauses.join('')+');out center 180;';
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),22000);
+  try{
+    const response=await fetch('https://overpass.kumi.systems/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(query),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:controller.signal});
+    if(!response.ok)throw Error('Overpass HTTP '+response.status);
+    const data=await response.json();
+    if(request!==regionRequestId)return [];
+    const seen=new Set();
+    return (data.elements||[]).filter(e=>{
+      const name=e.tags?.['name:pl']||e.tags?.name;
+      if(!name||name.length>85)return false;
+      const key=String(e.type)+e.id;if(seen.has(key))return false;seen.add(key);return true;
+    }).map(e=>({name:String(e.tags['name:pl']||e.tags.name).trim(),lat:e.lat??e.center?.lat,lng:e.lon??e.center?.lon,tags:e.tags})).filter(e=>Number.isFinite(e.lat)&&Number.isFinite(e.lng));
+  }finally{clearTimeout(timer);}
+}
+function landmarkForPoint(point,landmarks){
+  const priority=t=>t.historic||t.memorial||t.monument?0:t.tourism?1:t.man_made?2:t.amenity?3:t.leisure?4:t.building?5:6;
+  const candidates=landmarks.map(e=>({...e,meters:distance(point,e)})).filter(e=>e.meters<=160);
+  candidates.sort((a,b)=>priority(a.tags)-priority(b.tags)||a.meters-b.meters);
+  return candidates[0]?.name||null;
+}
+async function updateRegionFromMap(){
+  if(pts.length<2)return;
+  const request=++regionRequestId;
+  routePlaceNames=null;
+  const field=$('region');field.value='';field.placeholder='Odczytywanie miejscowości i obiektów przy trasie…';
+  const locations=[0,.15,.5,.85,1].map(routePointAtFraction);
+  const names=Array(5).fill(null),localities=Array(5).fill(null);
+  const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  // Zapytania Nominatim z odstępem co najmniej 1 s.
+  for(let i=0;i<locations.length;i++){
+    if(request!==regionRequestId)return;
+    if(i)await wait(1150);
+    if(request!==regionRequestId)return;
+    const point=locations[i];
+    try{
+      const url='https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&addressdetails=1&lat='+encodeURIComponent(point.lat)+'&lon='+encodeURIComponent(point.lng)+'&accept-language=pl';
+      const response=await fetch(url,{headers:{Accept:'application/json'}});
+      if(!response.ok)throw Error('HTTP '+response.status);
+      const data=await response.json();
+      if(request!==regionRequestId)return;
+      const a=data.address||{};
+      const locality=a.suburb||a.neighbourhood||a.quarter||a.village||a.town||a.city||a.municipality||a.county||a.state_district||a.state||data.name;
+      if(locality)localities[i]=names[i]=String(locality).trim();
+    }catch(err){console.warn('Odczyt miejsca '+routePlaceLabels[i]+':',err);}
+    routePlaceNames=names.slice();updateRouteDescriptionSuggestion();
+    const panel=$('endPlaces');if(panel)fillEndPlaces(panel);
+  }
+  if(request!==regionRequestId)return;
+  // POI z OpenStreetMap, maksymalnie jedno zapytanie dla całej trasy.
+  try{
+    const landmarks=await fetchNearbyNamedLandmarks(locations,request);
+    if(request!==regionRequestId)return;
+    locations.forEach((point,i)=>{
+      const landmark=landmarkForPoint(point,landmarks);
+      if(landmark && landmark.toLocaleLowerCase('pl')!==String(localities[i]||'').toLocaleLowerCase('pl'))names[i]=landmark;
+    });
+  }catch(err){console.warn('Nie udało się pobrać nazwanych obiektów; pozostawiono miejscowości:',err);}
+  if(request!==regionRequestId)return;
+  routePlaceNames=names;updateRouteDescriptionSuggestion();
+  const regionNames=[...localities.slice(1,4),...names.slice(1,4)].filter(Boolean);
+  const unique=[...new Map(regionNames.map(name=>[name.toLocaleLowerCase('pl'),name])).values()];
+  if(!field.value.trim())field.value=unique.slice(0,5).join(' – ');
+  field.placeholder=unique.length?'Rejon wycieczki (można poprawić)':'Nie udało się ustalić rejonu — wpisz ręcznie';
+  const panel=$('endPlaces');if(panel)fillEndPlaces(panel);
+}
+function formatTripDate(ms){return Number.isFinite(ms)?new Date(ms).toLocaleString('pl-PL',{dateStyle:'medium',timeStyle:'short'}):'brak danych w GPX'}
+function makeIntro(){
+ const container=$('startSummaryContent');container.replaceChildren();
+ const title=document.createElement('h2');title.textContent=$('title').value.trim()||'Moja wycieczka';container.append(title);
+ const rows=document.createElement('div');rows.className='introRows';
+ const times=pts.filter(p=>Number.isFinite(p.time)).map(p=>p.time);
+ const items=[['Rejon',$('region').value.trim()||'Nieustalony'],['Rozpoczęcie',times.length?formatTripDate(times[0]):'brak danych w GPX'],['Zakończenie',times.length?formatTripDate(times.at(-1)):'brak danych w GPX']];
+ const people=$('participants').value.split(/[,;\n]+/).map(s=>s.trim()).filter(Boolean);
+ if(people.length)items.push(['Uczestnicy',people.join(' · ')]);
+ for(const [label,value] of items){const row=document.createElement('div');row.className='introRow';const strong=document.createElement('strong');strong.textContent=value;const name=document.createElement('span');name.textContent=label;row.append(name,strong);rows.append(row)}
+ container.append(rows);
+}
+function waitForVisibleTiles(maxWait=8000){
+  return new Promise(resolve=>{
+    const layer=base;
+    if(!layer){resolve();return;}
+    let done=false;
+    const ready=()=>{
+      // Dwa kolejne kadry po ostatnim kafelku: Leaflet musi jeszcze
+      // zatwierdzić transformacje i ułożyć obrazy w kompozytorze.
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        if(done)return;
+        if(layer.isLoading&&layer.isLoading())return;
+        done=true;clearTimeout(timer);layer.off('load',ready);resolve();
+      }));
+    };
+    layer.on('load',ready);
+    const timer=setTimeout(()=>{if(done)return;done=true;layer.off('load',ready);resolve();},maxWait);
+    ready();
+  });
+}
+let cameraWarmupUntil=0;let originalGpxText="";
+function startRouteAfterIntro(){
+  if(!introRunning)return;
+  introRunning=false;
+  playing=true;paused=false;$('stop').disabled=false;
+  // Docelowe centrum i powiększenie są już ustawione. Nie uruchamiaj
+  // kolejnego lotu ani map.stop() przy przejściu do śledzenia trasy.
+  const mapElement=$('mapTilt');
+  mapElement.style.transition='transform 1500ms cubic-bezier(.22,.61,.36,1)';
+  void mapElement.offsetHeight;
+  applyTilt();
+  introTimer=setTimeout(async()=>{
+    if(!playing)return;
+    // Nie rozpoczynaj rysowania na niegotowym podkładzie po transformacji 3D.
+    await waitForVisibleTiles(8500);
+    if(!playing)return;
+    cameraPos=map.project(map.getCenter(),map.getZoom());
+    cameraWarmupUntil=performance.now()+1900;
+    started=performance.now();lastCamera=started;elapsed=0;
+    document.body.classList.remove('intro-pending');
+    if(marker)setLeaderVisible(true);
+    document.body.classList.add('walker-in-motion');
+    raf=requestAnimationFrame(frame);
+  },1650);
+}
+
+function play(){
+  if(pts.length<2)return;
+  reset();animationPts=buildAnimationPoints();
+  if(animationPts.length<2)return;
+  prepareTimeline();
+  preparePhotoFlags();
+  for(const p of photos.filter(p=>p.enabled&&p.kind!=='video')){const im=new Image();im.src=p.url;if(im.decode)im.decode().catch(()=>{});}
+  const first=animationPts[0];
+  const bounds=L.latLngBounds(pts.map(p=>[p.lat,p.lng]));
+  map.stop();map.fitBounds(bounds,{padding:[35,35],animate:false});
+  $('mapTilt').style.transition='none';$('mapTilt').style.transform='translateZ(0)';
+  line.setLatLngs([]);if(tailLine)tailLine.setLatLngs([]);
+  marker.setLatLng([first.lat,first.lng]);
+  drawElevation(0);makeIntro();introRunning=true;
+  // Start audio synchronously with the user click (mobile autoplay policy).
+  // The opening title card is part of playback, not a silent pre-roll.
+  playMusic();
+  document.body.classList.add('intro-pending');
+  if(marker)setLeaderVisible(false);
+  $('startSummary').classList.add('visible');$('play').disabled=true;
+  // Nie wykonuj flyTo przez wiele poziomów zoomu. W mobilnym Leaflet
+  // skutkowało to wyczyszczeniem siatki kafelków przy pierwszym setView.
+  // Przestaw kamerę POD planszą startową, zanim ją ukryjemy.
+  introTimer=setTimeout(()=>{
+    if(!introRunning)return;
+    const zoom=cameraZoom200m(first.lat);
+    // Płynny lot z pełnego widoku trasy do startu; plansza początkowa
+    // zanika w trakcie lotu, zamiast ukrywać skok kamery.
+    // Podczas wielopoziomowego flyTo Leaflet usuwał siatkę kafelków.
+    // Zachowujemy drugi, niezależny podkład w starym zoomie na czas lotu.
+    // Jedna warstwa kafelków: dodatkowa warstwa powodowała konkurujące
+    // siatki zoomu i zanikanie podkładu po zakończeniu lotu.
+    map.flyTo([first.lat,first.lng],zoom,{animate:true,duration:2.8,easeLinearity:.22,noMoveStart:true});
+    line.setLatLngs([[first.lat,first.lng]]);lastDrawIndex=0;
+    $('startSummary').classList.remove('visible');
+    const flyFinished=new Promise(resolve=>{
+      const timer=setTimeout(()=>{map.off('moveend',onEnd);resolve()},3800);
+      function onEnd(){clearTimeout(timer);map.off('moveend',onEnd);resolve()}
+      map.on('moveend',onEnd);
+    });
+    flyFinished.then(()=>waitForVisibleTiles(6500)).then(()=>{
+      if(!introRunning)return;
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        if(!introRunning)return;
+        // Po płynnym locie pochyl mapę.
+        introTimer=setTimeout(()=>{
+          if(introRunning)startRouteAfterIntro();
+        },900);
+      }));
+    });
+  },2100);
+}
+
+function applyTilt(forceFlat=false){
+  const angle=(!forceFlat&&$('tilt').checked&&playing)?Number($('tiltAngle').value):0;
+  // Pochylamy wyłącznie płaszczyznę mapy; zdjęcia i napisy są osobnymi warstwami.
+  // Powiększenie kompensuje skrócenie obrazu przy rotacji 3D.
+  const rad=angle*Math.PI/180;
+  // Overscan for perspective foreshortening at the far edge of the viewport.
+  // Unlike a fixed scale, this accounts for viewport height and perspective depth.
+  const h=$('stage').clientHeight||700;
+  // The top edge is the far edge of a perspective-tilted plane. Its
+  // projection approaches a finite limit as scale grows, so the old
+  // capped scale could NEVER fill tall portrait frames at steep angles.
+  // A long perspective distance prevents extreme raster magnification,
+  // reducing blur and pixelation of satellite imagery at 55–70 degrees.
+  // Choose perspective relative to the actual frame height, then solve
+  // for the scale needed to cover the far (upper) edge with overscan.
+  const depth=Math.max(2400,h*16);
+  const c=Math.cos(rad),sn=Math.sin(rad);
+  const topDenominator=Math.max(.08,c-h*sn/(2*depth));
+  const scale=angle?Math.min(5,1.055/topDenominator):1;
+  const tilt=$('mapTilt');
+  tilt.style.transform=angle?`perspective(${depth}px) rotateX(${angle}deg) scale(${scale})`:'translateZ(0)';
+   mapVisualScale=angle?scale:1;keepOverlayScreenSize();
+  positionPhoto();scheduleFixedOverlay();
+}
+$('summaryOpacity').oninput=()=>{
+  const value=Number($('summaryOpacity').value)/100;
+  $('summaryOpacityValue').textContent=Math.round(value*100)+'%';
+  $('endSummary').style.setProperty('--summary-opacity',String(value));$('startSummary').style.setProperty('--summary-opacity',String(value));$('elevation').style.setProperty('--summary-opacity',String(value));
+};
+$('summaryOpacity').oninput();
+$('allTextColor').addEventListener('input',()=>{$('stage').style.setProperty('--stage-text-color',$('allTextColor').value);drawElevation(playing&&totalTimeline?Math.min(1,elapsed/totalTimeline):0)});
+$('tiltAngle').oninput=()=>{$('tiltValue').textContent=$('tiltAngle').value+'°';if(playing)applyTilt()};$('tilt').onchange=()=>{if(playing)applyTilt()};map.on('move zoom resize',()=>{positionPhoto();keepOverlayScreenSize();scheduleFixedOverlay()});$('play').onclick=play;window.addEventListener('resize',()=>drawElevation(playing&&totalTimeline?Math.min(1,elapsed/totalTimeline):0));
+function setOrientation(value){
+  const portrait=value==='portrait';
+  $('aspect').value=portrait?'portrait':'landscape';
+  $('stage').classList.toggle('portrait',portrait);
+  $('aspectLandscape').setAttribute('aria-pressed',String(!portrait));
+  $('aspectPortrait').setAttribute('aria-pressed',String(portrait));
+  requestAnimationFrame(()=>{
+    map.invalidateSize({pan:false});
+    if(pts.length&&!playing)map.fitBounds(L.latLngBounds(pts.map(p=>[p.lat,p.lng])),{padding:[35,35],animate:false});
+    drawElevation(playing&&totalTimeline?Math.min(1,elapsed/totalTimeline):0);
+  });
+}
+$('aspectLandscape').onclick=()=>setOrientation('landscape');
+$('aspectPortrait').onclick=()=>setOrientation('portrait');
+setOrientation(window.innerHeight>window.innerWidth?'portrait':'landscape');
+
+
+// Podkład muzyczny: utwory CC BY od Kevina MacLeoda, bezpośrednie pliki MP3.
+const musicTracks=[
+ {title:'Carefree',mood:'happy',duration:'3:25',file:'Carefree.mp3',license:'CC BY 4.0',licenseUrl:'https://creativecommons.org/licenses/by/4.0/',page:'https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1400037'},
+ {title:'Cipher',mood:'energy',duration:'3:51',file:'Cipher2.mp3',license:'CC BY 4.0',licenseUrl:'https://creativecommons.org/licenses/by/4.0/',page:'https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100844'},
+ {title:'The Forest and the Trees',mood:'calm',duration:'1:34',file:'The%20Forest%20and%20the%20Trees.mp3',license:'CC BY 3.0',licenseUrl:'https://creativecommons.org/licenses/by/3.0/',page:'https://commons.wikimedia.org/wiki/File:The_Forest_and_the_Trees_(Kevin_MacLeod)_(ISRC_USUAN1100766).oga'},
+ {title:'Home Base Groove',mood:'happy',duration:'0:22',file:'Home%20Base%20Groove.mp3',license:'CC BY 3.0',licenseUrl:'https://creativecommons.org/licenses/by/3.0/',page:'https://commons.wikimedia.org/wiki/File:Home_Base_Groove_(Kevin_MacLeod)_Time_0-22_(ISRC_USUAN1100563).oga'},
+ {title:'Peaceful Desolation',mood:'calm',duration:'1:31',file:'Peaceful%20Desolation.mp3',license:'CC BY 3.0',licenseUrl:'https://creativecommons.org/licenses/by/3.0/',page:'https://commons.wikimedia.org/wiki/File:Peaceful_Desolation_(ISRC_USUAN1200017).mp3'},
+ {title:'At Launch',mood:'adventure',duration:'3:05',file:'At%20Launch.mp3',license:'CC BY 3.0',licenseUrl:'https://creativecommons.org/licenses/by/3.0/',page:'https://commons.wikimedia.org/wiki/File:At_Launch_(ISRC_USUAN1100539).mp3'},
+ {title:'For the Fallen',mood:'adventure',duration:'1:35',file:'For%20the%20Fallen.mp3',license:'CC BY 3.0',licenseUrl:'https://creativecommons.org/licenses/by/3.0/',page:'https://commons.wikimedia.org/wiki/File:For_the_Fallen_(ISRC_USUAN1100704).mp3'}
+];
+const musicAudio=new Audio();musicAudio.preload='none';
+let musicObjectUrl=null;let musicPreviewing=false;
+const musicSource=document.getElementById('musicSource');
+const onlineTrack=document.getElementById('onlineTrack');
+function selectedMusicTrack(){return musicTracks.find(t=>t.title===onlineTrack.value)||null;}
+function musicAttribution(t){return '"'+t.title+'" — Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: Attribution '+t.license.replace('CC BY ','')+'\n'+t.licenseUrl+'\nŹródło: '+t.page;}
+let musicFadeFrame=0;
+let musicFadeActive=false;
+function cancelMusicFade(){if(musicFadeFrame)cancelAnimationFrame(musicFadeFrame);musicFadeFrame=0;musicFadeActive=false;musicAudio.volume=Number(document.getElementById('musicVolume').value)/100;}
+function fadeOutMusic(duration=3000){
+  cancelMusicFade();
+  if(musicAudio.paused||!musicAudio.src)return;
+  musicFadeActive=true;
+  const initialVolume=musicAudio.volume;
+  const fadeStart=performance.now();
+  function step(now){
+    if(!musicFadeActive)return;
+    const progress=Math.min(1,(now-fadeStart)/duration);
+    musicAudio.volume=Math.max(0,initialVolume*(1-progress));
+    if(progress<1){musicFadeFrame=requestAnimationFrame(step);}
+    else{musicFadeActive=false;musicFadeFrame=0;musicAudio.pause();try{musicAudio.currentTime=0;}catch(e){}musicAudio.volume=Number(document.getElementById('musicVolume').value)/100;}
+  }
+  musicFadeFrame=requestAnimationFrame(step);
+}
+function stopMusic(){cancelMusicFade();musicAudio.pause();try{musicAudio.currentTime=0;}catch(e){}musicPreviewing=false;document.getElementById('musicPreview').textContent='▶ Odsłuchaj muzykę';}
+function updateMusicSource(){stopMusic();const src=musicSource.value;document.getElementById('onlineMusicSettings').hidden=src!=='online';document.getElementById('localMusicSettings').hidden=src!=='local';document.getElementById('musicPreview').disabled=src==='none';if(src==='none'){musicAudio.removeAttribute('src');musicAudio.load();document.getElementById('musicInfo').textContent='Animacja bez muzyki.';}else if(src==='local'){const f=document.getElementById('musicFile').files[0];if(f&&musicObjectUrl){musicAudio.src=musicObjectUrl;musicAudio.load();document.getElementById('musicInfo').textContent='Plik lokalny: '+f.name;}else{musicAudio.removeAttribute('src');musicAudio.load();document.getElementById('musicInfo').textContent='Wybierz własny plik audio.';}}else{const t=selectedMusicTrack();if(t){musicAudio.src='https://incompetech.com/music/royalty-free/mp3-royaltyfree/'+t.file;musicAudio.load();document.getElementById('musicCredit').textContent=t.title+' — Kevin MacLeod · '+t.duration+' · '+t.license+' (wymagane przypisanie autorstwa)';document.getElementById('musicInfo').textContent='Wybrano online: '+t.title+'. Dotknij odsłuchu, aby sprawdzić połączenie.';}}}
+function renderMusicTracks(){const previous=onlineTrack.value;const mood=document.getElementById('musicMood').value;onlineTrack.replaceChildren();for(const t of musicTracks){if(mood!=='all'&&t.mood!==mood)continue;const opt=document.createElement('option');opt.value=t.title;opt.textContent=t.title+' — '+t.duration;onlineTrack.append(opt);}if([...onlineTrack.options].some(o=>o.value===previous))onlineTrack.value=previous;updateMusicSource();}
+function playMusic(){cancelMusicFade();if(!musicAudio.src||musicSource.value==='none')return;musicPreviewing=false;musicAudio.loop=document.getElementById('musicLoop').checked;musicAudio.play().catch(()=>{document.getElementById('musicInfo').textContent='Nie można odtworzyć muzyki. Sprawdź internet i dotknij przycisku odsłuchu.';});}
+musicSource.addEventListener('change',updateMusicSource);
+document.getElementById('musicMood').addEventListener('change',renderMusicTracks);
+onlineTrack.addEventListener('change',updateMusicSource);
+document.getElementById('copyMusicCredit').addEventListener('click',async()=>{const t=selectedMusicTrack();if(!t)return;const credit=musicAttribution(t);try{await navigator.clipboard.writeText(credit);document.getElementById('musicInfo').textContent='Skopiowano informację o autorze i licencji.';}catch(e){document.getElementById('musicInfo').textContent=credit;}});
+document.getElementById('musicFile').addEventListener('change',e=>{stopMusic();if(musicObjectUrl){URL.revokeObjectURL(musicObjectUrl);musicObjectUrl=null;}const file=e.target.files&&e.target.files[0];if(file)musicObjectUrl=URL.createObjectURL(file);if(musicSource.value==='local')updateMusicSource();});
+document.getElementById('musicVolume').addEventListener('input',e=>{const v=Number(e.target.value);if(!musicFadeActive)musicAudio.volume=v/100;document.getElementById('musicVolumeValue').textContent=v+'%';});
+musicAudio.volume=.35;
+document.getElementById('musicLoop').addEventListener('change',e=>{musicAudio.loop=e.target.checked;});
+document.getElementById('musicPreview').addEventListener('click',()=>{if(!musicAudio.src){document.getElementById('musicInfo').textContent='Najpierw wybierz utwór.';return;}if(!musicAudio.paused){musicAudio.pause();musicPreviewing=false;document.getElementById('musicPreview').textContent='▶ Odsłuchaj muzykę';}else{musicPreviewing=true;musicAudio.play().then(()=>{document.getElementById('musicPreview').textContent='⏸ Zatrzymaj odsłuch';}).catch(()=>{document.getElementById('musicInfo').textContent='Odtwarzanie nie powiodło się. Sprawdź połączenie internetowe lub wybierz inny utwór.';});}});
+musicAudio.addEventListener('error',()=>{if(musicSource.value==='online')document.getElementById('musicInfo').textContent='Nie udało się załadować utworu z serwera. Spróbuj innego lub użyj własnego pliku.';});
+musicAudio.addEventListener('ended',()=>{musicPreviewing=false;document.getElementById('musicPreview').textContent='▶ Odsłuchaj muzykę';});
+renderMusicTracks();
+
+// Eksport MP4: natywne H.264 MediaRecorder, a gdy brak obsługi —
+// nagranie WebM i lokalna konwersja ffmpeg.wasm (bez wysyłania pliku).
+// Obraz nadal pochodzi z udostępnionej karty, nie z renderer-a offscreen.
+let exportRecorder=null,exportStream=null,exportChunks=[],exportTimeout=null,exportActive=false;
+const exportUI=()=>({format:$('exportFormat').value,res:+$('exportResolution').value,fps:+$('exportFps').value});
+function downloadVideo(blob,extension){
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='gps_story_studio_'+new Date().toISOString().replace(/[:.]/g,'-')+'.'+extension;
+  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),120000);
+}
+function loadFfmpegScript(){
+  if(window.FFmpeg?.createFFmpeg)return Promise.resolve();
+  return new Promise((resolve,reject)=>{
+    const sc=document.createElement('script');
+    sc.src='https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js';
+    sc.onload=()=>window.FFmpeg?.createFFmpeg?resolve():reject(Error('Biblioteka FFmpeg nie została załadowana.'));
+    sc.onerror=()=>reject(Error('Nie udało się pobrać biblioteki FFmpeg.wasm.'));
+    document.head.append(sc);
+  });
+}
+async function webmToMp4(blob,res,fps){
+  $('status').textContent='Pobieranie kodera FFmpeg.wasm — może to potrwać…';
+  await loadFfmpegScript();
+  const {createFFmpeg,fetchFile}=window.FFmpeg;
+  const ffmpeg=createFFmpeg({log:false,corePath:'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',progress:({ratio})=>{
+    if(Number.isFinite(ratio))$('status').textContent='Konwersja MP4: '+Math.max(0,Math.min(100,Math.round(ratio*100)))+'%';
+  }});
+  await ffmpeg.load();
+  try{
+    ffmpeg.FS('writeFile','input.webm',await fetchFile(blob));
+    const orientation=$('aspect').value==='portrait';
+    const w=orientation?(res===1080?1080:720):(res===1080?1920:1280);
+    const h=orientation?(res===1080?1920:1280):(res===1080?1080:720);
+    const filter=`scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2,setsar=1`;
+    // Wbudowany FFmpeg.wasm może nie zawierać libx264 — użyj dostępnego kodera MPEG-4.
+    // Nie nazywaj tego H.264, gdy kodek nie jest dostępny.
+    try{
+      await ffmpeg.run('-i','input.webm','-vf',filter,'-r',String(fps),'-c:v','libx264','-preset','ultrafast','-crf','23','-c:a','aac','-b:a','160k','-movflags','+faststart','output.mp4');
+    }catch(err){
+      $('status').textContent='Koder H.264 niedostępny — próba zgodnego z MP4 kodera MPEG-4…';
+      await ffmpeg.run('-i','input.webm','-vf',filter,'-r',String(fps),'-c:v','mpeg4','-q:v','4','-c:a','aac','-b:a','160k','-movflags','+faststart','output.mp4');
+    }
+    const data=ffmpeg.FS('readFile','output.mp4');
+    return new Blob([data.buffer.slice(data.byteOffset,data.byteOffset+data.byteLength)],{type:'video/mp4'});
+  }finally{
+    try{ffmpeg.FS('unlink','input.webm');}catch(e){}
+    try{ffmpeg.FS('unlink','output.mp4');}catch(e){}
+    ffmpeg.exit();
+  }
+}
+function endExport(){
+  clearTimeout(exportTimeout);exportTimeout=null;
+  if(exportRecorder&&exportRecorder.state!=='inactive')exportRecorder.stop();
+  else cleanupExport();
+}
+function cleanupExport(){
+  exportActive=false;document.body.classList.remove('export-recording');
+  if(exportStream){exportStream.getTracks().forEach(t=>t.stop());exportStream=null;}
+  $('stopExport').hidden=true;$('export').disabled=pts.length<2;
+  map.invalidateSize({pan:false});
+}
+$('stopExport').onclick=endExport;
+$('export').onclick=async()=>{
+  if(exportActive)return;
+  if(!navigator.mediaDevices?.getDisplayMedia||!window.MediaRecorder){
+    $('status').textContent='Brak obsługi nagrywania karty w tej przeglądarce. Spróbuj Chrome/Edge na komputerze.';return;
+  }
+  if(!pts.length){$('status').textContent='Najpierw wczytaj trasę GPX.';return;}
+  const settings=exportUI();let stream;
+  try{
+    stream=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:settings.fps},audio:true,preferCurrentTab:true,selfBrowserSurface:'include',surfaceSwitching:'exclude'});
+    const nativeMp4=settings.format==='mp4'&&['video/mp4;codecs="avc1.42E01E,mp4a.40.2"','video/mp4;codecs="avc1.42E01E"','video/mp4'].find(t=>MediaRecorder.isTypeSupported(t));
+    const mime=nativeMp4||['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));
+    if(!mime)throw Error('Brak obsługi nagrywania wideo.');
+    exportStream=stream;exportChunks=[];
+    exportRecorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:settings.res===1080?8500000:4500000});
+    exportRecorder.ondataavailable=e=>{if(e.data&&e.data.size)exportChunks.push(e.data);};
+    exportRecorder.onerror=e=>{$('status').textContent='Błąd nagrywania: '+(e.error?.message||'nieznany');};
+    exportRecorder.onstop=async()=>{
+      const chunks=exportChunks.slice();cleanupExport();
+      if(!chunks.length){$('status').textContent='Nagranie jest puste.';return;}
+      const recorded=new Blob(chunks,{type:mime});
+      if(settings.format==='webm'||nativeMp4){
+        const ext=nativeMp4?'mp4':'webm';downloadVideo(recorded,ext);
+        $('status').textContent='Film '+ext.toUpperCase()+' gotowy ('+(recorded.size/1048576).toFixed(1)+' MB).'+(nativeMp4?' Kodowanie natywne; rozdzielczość zależy od przechwyconej karty.':'');
+        return;
+      }
+      try{
+        $('export').disabled=true;
+        const converted=await webmToMp4(recorded,settings.res,settings.fps);
+        downloadVideo(converted,'mp4');
+        $('status').textContent='Plik MP4 gotowy ('+(converted.size/1048576).toFixed(1)+' MB).';
+      }catch(err){
+        downloadVideo(recorded,'webm');
+        $('status').textContent='Konwersja MP4 nie powiodła się: '+(err?.message||err)+'. Zapisano oryginalny WebM, aby nie utracić filmu. Na Androidzie może brakować pamięci.';
+      }finally{$('export').disabled=pts.length<2;}
+    };
+    stream.getVideoTracks()[0].addEventListener('ended',()=>{if(exportActive)endExport();},{once:true});
+    document.body.classList.add('export-recording');exportActive=true;
+    $('stopExport').hidden=false;$('export').disabled=true;
+    map.invalidateSize({pan:false});
+    await new Promise(r=>setTimeout(r,900));
+    if(!exportActive)return;
+    exportRecorder.start(500);
+    play();
+    const duration=Math.max(10,Number($('duration').value)||20);
+    const photoTime=Math.max(1,Number($('photoDuration').value)||4);
+    const maxMs=Math.min(3700000,(duration+(photoStops?.length||0)*photoTime+22)*1000);
+    exportTimeout=setTimeout(()=>{if(exportActive)endExport();},maxMs);
+    $('status').textContent='Nagrywanie animacji. Nie zmieniaj karty ani rozmiaru okna. Po zakończeniu rozpocznie się zapis '+settings.format.toUpperCase()+'.';
+  }catch(e){
+    if(stream)stream.getTracks().forEach(t=>t.stop());cleanupExport();
+    $('status').textContent='Nie rozpoczęto eksportu: '+(e?.message||e)+'. Wybierz bieżącą kartę i zezwól na udostępnianie.';
+  }
+};
+</script><script>
+(function(){
+  const slider=document.getElementById('durationSlider');
+  const input=document.getElementById('duration');
+  const display=document.getElementById('durationDisplay');
+  if(!slider||!input||!display)return;
+  const refresh=()=>{const n=Number(input.value);display.textContent=Number.isFinite(n)&&n>=10?`${n} s${n>30?' (własny)':''}`:'minimum 10 s';};
+  slider.addEventListener('input',()=>{input.value=slider.value;refresh();});
+  input.addEventListener('input',()=>{const n=Number(input.value);if(Number.isFinite(n)&&n>=10&&n<=30)slider.value=String(n);refresh();});
+  input.addEventListener('change',()=>{let n=Math.round(Number(input.value));if(!Number.isFinite(n)||n<10)n=10;if(n>3600)n=3600;input.value=String(n);slider.value=String(Math.min(30,n));refresh();});
+  refresh();
+})();
+
+// v85: krótkie podpisy zdjęć z nazw lokalizacji OSM; wpis użytkownika zawsze ma pierwszeństwo.
+let photoCaptionLookupSerial=0,photoCaptionLastRequest=0;
+const photoCaptionWait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+function photoCaptionLocation(p){return p.anchor||p.gps||null}
+function shortPhotoPlace(data){
+ const a=data.address||{};
+ const named=(data.name||'').trim();
+ const locality=a.neighbourhood||a.suburb||a.quarter||a.village||a.town||a.city||a.municipality||'';
+ const road=a.road||a.pedestrian||a.footway||a.path||'';
+ if(named&&named.length<=75&&!/^[0-9]+$/.test(named))return named;
+ if(road&&locality)return road+' — '+locality;
+ return locality||road||a.county||a.state||'';
+}
+async function schedulePhotoCaptionLookup(){
+ const serial=++photoCaptionLookupSerial;
+ // Pozwól głównemu wyszukiwaniu nazw trasy zakończyć pracę.
+ await photoCaptionWait(7200);
+ for(const p of photos){
+  if(serial!==photoCaptionLookupSerial)return;
+  const pos=photoCaptionLocation(p);
+  if(!pos||!Number.isFinite(pos.lat)||!Number.isFinite(pos.lng)||p.captionEdited)continue;
+  const key=pos.lat.toFixed(4)+','+pos.lng.toFixed(4);
+  if(p.captionLocationKey===key)continue;
+  p.captionLocationKey=key;
+  const delay=Math.max(0,1250-(Date.now()-photoCaptionLastRequest));
+  if(delay)await photoCaptionWait(delay);
+  if(serial!==photoCaptionLookupSerial)return;
+  photoCaptionLastRequest=Date.now();
+  try{
+   const url='https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=17&addressdetails=1&lat='+encodeURIComponent(pos.lat)+'&lon='+encodeURIComponent(pos.lng)+'&accept-language=pl';
+   const r=await fetch(url,{headers:{Accept:'application/json'}});
+   if(!r.ok)throw Error('HTTP '+r.status);
+   const text=shortPhotoPlace(await r.json());
+   if(serial!==photoCaptionLookupSerial)return;
+   if(!p.captionEdited&&text){p.caption=text;renderPhotos();if(activePhoto===p)updateActivePhotoCaption(p)}
+  }catch(err){console.warn('Nie udało się odczytać lokalizacji zdjęcia:',err)}
+ }
+}
+
+// Projekt przenośny ZIP: metadane i komplet plików źródłowych.
+const projectSettingIds=['title','region','routeDescription','participants','durationSlider','duration','photoDuration','tilt','tiltAngle','summaryOpacity','aspect','zoomDistance','layer','mapQuality','musicSource','musicMood','onlineTrack','musicVolume','musicLoop'];
+function projectSettings(){const out={};for(const el of document.querySelectorAll('aside input[id],aside select[id],aside textarea[id]')){if(el.type==='file'||el.type==='button')continue;out[el.id]=el.type==='checkbox'?el.checked:el.value;}out.leaderChoice=document.querySelector('input[name="leaderChoice"]:checked')?.value||'point';return out;}
+function applyProjectSettings(data){for(const [id,value] of Object.entries(data||{})){const el=$(id);if(!el||el.type==='file')continue;if(el.type==='checkbox')el.checked=!!value;else el.value=value;el.dispatchEvent(new Event(el.type==='checkbox'||el.tagName==='SELECT'?'change':'input',{bubbles:true}));}if(data?.leaderChoice){const el=document.querySelector('input[name="leaderChoice"][value="'+CSS.escape(data.leaderChoice)+'"]');if(el){el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}));}}}
+$('saveProject').onclick=async()=>{if(!window.JSZip){$('status').textContent='Nie załadowano biblioteki ZIP. Sprawdź internet.';return;}const zip=new JSZip(),manifest={format:'GPSStoryStudio',version:1,settings:projectSettings(),photos:[],gpx:!!originalGpxText,musicFile:null};if(originalGpxText)zip.file('trasa.gpx',originalGpxText);for(let i=0;i<photos.length;i++){const p=photos[i],filename='media/'+String(i+1).padStart(3,'0')+'_'+(p.name||'foto.jpg').replace(/[^\w.\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/g,'_');const blob=await fetch(p.url).then(r=>r.blob());zip.file(filename,blob);manifest.photos.push({file:filename,kind:p.kind||'image',name:p.name,enabled:p.enabled,gps:p.gps,takenAt:p.takenAt,caption:p.caption||"",captionEdited:!!p.captionEdited,manualProgress:p.manualProgress});}const musicFile=$('musicFile')?.files?.[0];if(musicFile){const filename='muzyka/'+musicFile.name.replace(/[^\w.\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/g,'_');zip.file(filename,musicFile);manifest.musicFile=filename;}zip.file('projekt.json',JSON.stringify(manifest,null,2));$('status').textContent='Pakowanie projektu…';try{const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:4}});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='gps_story_projekt_'+new Date().toISOString().slice(0,10)+'.zip';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);$('status').textContent='Projekt wyeksportowany.';}catch(e){$('status').textContent='Błąd eksportu projektu: '+e.message;}};
+$('openProject').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{if(!window.JSZip)throw Error('Brak biblioteki JSZip');const zip=await JSZip.loadAsync(f),metaFile=zip.file('projekt.json');if(!metaFile)throw Error('Nieprawidłowy plik projektu');const manifest=JSON.parse(await metaFile.async('string'));if(manifest.format!=='GPSStoryStudio')throw Error('Nieobsługiwany format');reset();for(const p of photos)URL.revokeObjectURL(p.url);photos=[];if(manifest.gpx){const raw=await zip.file('trasa.gpx')?.async('string');if(raw)await loadGpxText(raw);}for(const info of manifest.photos||[]){const entry=zip.file(info.file);if(!entry)continue;const blob=await entry.async('blob');photos.push({kind:info.kind||(/\.(mp4|webm|mov|m4v)$/i.test(info.file)?'video':'image'),url:URL.createObjectURL(blob),name:info.name||info.file,gps:info.gps||null,takenAt:info.takenAt,enabled:info.enabled!==false,index:null,progress:null,caption:info.caption||"",captionEdited:info.captionEdited===true||!!info.caption,captionLocationKey:"",manualProgress:Number.isFinite(info.manualProgress)?info.manualProgress:null});}assignPhotos();if(manifest.musicFile&&zip.file(manifest.musicFile)){const blob=await zip.file(manifest.musicFile).async('blob'),name=manifest.musicFile.split('/').pop();const file=new File([blob],name,{type:blob.type||'audio/mpeg'});const dt=new DataTransfer();dt.items.add(file);$('musicFile').files=dt.files;$('musicFile').dispatchEvent(new Event('change'));}applyProjectSettings(manifest.settings);if(manifest.settings?.routeDescription){$('routeDescription').value=manifest.settings.routeDescription;$('routeDescription').dataset.edited='true';}drawElevation(0);$('status').textContent='Projekt wczytany: '+(manifest.photos?.length||0)+' multimediów.';}catch(err){console.error(err);$('status').textContent='Nie udało się zaimportować projektu: '+err.message;}finally{e.target.value='';}};
+</script></body></html>
