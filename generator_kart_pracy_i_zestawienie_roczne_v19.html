@@ -1,0 +1,3252 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Kart Pracy i Zestawienie Roczne</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome 6 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- React 18, ReactDOM & Babel Standalone -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+
+        .bg-gray-35 {
+            background-color: #a6a6a6 !important;
+        }
+
+        .company-letterhead {
+            display: block;
+            width: 100%;
+            max-height: 90px;
+            object-fit: contain;
+            object-position: center;
+        }
+
+        .employee-signature {
+            position: absolute;
+            left: 50%;
+            bottom: 10px;
+            transform: translateX(-50%);
+            width: auto;
+            height: 78px;
+            max-width: 300px;
+            object-fit: contain;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .signature-edit-wrapper {
+            position: absolute;
+            left: 50%;
+            bottom: 10px;
+            transform-origin: center center;
+            z-index: 50;
+            touch-action: none;
+            user-select: none;
+        }
+
+        .signature-edit-wrapper .employee-signature {
+            position: static;
+            left: auto;
+            bottom: auto;
+            transform: none;
+            display: block;
+        }
+
+        .signature-edit-frame {
+            position: absolute;
+            inset: -7px;
+            border: 1.5px dashed #2563eb;
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        .signature-edit-handle {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 2px solid white;
+            border-radius: 50%;
+            background: #2563eb;
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
+            z-index: 60;
+            touch-action: none;
+            pointer-events: auto;
+        }
+
+        .signature-edit-handle.resize {
+            right: -15px;
+            bottom: -15px;
+            cursor: nwse-resize;
+        }
+
+        .signature-edit-handle.rotate {
+            left: 50%;
+            top: -42px;
+            transform: translateX(-50%);
+            cursor: grab;
+        }
+
+        .signature-rotate-line {
+            position: absolute;
+            left: 50%;
+            top: -27px;
+            width: 1px;
+            height: 20px;
+            background: #2563eb;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+
+        .signature-drag-surface {
+            position: absolute;
+            inset: -7px;
+            cursor: move;
+            z-index: 55;
+            touch-action: none;
+        }
+
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 11pt;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .page-card {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .bg-gray-35 {
+                background-color: #a6a6a6 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            table, th, td {
+                border-color: #1e293b !important;
+            }
+            .company-letterhead {
+                width: 100% !important;
+                max-height: 22mm !important;
+                object-fit: contain !important;
+            }
+            .signature-edit-wrapper {
+                bottom: 2.5mm !important;
+            }
+            .employee-signature {
+                height: 22mm !important;
+                max-width: 75mm !important;
+                bottom: auto !important;
+            }
+            .signature-edit-frame,
+            .signature-edit-handle,
+            .signature-rotate-line,
+            .signature-drag-surface {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Helper to determine school year (Starts Sept 1st)
+        function getCurrentSchoolYear() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth() + 1; // 1 - 12
+            const startYear = month >= 9 ? year : year - 1;
+            return `${startYear}/${startYear + 1}`;
+        }
+
+        // Generate +/- 2 years list around current school year
+        function generateSchoolYears() {
+            const currentSy = getCurrentSchoolYear();
+            const startYear = parseInt(currentSy.split('/')[0], 10);
+            const years = [];
+            for (let i = -2; i <= 2; i++) {
+                const y = startYear + i;
+                years.push(`${y}/${y + 1}`);
+            }
+            return years;
+        }
+
+        const SCHOOL_YEARS = generateSchoolYears();
+        const WORKSHOPS = [
+            'Pracownia Edukacji Informatycznej i Kształcenia na Odległość (EIKO)',
+            'Pracownia Dydaktyki Cyfrowej (PDC)',
+            'Pracownia Przedmiotów Przyrodniczych (PPP)',
+            'Samodzielne stanowisko ds. projektów europejskich'
+        ];
+
+        const MONTHS = [
+            { id: '09', name: 'Wrzesień', order: 0 },
+            { id: '10', name: 'Październik', order: 1 },
+            { id: '11', name: 'Listopad', order: 2 },
+            { id: '12', name: 'Grudzień', order: 3 },
+            { id: '01', name: 'Styczeń', order: 4 },
+            { id: '02', name: 'Luty', order: 5 },
+            { id: '03', name: 'Marzec', order: 6 },
+            { id: '04', name: 'Kwiecień', order: 7 },
+            { id: '05', name: 'Maj', order: 8 },
+            { id: '06', name: 'Czerwiec', order: 9 },
+            { id: '07', name: 'Lipiec', order: 10 },
+            { id: '08', name: 'Sierpień', order: 11 }
+        ];
+
+        function getMonthYear(monthId, schoolYear) {
+            const [startYearStr, endYearStr] = schoolYear.split('/');
+            const startYear = parseInt(startYearStr, 10);
+            const endYear = parseInt(endYearStr, 10);
+            const num = parseInt(monthId, 10);
+            return num >= 9 ? startYear : endYear;
+        }
+
+        function formatPolishVerbalDate(isoDate) {
+            if (!isoDate) return '';
+            const parts = isoDate.split('-');
+            if (parts.length !== 3) return '';
+            const year = parts[0];
+            const monthNum = parseInt(parts[1], 10);
+            const day = parseInt(parts[2], 10);
+
+            const monthsGenitive = [
+                'stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca',
+                'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'
+            ];
+
+            const monthName = monthsGenitive[monthNum - 1] || '';
+            return `Warszawa, dnia ${day} ${monthName} ${year} roku`;
+        }
+
+        function formatDateRange(startIso, endIso) {
+            if (!startIso && !endIso) return '';
+            if (startIso && !endIso) {
+                const [y, m, d] = startIso.split('-');
+                return `${parseInt(d, 10)}.${m}.${y}`;
+            }
+            if (!startIso && endIso) {
+                const [y, m, d] = endIso.split('-');
+                return `${parseInt(d, 10)}.${m}.${y}`;
+            }
+            if (startIso === endIso) {
+                const [y, m, d] = startIso.split('-');
+                return `${parseInt(d, 10)}.${m}.${y} (1 dzień)`;
+            }
+            const d1 = new Date(startIso);
+            const d2 = new Date(endIso);
+            const [y1, m1, day1] = startIso.split('-');
+            const [y2, m2, day2] = endIso.split('-');
+            const day1Num = parseInt(day1, 10);
+            const day2Num = parseInt(day2, 10);
+
+            const diffTime = Math.abs(d2 - d1);
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+            if (y1 === y2 && m1 === m2) {
+                return `${day1Num}-${day2Num}.${m1}.${y1} (${diffDays} dni)`;
+            }
+            if (y1 === y2) {
+                return `${day1Num}.${m1} - ${day2Num}.${m2}.${y1} (${diffDays} dni)`;
+            }
+            return `${day1Num}.${m1}.${y1} - ${day2Num}.${m2}.${y2} (${diffDays} dni)`;
+        }
+
+        function getTodayIsoDate() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        // Parse CSV text with delimiter detection and quote handling
+        function parsePOSCSV(text) {
+            const lines = text.split(/\r\n|\n|\r/);
+            if (lines.length === 0) return [];
+
+            let delimiter = ';';
+            for (const line of lines) {
+                if (line.trim()) {
+                    const semicoCount = (line.match(/;/g) || []).length;
+                    const commaCount = (line.match(/,/g) || []).length;
+                    const tabCount = (line.match(/\t/g) || []).length;
+                    if (tabCount > semicoCount && tabCount > commaCount) delimiter = '\t';
+                    else if (commaCount > semicoCount) delimiter = ',';
+                    else delimiter = ';';
+                    break;
+                }
+            }
+
+            const parseLine = (line) => {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') {
+                        if (inQuotes && line[i + 1] === '"') {
+                            current += '"';
+                            i++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (char === delimiter && !inQuotes) {
+                        result.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                result.push(current.trim());
+                return result;
+            };
+
+            return lines.map(line => parseLine(line)).filter(row => row.some(cell => cell.length > 0));
+        }
+
+        // Helper to parse POS date string format
+        function parsePOSDate(dateStr) {
+            if (!dateStr) return null;
+            const cleanStr = dateStr.trim().split(' ')[0];
+            if (!cleanStr) return null;
+
+            if (/^\d{4}-\d{2}-\d{2}$/.test(cleanStr)) {
+                const [y, m, d] = cleanStr.split('-').map(Number);
+                return new Date(y, m - 1, d);
+            }
+            if (/^\d{1,2}[\.-]\d{1,2}[\.-]\d{4}$/.test(cleanStr)) {
+                const parts = cleanStr.split(/[\.-]/).map(Number);
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+            const parsed = new Date(dateStr);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        // Custom Date Range Popover Calendar
+        function MultiDateRangePopoverInput({
+            label,
+            placeholder,
+            value,
+            onChangeValue,
+            ranges = [],
+            onRangesChange,
+            minDate,
+            maxDate
+        }) {
+            const [isOpen, setIsOpen] = React.useState(false);
+            const today = new Date();
+            const [viewYear, setViewYear] = React.useState(today.getFullYear());
+            const [viewMonth, setViewMonth] = React.useState(today.getMonth());
+            const [pendingStart, setPendingStart] = React.useState(null);
+
+            React.useEffect(() => {
+                if (isOpen) {
+                    const first = ranges[0]?.start;
+                    if (first) {
+                        const d = new Date(first);
+                        if (!isNaN(d.getTime())) {
+                            setViewYear(d.getFullYear());
+                            setViewMonth(d.getMonth());
+                        }
+                    }
+                    setPendingStart(null);
+                }
+            }, [isOpen]);
+
+            const normalizeRanges = (items) => {
+                const cleaned = items
+                    .filter(r => r && r.start)
+                    .map(r => {
+                        let start = r.start;
+                        let end = r.end || r.start;
+                        if (end < start) [start, end] = [end, start];
+                        return { start, end };
+                    })
+                    .sort((x, y) => x.start.localeCompare(y.start));
+
+                // Scalaj tylko zakresy nachodzące na siebie; rozdzielne pozostają osobno.
+                const result = [];
+                cleaned.forEach(r => {
+                    const last = result[result.length - 1];
+                    if (last && r.start <= last.end) {
+                        if (r.end > last.end) last.end = r.end;
+                    } else {
+                        result.push({ ...r });
+                    }
+                });
+                return result;
+            };
+
+            const commitRanges = (items) => {
+                const normalized = normalizeRanges(items);
+                onRangesChange(normalized);
+            };
+
+            const addRange = (start, end) => {
+                if (!start) return;
+                commitRanges([...ranges, { start, end: end || start }]);
+                setPendingStart(null);
+            };
+
+            const handleDayClick = (dateStr) => {
+                if (!dateStr) return;
+                if (!pendingStart) {
+                    setPendingStart(dateStr);
+                } else {
+                    addRange(pendingStart, dateStr);
+                }
+            };
+
+            const removeRange = (index) => {
+                commitRanges(ranges.filter((_, i) => i !== index));
+            };
+
+            const clearAll = () => {
+                commitRanges([]);
+                setPendingStart(null);
+            };
+
+            const handlePrevMonth = () => {
+                if (viewMonth === 0) { setViewMonth(11); setViewYear(viewYear - 1); }
+                else setViewMonth(viewMonth - 1);
+            };
+            const handleNextMonth = () => {
+                if (viewMonth === 11) { setViewMonth(0); setViewYear(viewYear + 1); }
+                else setViewMonth(viewMonth + 1);
+            };
+
+            const renderCalendarDays = () => {
+                const firstDay = new Date(viewYear, viewMonth, 1);
+                const lastDay = new Date(viewYear, viewMonth + 1, 0);
+                let offset = firstDay.getDay() - 1;
+                if (offset === -1) offset = 6;
+                const days = [];
+                const prevLast = new Date(viewYear, viewMonth, 0).getDate();
+                for (let i = offset - 1; i >= 0; i--) {
+                    days.push({ dayNum: prevLast - i, isCurrentMonth: false, dateStr: null });
+                }
+                for (let d = 1; d <= lastDay.getDate(); d++) {
+                    const mm = String(viewMonth + 1).padStart(2, '0');
+                    const dd = String(d).padStart(2, '0');
+                    days.push({ dayNum: d, isCurrentMonth: true, dateStr: `${viewYear}-${mm}-${dd}` });
+                }
+                const remaining = (7 - (days.length % 7)) % 7;
+                for (let i = 1; i <= remaining; i++) {
+                    days.push({ dayNum: i, isCurrentMonth: false, dateStr: null });
+                }
+                return days;
+            };
+
+            const isDateSelected = (dateStr) =>
+                ranges.some(r => dateStr >= r.start && dateStr <= (r.end || r.start));
+
+            const polishMonthNames = [
+                'Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
+                'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'
+            ];
+
+            return (
+                <div className="relative space-y-1">
+                    <label className="block text-[11px] font-bold text-slate-700">{label}</label>
+                    <div className="flex items-center gap-1.5">
+                        <input
+                            type="text"
+                            placeholder={placeholder}
+                            value={value || ''}
+                            onChange={(e) => onChangeValue(e.target.value)}
+                            className="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 bg-white"
+                        />
+                        <button type="button" onClick={() => setIsOpen(!isOpen)}
+                            className={`px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition shrink-0 cursor-pointer ${
+                                isOpen ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300'
+                            }`}
+                            title="Wybierz jeden lub kilka zakresów dat">
+                            <i className="fa-solid fa-calendar-days"></i>
+                        </button>
+                    </div>
+
+                    {ranges.length > 0 && (
+                        <div className="flex flex-wrap gap-1 pt-1">
+                            {ranges.map((r, i) => (
+                                <span key={`${r.start}-${r.end}-${i}`} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 border border-blue-200 text-[10px] text-blue-800">
+                                    {formatDateRange(r.start, r.end || r.start)}
+                                    <button type="button" onClick={() => removeRange(i)} className="text-blue-500 hover:text-rose-600 cursor-pointer" title="Usuń ten zakres">
+                                        <i className="fa-solid fa-xmark"></i>
+                                    </button>
+                                </span>
+                            ))}
+                        </div>
+                    )}
+
+                    {isOpen && (
+                        <div className="absolute left-0 top-full mt-1.5 p-3 bg-white border border-slate-300 rounded-2xl shadow-xl z-30 w-80 select-none">
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
+                                <button type="button" onClick={handlePrevMonth} className="p-1 text-slate-500 hover:bg-slate-100 rounded cursor-pointer">
+                                    <i className="fa-solid fa-chevron-left text-xs"></i>
+                                </button>
+                                <span className="text-xs font-bold text-slate-800">{polishMonthNames[viewMonth]} {viewYear}</span>
+                                <button type="button" onClick={handleNextMonth} className="p-1 text-slate-500 hover:bg-slate-100 rounded cursor-pointer">
+                                    <i className="fa-solid fa-chevron-right text-xs"></i>
+                                </button>
+                            </div>
+
+                            <div className="text-[10px] text-slate-500 bg-slate-50 rounded-lg p-2 mb-2">
+                                Kliknij pierwszy i ostatni dzień zakresu. Dla pojedynczej daty kliknij dzień, a następnie „Dodaj pojedynczy dzień”. Możesz dodać dowolną liczbę rozdzielnych zakresów.
+                            </div>
+
+                            <div className="grid grid-cols-7 text-center text-[10px] font-bold text-slate-400 mb-1">
+                                <span>Pn</span><span>Wt</span><span>Śr</span><span>Cz</span><span>Pt</span><span>So</span><span>Nd</span>
+                            </div>
+                            <div className="grid grid-cols-7 gap-0.5 text-center text-xs">
+                                {renderCalendarDays().map((dObj, idx) => {
+                                    if (!dObj.isCurrentMonth) {
+                                        return <div key={idx} className="py-1.5 text-slate-300 text-[11px]">{dObj.dayNum}</div>;
+                                    }
+                                    const dStr = dObj.dateStr;
+                                    const selected = isDateSelected(dStr);
+                                    const pending = pendingStart === dStr;
+                                    return (
+                                        <button key={idx} type="button" onClick={() => handleDayClick(dStr)}
+                                            className={`py-1.5 text-[11px] rounded-lg transition cursor-pointer ${
+                                                pending ? 'bg-amber-500 text-white font-bold ring-2 ring-amber-200' :
+                                                selected ? 'bg-blue-600 text-white font-bold' :
+                                                'hover:bg-blue-50 text-slate-700'
+                                            }`}>
+                                            {dObj.dayNum}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="mt-2.5 pt-2 border-t border-slate-100 space-y-2">
+                                <div className="text-[10px] text-slate-500">
+                                    {pendingStart ? `Początek: ${formatDateRange(pendingStart, pendingStart)} — wybierz koniec lub dodaj pojedynczy dzień.` : 'Wybierz początek kolejnego zakresu.'}
+                                </div>
+                                <div className="flex flex-wrap items-center justify-between gap-1">
+                                    <div className="flex gap-1">
+                                        <button type="button" disabled={!pendingStart} onClick={() => addRange(pendingStart, pendingStart)}
+                                            className={`px-2 py-1 text-[10px] font-bold rounded-lg ${
+                                                pendingStart ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 cursor-pointer' : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                            }`}>
+                                            Dodaj pojedynczy dzień
+                                        </button>
+                                        {ranges.length > 0 && (
+                                            <button type="button" onClick={clearAll} className="px-2 py-1 text-[10px] font-bold bg-rose-50 text-rose-700 rounded-lg hover:bg-rose-100 cursor-pointer">
+                                                Wyczyść
+                                            </button>
+                                        )}
+                                    </div>
+                                    <button type="button" onClick={() => setIsOpen(false)}
+                                        className="px-2.5 py-1 text-[11px] font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">
+                                        Gotowe
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Main App Component
+        function App() {
+            // Pamięć danych jest domyślnie wyłączona. Zapamiętywana jest tylko decyzja użytkownika.
+            const [persistenceEnabled, setPersistenceEnabled] = React.useState(
+                () => localStorage.getItem('app_persistence_enabled') === 'true'
+            );
+            const readPersistent = (key, fallback = '') =>
+                localStorage.getItem('app_persistence_enabled') === 'true'
+                    ? (localStorage.getItem(key) ?? fallback)
+                    : fallback;
+
+            const [teacherName, setTeacherName] = React.useState(() => readPersistent('app_teacher_name', ''));
+            const [workshop, setWorkshop] = React.useState(() => readPersistent('app_workshop', WORKSHOPS[0]));
+            const [schoolYear, setSchoolYear] = React.useState(() => getCurrentSchoolYear());
+            const [activeMonthId, setActiveMonthId] = React.useState('09');
+            const [activeView, setActiveView] = React.useState('form');
+            const [employeeSignature, setEmployeeSignature] = React.useState(() => readPersistent('app_employee_signature', ''));
+            const [showEmployeeSignature, setShowEmployeeSignature] = React.useState(() => readPersistent('app_show_employee_signature', 'true') !== 'false');
+            const [companyLetterhead, setCompanyLetterhead] = React.useState(() => readPersistent('app_company_letterhead', ''));
+            const [showCompanyLetterhead, setShowCompanyLetterhead] = React.useState(() => readPersistent('app_show_company_letterhead', 'true') !== 'false');
+
+            const [monthlyData, setMonthlyData] = React.useState(() => {
+                if (localStorage.getItem('app_persistence_enabled') !== 'true') return {};
+                try {
+                    const saved = localStorage.getItem('app_monthly_data');
+                    return saved ? JSON.parse(saved) : {};
+                } catch {
+                    return {};
+                }
+            });
+
+            const persistentKeys = [
+                'app_teacher_name', 'app_workshop', 'app_monthly_data',
+                'app_employee_signature', 'app_show_employee_signature',
+                'app_company_letterhead', 'app_show_company_letterhead'
+            ];
+
+            const clearPersistentAppData = () => {
+                persistentKeys.forEach(key => localStorage.removeItem(key));
+            };
+
+            const saveCurrentSessionToLocalStorage = () => {
+                try {
+                    localStorage.setItem('app_teacher_name', teacherName);
+                    localStorage.setItem('app_workshop', workshop);
+                    localStorage.setItem('app_monthly_data', JSON.stringify(monthlyData));
+                    if (employeeSignature) localStorage.setItem('app_employee_signature', employeeSignature);
+                    else localStorage.removeItem('app_employee_signature');
+                    localStorage.setItem('app_show_employee_signature', String(showEmployeeSignature));
+                    if (companyLetterhead) localStorage.setItem('app_company_letterhead', companyLetterhead);
+                    else localStorage.removeItem('app_company_letterhead');
+                    localStorage.setItem('app_show_company_letterhead', String(showCompanyLetterhead));
+                } catch (err) {
+                    console.warn('Nie udało się zapisać danych w pamięci przeglądarki.', err);
+                }
+            };
+
+            const handlePersistenceChange = (enabled) => {
+                setPersistenceEnabled(enabled);
+                localStorage.setItem('app_persistence_enabled', String(enabled));
+                if (enabled) {
+                    // Włączenie zapisuje także dane już wpisane w bieżącej sesji.
+                    try {
+                        localStorage.setItem('app_teacher_name', teacherName);
+                        localStorage.setItem('app_workshop', workshop);
+                        localStorage.setItem('app_monthly_data', JSON.stringify(monthlyData));
+                        if (employeeSignature) localStorage.setItem('app_employee_signature', employeeSignature);
+                        localStorage.setItem('app_show_employee_signature', String(showEmployeeSignature));
+                        if (companyLetterhead) localStorage.setItem('app_company_letterhead', companyLetterhead);
+                        localStorage.setItem('app_show_company_letterhead', String(showCompanyLetterhead));
+                    } catch (err) {
+                        console.warn('Nie udało się włączyć zapisu danych.', err);
+                    }
+                } else {
+                    // Dane pozostają na ekranie do końca sesji, ale kopia trwała jest usuwana.
+                    clearPersistentAppData();
+                }
+            };
+
+            React.useEffect(() => {
+                if (!persistenceEnabled) return;
+                saveCurrentSessionToLocalStorage();
+            }, [
+                teacherName, workshop, monthlyData, employeeSignature,
+                showEmployeeSignature, companyLetterhead, showCompanyLetterhead,
+                persistenceEnabled
+            ]);
+
+            const currentMonthKey = `${schoolYear}_${activeMonthId}`;
+            const currentMonthData = monthlyData[currentMonthKey] || {
+                vacationDays: '',
+                vacationStart: '',
+                vacationEnd: '',
+                vacationRanges: [],
+                sickLeaveDays: '',
+                sickStart: '',
+                sickEnd: '',
+                sickRanges: [],
+                ordinaryConsultations: '',
+                ordinaryPeople: '',
+                ordinaryHours: '',
+                kkConsultations: '',
+                kkPeople: '',
+                kkHours: '',
+                orgMeetingsHours: '',
+                internalSeminarsHours: '',
+                courses: [],
+                tasks: [],
+                otherActivities: '',
+                consultationTopics: '',
+                selfDevelopment: '',
+                reportPickerDate: '',
+                reportDate: ''
+            };
+
+            const updateCurrentMonth = (updatedFields) => {
+                setMonthlyData(prev => ({
+                    ...prev,
+                    [currentMonthKey]: {
+                        ...currentMonthData,
+                        ...updatedFields
+                    }
+                }));
+            };
+
+            React.useEffect(() => {
+                if (!currentMonthData.reportPickerDate) {
+                    const todayIso = getTodayIsoDate();
+                    const verbal = formatPolishVerbalDate(todayIso);
+                    updateCurrentMonth({
+                        reportPickerDate: todayIso,
+                        reportDate: verbal
+                    });
+                }
+            }, [currentMonthKey]);
+
+            const handleExport = () => {
+                const dataToExport = {
+                    teacherName,
+                    workshop,
+                    schoolYear,
+                    monthlyData
+                };
+                const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Sprawozdanie_${schoolYear.replace('/', '-')}_${teacherName.replace(/\s+/g, '_') || 'Nauczyciel'}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            const handleImport = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const parsed = JSON.parse(event.target.result);
+                        if (parsed.teacherName) setTeacherName(parsed.teacherName);
+                        if (parsed.workshop) setWorkshop(parsed.workshop);
+                        if (parsed.schoolYear) setSchoolYear(parsed.schoolYear);
+                        if (parsed.monthlyData) setMonthlyData(parsed.monthlyData);
+                        alert('Dane zostały pomyślnie zaimportowane!');
+                    } catch (err) {
+                        alert('Błąd podczas odczytu pliku JSON.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            const isMonthFilled = (mId) => {
+                const key = `${schoolYear}_${mId}`;
+                const data = monthlyData[key];
+                if (!data) return false;
+                return Boolean(
+                    data.vacationDays || data.sickLeaveDays ||
+                    data.ordinaryHours || data.kkHours ||
+                    data.orgMeetingsHours || data.internalSeminarsHours ||
+                    (data.courses && data.courses.length > 0) ||
+                    (data.tasks && data.tasks.length > 0) ||
+                    data.otherActivities || data.consultationTopics || data.selfDevelopment
+                );
+            };
+
+            return (
+                <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+                    
+                    {/* Top Header */}
+                    <header className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4 no-print">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                            <div>
+                                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                                    <i className="fa-solid fa-file-signature text-blue-600"></i>
+                                    Generator Kart Pracy i Zestawienie Roczne
+                                </h1>
+                                <div className="mt-1 flex items-center gap-2 text-xs text-slate-600">
+                                    <span className="font-semibold text-slate-700">Rok szkolny:</span>
+                                    <select
+                                        value={schoolYear}
+                                        onChange={(e) => setSchoolYear(e.target.value)}
+                                        className="bg-slate-100 font-bold text-slate-800 px-2.5 py-1 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                    >
+                                        {SCHOOL_YEARS.map(sy => (
+                                            <option key={sy} value={sy}>{sy}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Export / Import / Print Actions */}
+                            <div className="flex flex-col items-stretch gap-2">
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={handleExport}
+                                        className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 transition flex items-center gap-1.5 cursor-pointer"
+                                        title="Eksportuj dane do pliku JSON"
+                                    >
+                                        <i className="fa-solid fa-download text-blue-600"></i>
+                                        <span>Eksport JSON</span>
+                                    </button>
+                                    <label className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 transition flex items-center gap-1.5 cursor-pointer">
+                                        <i className="fa-solid fa-upload text-emerald-600"></i>
+                                        <span>Import JSON</span>
+                                        <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+                                    </label>
+                                    <label
+                                        className={`px-3 py-2 rounded-xl text-xs font-semibold border transition flex items-center gap-2 cursor-pointer select-none ${
+                                            persistenceEnabled
+                                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                                : 'bg-slate-100 text-slate-600 border-slate-300'
+                                        }`}
+                                        title={persistenceEnabled
+                                            ? 'Dane pozostaną po odświeżeniu strony'
+                                            : 'Dane znikną po odświeżeniu strony'}
+                                    >
+                                        <span
+                                            className={`relative inline-flex w-8 rounded-full transition ${
+                                                persistenceEnabled ? 'bg-emerald-500' : 'bg-slate-300'
+                                            }`}
+                                            style={{ height: '18px' }}
+                                        >
+                                            <span
+                                                className={`absolute top-0.5 w-3.5 h-3.5 bg-white rounded-full shadow transition-transform ${
+                                                    persistenceEnabled ? 'translate-x-4' : 'translate-x-0.5'
+                                                }`}
+                                            ></span>
+                                        </span>
+                                        <input
+                                            type="checkbox"
+                                            checked={persistenceEnabled}
+                                            onChange={(e) => handlePersistenceChange(e.target.checked)}
+                                            className="sr-only"
+                                        />
+                                        <span>{persistenceEnabled ? 'Pamięć: włączona' : 'Pamięć: wyłączona'}</span>
+                                    </label>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        if (activeView === 'preview' || activeView === 'summary') {
+                                            window.print();
+                                        }
+                                    }}
+                                    disabled={activeView === 'form'}
+                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center gap-1.5 ${
+                                        activeView === 'form'
+                                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                            : 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'
+                                    }`}
+                                    title={
+                                        activeView === 'form'
+                                            ? 'Formularza nie można drukować. Wybierz Podgląd Karty lub Zestawienie Roczne.'
+                                            : activeView === 'preview'
+                                                ? 'Drukuj kartę pracy lub zapisz jako PDF'
+                                                : 'Drukuj zestawienie roczne lub zapisz jako PDF'
+                                    }
+                                >
+                                    <i className="fa-solid fa-print"></i>
+                                    <span>
+                                        {activeView === 'form'
+                                            ? 'Drukowanie niedostępne'
+                                            : activeView === 'preview'
+                                                ? 'Drukuj kartę (PDF)'
+                                                : 'Drukuj zestawienie (PDF)'}
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Navigation View Switcher */}
+                        <div className="flex items-center gap-2 pt-1">
+                            <button
+                                onClick={() => setActiveView('form')}
+                                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                    activeView === 'form'
+                                        ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                }`}
+                            >
+                                <i className="fa-solid fa-pen-to-square"></i>
+                                Formularz
+                            </button>
+                            <button
+                                onClick={() => setActiveView('preview')}
+                                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                    activeView === 'preview'
+                                        ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                }`}
+                            >
+                                <i className="fa-solid fa-eye"></i>
+                                Podgląd Karty
+                            </button>
+                            <button
+                                onClick={() => setActiveView('summary')}
+                                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                    activeView === 'summary'
+                                        ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                }`}
+                            >
+                                <i className="fa-solid fa-chart-column"></i>
+                                Zestawienie Roczne
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* Month selector grid */}
+                    {activeView !== 'summary' && (
+                        <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 no-print">
+                            <div className="grid grid-cols-12 gap-1 w-full">
+                                {MONTHS.map(m => {
+                                    const filled = isMonthFilled(m.id);
+                                    const isActive = activeMonthId === m.id;
+                                    return (
+                                        <button
+                                            key={m.id}
+                                            onClick={() => setActiveMonthId(m.id)}
+                                            className={`relative py-2 px-1 text-center text-xs font-bold rounded-xl transition cursor-pointer truncate ${
+                                                isActive
+                                                    ? 'bg-blue-600 text-white shadow-sm'
+                                                    : filled
+                                                    ? 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+                                                    : 'bg-slate-50 text-slate-500 hover:bg-slate-100 border border-slate-200'
+                                            }`}
+                                            title={`${m.name}`}
+                                        >
+                                            <div className="flex items-center justify-center gap-1">
+                                                <span className="truncate">{m.name}</span>
+                                                {filled && !isActive && (
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                                )}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Active View Router */}
+                    <main>
+                        {activeView === 'form' && (
+                            <FormEditor
+                                teacherName={teacherName}
+                                setTeacherName={setTeacherName}
+                                workshop={workshop}
+                                setWorkshop={setWorkshop}
+                                schoolYear={schoolYear}
+                                activeMonthId={activeMonthId}
+                                currentMonthData={currentMonthData}
+                                updateCurrentMonth={updateCurrentMonth}
+                                monthlyData={monthlyData}
+                                setMonthlyData={setMonthlyData}
+                                employeeSignature={employeeSignature}
+                                setEmployeeSignature={setEmployeeSignature}
+                                showEmployeeSignature={showEmployeeSignature}
+                                setShowEmployeeSignature={setShowEmployeeSignature}
+                                companyLetterhead={companyLetterhead}
+                                setCompanyLetterhead={setCompanyLetterhead}
+                                showCompanyLetterhead={showCompanyLetterhead}
+                                setShowCompanyLetterhead={setShowCompanyLetterhead}
+                            />
+                        )}
+
+                        {activeView === 'preview' && (
+                            <DocumentPreview
+                                teacherName={teacherName}
+                                workshop={workshop}
+                                schoolYear={schoolYear}
+                                activeMonthId={activeMonthId}
+                                currentMonthData={currentMonthData}
+                                updateCurrentMonth={updateCurrentMonth}
+                                employeeSignature={employeeSignature}
+                                showEmployeeSignature={showEmployeeSignature}
+                                companyLetterhead={companyLetterhead}
+                                showCompanyLetterhead={showCompanyLetterhead}
+                            />
+                        )}
+
+                        {activeView === 'summary' && (
+                            <AnnualSummary
+                                teacherName={teacherName}
+                                workshop={workshop}
+                                schoolYear={schoolYear}
+                                monthlyData={monthlyData}
+                            />
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        // Form Editor Component
+        function FormEditor({
+            teacherName,
+            setTeacherName,
+            workshop,
+            setWorkshop,
+            schoolYear,
+            activeMonthId,
+            currentMonthData,
+            updateCurrentMonth,
+            monthlyData,
+            setMonthlyData,
+            employeeSignature,
+            setEmployeeSignature,
+            showEmployeeSignature,
+            setShowEmployeeSignature,
+            companyLetterhead,
+            setCompanyLetterhead,
+            showCompanyLetterhead,
+            setShowCompanyLetterhead
+        }) {
+            const currentMonthObj = MONTHS.find(m => m.id === activeMonthId);
+
+            const handlePOSCSVImport = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const text = event.target.result;
+                        const rows = parsePOSCSV(text);
+                        if (rows.length < 2) {
+                            alert('Plik CSV jest pusty lub nieprawidłowy.');
+                            return;
+                        }
+
+                        // Header detection
+                        const headerRow = rows[0].map(h => h.toLowerCase().trim().replace(/^"/, '').replace(/"$/, ''));
+                        
+                        let idxKod = headerRow.findIndex(h => h.includes('kod'));
+                        let idxNazwa = headerRow.findIndex(h => h.includes('nazwa'));
+                        let idxPodtytul = headerRow.findIndex(h => h.includes('podtytuł') || h.includes('podtytul'));
+                        let idxDataOd = headerRow.findIndex(h => h.includes('data od') || h.includes('rozpoczęcia') || h === 'od');
+                        let idxDataDo = headerRow.findIndex(h => h.includes('data do') || h.includes('zakończenia') || h === 'do');
+                        let idxGodzStac = headerRow.findIndex(h => h.includes('stacjonarnych'));
+                        let idxGodzOnl = headerRow.findIndex(h => h.includes('online'));
+                        let idxUczestnicy = headerRow.findIndex(h => h.includes('uczestników') || h.includes('uczestnikow'));
+
+                        // Fallback indices matching POS default structure
+                        if (idxKod === -1) idxKod = 5;
+                        if (idxNazwa === -1) idxNazwa = 2;
+                        if (idxPodtytul === -1) idxPodtytul = 3;
+                        if (idxDataOd === -1) idxDataOd = 6;
+                        if (idxDataDo === -1) idxDataDo = 7;
+                        if (idxGodzStac === -1) idxGodzStac = 11;
+                        if (idxGodzOnl === -1) idxGodzOnl = 12;
+                        if (idxUczestnicy === -1) idxUczestnicy = 13;
+
+                        const [startYearStr, endYearStr] = schoolYear.split('/');
+                        const startYear = parseInt(startYearStr, 10);
+                        const endYear = parseInt(endYearStr, 10);
+
+                        let totalImportedCount = 0;
+                        const updatedMonthlyData = { ...monthlyData };
+
+                        for (let i = 1; i < rows.length; i++) {
+                            const row = rows[i];
+                            if (!row || row.length === 0) continue;
+
+                            const code = row[idxKod] ? row[idxKod].trim() : '';
+                            const mainName = row[idxNazwa] ? row[idxNazwa].trim() : '';
+                            const subTitle = row[idxPodtytul] ? row[idxPodtytul].trim() : '';
+                            
+                            let name = mainName;
+                            if (subTitle) {
+                                name = name ? `${name} - ${subTitle}` : subTitle;
+                            }
+
+                            if (!code && !name) continue;
+
+                            const dateOdStr = row[idxDataOd] ? row[idxDataOd].trim() : '';
+                            const dateDoStr = row[idxDataDo] ? row[idxDataDo].trim() : '';
+
+                            const startDate = parsePOSDate(dateOdStr);
+                            const endDate = parsePOSDate(dateDoStr) || startDate;
+
+                            if (!startDate) continue;
+
+                            const godzStac = parseFloat((row[idxGodzStac] || '0').replace(',', '.')) || 0;
+                            const godzOnl = parseFloat((row[idxGodzOnl] || '0').replace(',', '.')) || 0;
+                            const totalHours = godzStac + godzOnl;
+
+                            const participants = row[idxUczestnicy] ? row[idxUczestnicy].trim() : '';
+
+                            // Find all school-year months overlapped by the course.
+                            // If a course spans more than one month, divide its total hours equally
+                            // between all months and save the divided value in every occurrence.
+                            const matchingMonths = MONTHS.filter(m => {
+                                const monthNum = parseInt(m.id, 10);
+                                const year = monthNum >= 9 ? startYear : endYear;
+                                const monthStart = new Date(year, monthNum - 1, 1, 0, 0, 0);
+                                const monthEnd = new Date(year, monthNum, 0, 23, 59, 59);
+                                return startDate <= monthEnd && endDate >= monthStart;
+                            });
+
+                            const monthsCount = matchingMonths.length;
+                            const hoursPerMonth = monthsCount > 0
+                                ? Math.round((totalHours / monthsCount) * 100) / 100
+                                : totalHours;
+
+                            matchingMonths.forEach(m => {
+                                const monthKey = `${schoolYear}_${m.id}`;
+                                const existingMonth = updatedMonthlyData[monthKey] || {};
+                                const currentCourses = existingMonth.courses || [];
+
+                                // Check duplicate entry in that month
+                                const isDuplicate = currentCourses.some(c => 
+                                    (c.code && code && c.code === code) && (c.name && name && c.name === name)
+                                );
+
+                                if (!isDuplicate) {
+                                    const newCourse = {
+                                        id: Date.now() + Math.random(),
+                                        code: code,
+                                        name: name,
+                                        hours: hoursPerMonth ? String(hoursPerMonth) : '',
+                                        participants: participants,
+                                        statePriorities: '',
+                                        oeizkPriorities: '',
+                                        cancelled: false
+                                    };
+                                    updatedMonthlyData[monthKey] = {
+                                        ...existingMonth,
+                                        courses: [...currentCourses, newCourse]
+                                    };
+                                    totalImportedCount++;
+                                }
+                            });
+                        }
+
+                        setMonthlyData(updatedMonthlyData);
+                        alert(`Pomyślnie zaimportowano formy dydaktyczne z POS!\nDodano ${totalImportedCount} wpisów w odpowiednich miesiącach roku szkolnego ${schoolYear}.\nDla form trwających dłużej niż jeden miesiąc liczba godzin została podzielona równo pomiędzy miesiące.`);
+                        e.target.value = '';
+                    } catch (err) {
+                        alert('Wystąpił błąd podczas odczytu pliku CSV.');
+                        console.error(err);
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            const [startYearStr, endYearStr] = schoolYear.split('/');
+            const schoolYearMinDate = `${startYearStr}-09-01`;
+            const schoolYearMaxDate = `${endYearStr}-09-30`;
+
+            const existingCoursesList = React.useMemo(() => {
+                const list = [];
+                const keys = new Set();
+                if (!monthlyData) return list;
+                
+                Object.values(monthlyData).forEach(m => {
+                    if (m && Array.isArray(m.courses)) {
+                        m.courses.forEach(c => {
+                            const code = (c.code || '').trim();
+                            const name = (c.name || '').trim();
+                            if (code || name) {
+                                const key = `${code.toLowerCase()}||${name.toLowerCase()}`;
+                                if (!keys.has(key)) {
+                                    keys.add(key);
+                                    list.push({
+                                        code,
+                                        name,
+                                        hours: c.hours || '',
+                                        statePriorities: c.statePriorities || '',
+                                        oeizkPriorities: c.oeizkPriorities || ''
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
+                return list;
+            }, [monthlyData]);
+
+            const existingSupplementaryData = React.useMemo(() => {
+                const otherSet = new Set();
+                const topicsSet = new Set();
+                const selfDevSet = new Set();
+
+                const splitAndAdd = (text, set) => {
+                    if (!text) return;
+                    text.split(';').forEach(item => {
+                        const trimmed = item.trim();
+                        if (trimmed) set.add(trimmed);
+                    });
+                };
+
+                if (monthlyData) {
+                    Object.values(monthlyData).forEach(m => {
+                        if (m) {
+                            splitAndAdd(m.otherActivities, otherSet);
+                            splitAndAdd(m.consultationTopics, topicsSet);
+                            splitAndAdd(m.selfDevelopment, selfDevSet);
+                        }
+                    });
+                }
+
+                return {
+                    otherActivities: Array.from(otherSet),
+                    consultationTopics: Array.from(topicsSet),
+                    selfDevelopment: Array.from(selfDevSet)
+                };
+            }, [monthlyData]);
+
+            const existingTasksList = React.useMemo(() => {
+                const list = [];
+                const keys = new Set();
+                if (!monthlyData) return list;
+                
+                Object.values(monthlyData).forEach(m => {
+                    if (m && Array.isArray(m.tasks)) {
+                        m.tasks.forEach(t => {
+                            const desc = (t.description || '').trim();
+                            if (desc) {
+                                const key = desc.toLowerCase();
+                                if (!keys.has(key)) {
+                                    keys.add(key);
+                                    list.push({
+                                        description: desc,
+                                        taskNo: t.taskNo || '',
+                                        statePriorities: t.statePriorities || '',
+                                        oeizkPriorities: t.oeizkPriorities || '',
+                                        collaboration: t.collaboration || ''
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
+                return list;
+            }, [monthlyData]);
+
+            const existingCollaborationsList = React.useMemo(() => {
+                const set = new Set();
+                if (!monthlyData) return [];
+                Object.values(monthlyData).forEach(m => {
+                    if (m && Array.isArray(m.tasks)) {
+                        m.tasks.forEach(t => {
+                            const col = (t.collaboration || '').trim();
+                            if (col) set.add(col);
+                        });
+                    }
+                });
+                return Array.from(set);
+            }, [monthlyData]);
+
+            const handleAppendSupplementary = (field, item) => {
+                const currentVal = currentMonthData[field] || '';
+                if (!currentVal.trim()) {
+                    updateCurrentMonth({ [field]: item });
+                    return;
+                }
+                const parts = currentVal.split(';').map(s => s.trim()).filter(Boolean);
+                if (!parts.includes(item)) {
+                    const newVal = currentVal.trim().endsWith(';') 
+                        ? `${currentVal.trim()} ${item}` 
+                        : `${currentVal.trim()}; ${item}`;
+                    updateCurrentMonth({ [field]: newVal });
+                }
+            };
+
+            const handleOrdinaryConsultationsChange = (val) => {
+                const updates = { ordinaryConsultations: val };
+                if (!currentMonthData.ordinaryPeople || currentMonthData.ordinaryPeople === currentMonthData.ordinaryConsultations) {
+                    updates.ordinaryPeople = val;
+                }
+                updateCurrentMonth(updates);
+            };
+
+            const handleKkConsultationsChange = (val) => {
+                const updates = { kkConsultations: val };
+                if (!currentMonthData.kkPeople || currentMonthData.kkPeople === currentMonthData.kkConsultations) {
+                    updates.kkPeople = val;
+                }
+                updateCurrentMonth(updates);
+            };
+
+            const handleAddCourse = () => {
+                const newCourse = {
+                    id: Date.now(),
+                    code: '',
+                    name: '',
+                    hours: '',
+                    participants: '',
+                    statePriorities: '',
+                    oeizkPriorities: '',
+                    cancelled: false
+                };
+                updateCurrentMonth({
+                    courses: [...(currentMonthData.courses || []), newCourse]
+                });
+            };
+
+            const handleUpdateCourse = (id, field, value) => {
+                const updated = (currentMonthData.courses || []).map(c => 
+                    c.id === id ? { ...c, [field]: value } : c
+                );
+                updateCurrentMonth({ courses: updated });
+            };
+
+            const handleSelectOrMatchCourse = (id, field, value) => {
+                const valTrim = value.trim().toLowerCase();
+                const matched = existingCoursesList.find(c => 
+                    (field === 'code' && c.code && c.code.toLowerCase() === valTrim) ||
+                    (field === 'name' && c.name && c.name.toLowerCase() === valTrim)
+                );
+
+                const updated = (currentMonthData.courses || []).map(c => {
+                    if (c.id === id) {
+                        if (matched) {
+                            return {
+                                ...c,
+                                [field]: value,
+                                code: matched.code || (field === 'code' ? value : c.code),
+                                name: matched.name || (field === 'name' ? value : c.name),
+                                hours: c.hours || matched.hours || '',
+                                statePriorities: c.statePriorities || matched.statePriorities || '',
+                                oeizkPriorities: c.oeizkPriorities || matched.oeizkPriorities || ''
+                            };
+                        }
+                        return { ...c, [field]: value };
+                    }
+                    return c;
+                });
+
+                updateCurrentMonth({ courses: updated });
+            };
+
+            const handleRemoveCourse = (id) => {
+                const updated = (currentMonthData.courses || []).filter(c => c.id !== id);
+                updateCurrentMonth({ courses: updated });
+            };
+
+            const handleToggleCourseCancelled = (id) => {
+                const updated = (currentMonthData.courses || []).map(c =>
+                    c.id === id ? { ...c, cancelled: !c.cancelled } : c
+                );
+                updateCurrentMonth({ courses: updated });
+            };
+
+            const handleAddTask = () => {
+                const newTask = {
+                    id: Date.now(),
+                    description: '',
+                    taskNo: '',
+                    statePriorities: '',
+                    oeizkPriorities: '',
+                    collaboration: ''
+                };
+                updateCurrentMonth({
+                    tasks: [...(currentMonthData.tasks || []), newTask]
+                });
+            };
+
+            const handleUpdateTask = (id, field, value) => {
+                const updated = (currentMonthData.tasks || []).map(t => 
+                    t.id === id ? { ...t, [field]: value } : t
+                );
+                updateCurrentMonth({ tasks: updated });
+            };
+
+            const handleSelectOrMatchTask = (id, field, value) => {
+                const valTrim = value.trim().toLowerCase();
+                const matched = existingTasksList.find(t => 
+                    t.description && t.description.toLowerCase() === valTrim
+                );
+
+                const updated = (currentMonthData.tasks || []).map(t => {
+                    if (t.id === id) {
+                        if (matched && field === 'description') {
+                            return {
+                                ...t,
+                                [field]: value,
+                                taskNo: t.taskNo || matched.taskNo || '',
+                                statePriorities: t.statePriorities || matched.statePriorities || '',
+                                oeizkPriorities: t.oeizkPriorities || matched.oeizkPriorities || '',
+                                collaboration: t.collaboration || matched.collaboration || ''
+                            };
+                        }
+                        return { ...t, [field]: value };
+                    }
+                    return t;
+                });
+
+                updateCurrentMonth({ tasks: updated });
+            };
+
+            const handleRemoveTask = (id) => {
+                const updated = (currentMonthData.tasks || []).filter(t => t.id !== id);
+                updateCurrentMonth({ tasks: updated });
+            };
+
+            const handleLetterheadUpload = (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+
+                const allowedTypes = ['image/png', 'image/jpeg', 'image/webp'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Wybierz plik graficzny PNG, JPG/JPEG lub WebP.');
+                    e.target.value = '';
+                    return;
+                }
+
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Plik nagłówka jest zbyt duży. Wybierz obraz mniejszy niż 5 MB.');
+                    e.target.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    setCompanyLetterhead(event.target.result);
+                    setShowCompanyLetterhead(true);
+                };
+                reader.readAsDataURL(file);
+                e.target.value = '';
+            };
+
+            const handleRemoveSignatureBackground = () => {
+                if (!employeeSignature) return;
+
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
+
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    ctx.drawImage(img, 0, 0);
+
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const data = imageData.data;
+
+                    // Estimate the background from the four image corners.
+                    const cornerSize = Math.max(1, Math.min(12, Math.floor(Math.min(canvas.width, canvas.height) * 0.03)));
+                    let rSum = 0, gSum = 0, bSum = 0, samples = 0;
+
+                    const sampleCorner = (startX, startY) => {
+                        for (let y = startY; y < startY + cornerSize; y++) {
+                            for (let x = startX; x < startX + cornerSize; x++) {
+                                const i = (y * canvas.width + x) * 4;
+                                rSum += data[i];
+                                gSum += data[i + 1];
+                                bSum += data[i + 2];
+                                samples++;
+                            }
+                        }
+                    };
+
+                    sampleCorner(0, 0);
+                    sampleCorner(canvas.width - cornerSize, 0);
+                    sampleCorner(0, canvas.height - cornerSize);
+                    sampleCorner(canvas.width - cornerSize, canvas.height - cornerSize);
+
+                    const bgR = rSum / samples;
+                    const bgG = gSum / samples;
+                    const bgB = bSum / samples;
+
+                    // Soft threshold preserves anti-aliased signature edges.
+                    const transparentAt = 28;
+                    const opaqueAt = 95;
+
+                    for (let i = 0; i < data.length; i += 4) {
+                        const dr = data[i] - bgR;
+                        const dg = data[i + 1] - bgG;
+                        const db = data[i + 2] - bgB;
+                        const distance = Math.sqrt(dr * dr + dg * dg + db * db);
+
+                        if (distance <= transparentAt) {
+                            data[i + 3] = 0;
+                        } else if (distance < opaqueAt) {
+                            const factor = (distance - transparentAt) / (opaqueAt - transparentAt);
+                            data[i + 3] = Math.round(data[i + 3] * factor);
+                        }
+                    }
+
+                    ctx.putImageData(imageData, 0, 0);
+                    setEmployeeSignature(canvas.toDataURL('image/png'));
+                    setShowEmployeeSignature(true);
+                };
+
+                img.onerror = () => {
+                    alert('Nie udało się przetworzyć obrazu podpisu.');
+                };
+
+                img.src = employeeSignature;
+            };
+
+            const handleSignatureUpload = (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+
+                if (file.type !== 'image/png') {
+                    alert('Wybierz plik PNG z podpisem (najlepiej z przezroczystym tłem).');
+                    e.target.value = '';
+                    return;
+                }
+
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('Plik podpisu jest zbyt duży. Wybierz PNG mniejszy niż 2 MB.');
+                    e.target.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    setEmployeeSignature(event.target.result);
+                    setShowEmployeeSignature(true);
+                };
+                reader.readAsDataURL(file);
+                e.target.value = '';
+            };
+
+            return (
+                <div className="space-y-6">
+                    {/* Header info */}
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                        <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+                            <i className="fa-solid fa-user-gear text-blue-600"></i>
+                            Dane podstawowe sprawozdania – {currentMonthObj?.name}
+                        </h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                    Imię i nazwisko nauczyciela
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="np. Jan Kowalski"
+                                    value={teacherName}
+                                    onChange={(e) => setTeacherName(e.target.value)}
+                                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 transition"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                    Pracownia
+                                </label>
+                                <select
+                                    value={workshop}
+                                    onChange={(e) => setWorkshop(e.target.value)}
+                                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 transition bg-white"
+                                >
+                                    {WORKSHOPS.map((w, idx) => (
+                                        <option key={idx} value={w}>{w}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-slate-100">
+                            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                                <div className="flex-1">
+                                    <div className="text-xs font-semibold text-slate-700">Nagłówek papieru firmowego na karcie pracy</div>
+                                    <div className="text-[11px] text-slate-500 mt-1">
+                                        Wgraj PNG, JPG/JPEG lub WebP (maks. 5 MB). Nagłówek jest zapisywany tylko w tej przeglądarce i nie trafia do eksportu JSON.
+                                    </div>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <label className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition flex items-center gap-1.5 cursor-pointer">
+                                        <i className="fa-solid fa-image"></i>
+                                        <span>{companyLetterhead ? 'Zmień nagłówek' : 'Wgraj nagłówek'}</span>
+                                        <input type="file" accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" onChange={handleLetterheadUpload} className="hidden" />
+                                    </label>
+                                    {companyLetterhead && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setCompanyLetterhead('')}
+                                            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
+                                        >
+                                            <i className="fa-solid fa-trash-can mr-1.5"></i>Usuń
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {companyLetterhead && (
+                                <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl bg-slate-50 border border-slate-200 p-3">
+                                    <div className="h-24 min-w-[260px] flex-1 flex items-center justify-center bg-white border border-dashed border-slate-300 rounded-lg px-4 overflow-hidden">
+                                        <img src={companyLetterhead} alt="Podgląd nagłówka papieru firmowego" className="max-h-20 max-w-full object-contain" />
+                                    </div>
+                                    <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={showCompanyLetterhead}
+                                            onChange={(e) => setShowCompanyLetterhead(e.target.checked)}
+                                            className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        Umieść nagłówek na podglądzie i wydruku karty pracy
+                                    </label>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="pt-4 border-t border-slate-100">
+                            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                                <div className="flex-1">
+                                    <div className="text-xs font-semibold text-slate-700">Podpis pracownika na karcie</div>
+                                    <div className="text-[11px] text-slate-500 mt-1">
+                                        Wgraj PNG z podpisem. Jeśli obraz ma białe lub jednolite tło, po wgraniu użyj przycisku „Usuń tło”. Podpis jest przechowywany tylko w tej przeglądarce i nie jest dodawany do eksportu JSON.
+                                    </div>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <label className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition flex items-center gap-1.5 cursor-pointer">
+                                        <i className="fa-solid fa-signature"></i>
+                                        <span>{employeeSignature ? 'Zmień podpis PNG' : 'Wgraj podpis PNG'}</span>
+                                        <input type="file" accept="image/png,.png" onChange={handleSignatureUpload} className="hidden" />
+                                    </label>
+                                    {employeeSignature && (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={handleRemoveSignatureBackground}
+                                                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer"
+                                                title="Automatycznie usuń jednolite tło z obrazu podpisu"
+                                            >
+                                                <i className="fa-solid fa-wand-magic-sparkles mr-1.5"></i>Usuń tło
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setEmployeeSignature('')}
+                                                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
+                                            >
+                                                <i className="fa-solid fa-trash-can mr-1.5"></i>Usuń
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
+                            {employeeSignature && (
+                                <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl bg-slate-50 border border-slate-200 p-3">
+                                    <div className="h-20 min-w-[220px] max-w-sm flex items-center justify-center bg-white border border-dashed border-slate-300 rounded-lg px-4">
+                                        <img src={employeeSignature} alt="Podgląd podpisu pracownika" className="max-h-16 max-w-full object-contain" />
+                                    </div>
+                                    <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={showEmployeeSignature}
+                                            onChange={(e) => setShowEmployeeSignature(e.target.checked)}
+                                            className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        Umieść podpis na podglądzie i wydruku karty pracy
+                                    </label>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Absences & Consultations */}
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+                            <i className="fa-solid fa-comments text-amber-500"></i>
+                            Konsultacje, zebrania i nieobecności
+                        </h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-3">
+                                <h4 className="text-xs font-semibold text-slate-700 border-b border-slate-100 pb-1">Nieobecności / Odbiór godzin</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Vacation / time-off - multiple separate ranges */}
+                                    <MultiDateRangePopoverInput
+                                        label="Urlop i odbiór godzin"
+                                        placeholder="np. 1-3.09; 20-21.09 lub wybierz z kalendarza"
+                                        value={currentMonthData.vacationDays || ''}
+                                        onChangeValue={(val) => updateCurrentMonth({ vacationDays: val })}
+                                        ranges={
+                                            currentMonthData.vacationRanges ||
+                                            (currentMonthData.vacationStart
+                                                ? [{ start: currentMonthData.vacationStart, end: currentMonthData.vacationEnd || currentMonthData.vacationStart }]
+                                                : [])
+                                        }
+                                        minDate={schoolYearMinDate}
+                                        maxDate={schoolYearMaxDate}
+                                        onRangesChange={(ranges) => {
+                                            const rangeStr = ranges.map(r => formatDateRange(r.start, r.end || r.start)).join('; ');
+                                            updateCurrentMonth({
+                                                vacationRanges: ranges,
+                                                vacationStart: ranges[0]?.start || '',
+                                                vacationEnd: ranges[ranges.length - 1]?.end || '',
+                                                vacationDays: rangeStr
+                                            });
+                                        }}
+                                    />
+
+                                    {/* Sick leave - multiple separate ranges */}
+                                    <MultiDateRangePopoverInput
+                                        label="Zwolnienie lekarskie"
+                                        placeholder="np. 1-3.09; 20-21.09 lub wybierz z kalendarza"
+                                        value={currentMonthData.sickLeaveDays || ''}
+                                        onChangeValue={(val) => updateCurrentMonth({ sickLeaveDays: val })}
+                                        ranges={
+                                            currentMonthData.sickRanges ||
+                                            (currentMonthData.sickStart
+                                                ? [{ start: currentMonthData.sickStart, end: currentMonthData.sickEnd || currentMonthData.sickStart }]
+                                                : [])
+                                        }
+                                        minDate={schoolYearMinDate}
+                                        maxDate={schoolYearMaxDate}
+                                        onRangesChange={(ranges) => {
+                                            const rangeStr = ranges.map(r => formatDateRange(r.start, r.end || r.start)).join('; ');
+                                            updateCurrentMonth({
+                                                sickRanges: ranges,
+                                                sickStart: ranges[0]?.start || '',
+                                                sickEnd: ranges[ranges.length - 1]?.end || '',
+                                                sickLeaveDays: rangeStr
+                                            });
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <h4 className="text-xs font-semibold text-slate-700 border-b border-slate-100 pb-1">Zebrania i seminaria wewnętrzne</h4>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[11px] font-medium text-slate-600 mb-1">Zebrania org. (godz.)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            placeholder="0"
+                                            value={currentMonthData.orgMeetingsHours || ''}
+                                            onChange={(e) => updateCurrentMonth({ orgMeetingsHours: e.target.value })}
+                                            className="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] font-medium text-slate-600 mb-1">Seminaria wewn. (godz.)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            placeholder="0"
+                                            value={currentMonthData.internalSeminarsHours || ''}
+                                            onChange={(e) => updateCurrentMonth({ internalSeminarsHours: e.target.value })}
+                                            className="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-3 border-t border-slate-100 space-y-3">
+                            <h4 className="text-xs font-semibold text-slate-700">Dyżur konsultacyjny</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                                {/* Regular consultations */}
+                                <div className="space-y-2">
+                                    <span className="text-xs font-bold text-slate-700 block">Zwykłe</span>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <div>
+                                            <label className="block text-[10px] text-slate-500">Konsultacji</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                placeholder="0"
+                                                value={currentMonthData.ordinaryConsultations || ''}
+                                                onChange={(e) => handleOrdinaryConsultationsChange(e.target.value)}
+                                                className="w-full px-2 py-1 rounded-md border border-slate-300 text-xs text-center bg-white"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] text-slate-500">Liczba osób</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                placeholder="0"
+                                                value={currentMonthData.ordinaryPeople || ''}
+                                                onChange={(e) => updateCurrentMonth({ ordinaryPeople: e.target.value })}
+                                                className="w-full px-2 py-1 rounded-md border border-slate-300 text-xs text-center bg-white"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] text-slate-500">Godzin</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                placeholder="0"
+                                                value={currentMonthData.ordinaryHours || ''}
+                                                onChange={(e) => updateCurrentMonth({ ordinaryHours: e.target.value })}
+                                                className="w-full px-2 py-1 rounded-md border border-slate-300 text-xs text-center bg-white"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* KK Consultations */}
+                                <div className="space-y-2">
+                                    <span className="text-xs font-bold text-slate-700 block">Dla kadry kierowniczej</span>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <div>
+                                            <label className="block text-[10px] text-slate-500">Konsultacji</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                placeholder="0"
+                                                value={currentMonthData.kkConsultations || ''}
+                                                onChange={(e) => handleKkConsultationsChange(e.target.value)}
+                                                className="w-full px-2 py-1 rounded-md border border-slate-300 text-xs text-center bg-white"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] text-slate-500">Liczba osób</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                placeholder="0"
+                                                value={currentMonthData.kkPeople || ''}
+                                                onChange={(e) => updateCurrentMonth({ kkPeople: e.target.value })}
+                                                className="w-full px-2 py-1 rounded-md border border-slate-300 text-xs text-center bg-white"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] text-slate-500">Godzin</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                placeholder="0"
+                                                value={currentMonthData.kkHours || ''}
+                                                onChange={(e) => updateCurrentMonth({ kkHours: e.target.value })}
+                                                className="w-full px-2 py-1 rounded-md border border-slate-300 text-xs text-center bg-white"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Courses Section */}
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
+                            <div>
+                                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                    <i className="fa-solid fa-chalkboard-user text-indigo-500"></i>
+                                    Zajęcia dydaktyczne w miesiącu
+                                </h3>
+                                {existingCoursesList.length > 0 && (
+                                    <p className="text-[11px] text-slate-500 mt-0.5">
+                                        <i className="fa-solid fa-circle-info text-blue-500 mr-1"></i>
+                                        Wpisz lub wybierz kod/temat z listy podpowiedzi, aby automatycznie uzupełnić znane dane.
+                                    </p>
+                                )}
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <label className="px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 transition flex items-center gap-1.5 cursor-pointer">
+                                    <i className="fa-solid fa-file-csv"></i>
+                                    <span>Importuj z POS (CSV)</span>
+                                    <input type="file" accept=".csv,.txt" onChange={handlePOSCSVImport} className="hidden" />
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={handleAddCourse}
+                                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition flex items-center gap-1.5 cursor-pointer"
+                                >
+                                    <i className="fa-solid fa-plus"></i> Dodaj kurs / formę
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Autocomplete Datalists */}
+                        <datalist id="historic-course-codes">
+                            {existingCoursesList.filter(c => c.code).map((c, i) => (
+                                <option key={i} value={c.code}>{c.name ? `${c.code} – ${c.name}` : c.code}</option>
+                            ))}
+                        </datalist>
+
+                        <datalist id="historic-course-names">
+                            {existingCoursesList.filter(c => c.name).map((c, i) => (
+                                <option key={i} value={c.name}>{c.code ? `[${c.code}] ${c.name}` : c.name}</option>
+                            ))}
+                        </datalist>
+
+                        {(!currentMonthData.courses || currentMonthData.courses.length === 0) ? (
+                            <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-xl text-xs text-slate-400">
+                                Brak dodanych zajęć dydaktycznych. Kliknij "Dodaj kurs / formę", aby dodać pozycję.
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {currentMonthData.courses.map((course, idx) => (
+                                    <div key={course.id} className={`p-4 border rounded-xl space-y-3 relative ${
+                                        course.cancelled
+                                            ? 'bg-rose-50 border-rose-200 opacity-80'
+                                            : 'bg-slate-50 border-slate-200'
+                                    }`}>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-slate-600">Forma #{idx + 1}</span>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleToggleCourseCancelled(course.id)}
+                                                    className={`text-xs transition cursor-pointer p-1 ${
+                                                        course.cancelled
+                                                            ? 'text-rose-500 hover:text-slate-600'
+                                                            : 'text-slate-400 hover:text-rose-500'
+                                                    }`}
+                                                    title={course.cancelled ? 'Przywróć jako zrealizowane' : 'Oznacz zajęcia jako odwołane'}
+                                                >
+                                                    <i className={`fa-solid ${course.cancelled ? 'fa-rotate-left' : 'fa-ban'}`}></i>
+                                                    {' '}{course.cancelled ? 'Przywróć' : 'Odwołano'}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveCourse(course.id)}
+                                                    className="text-slate-400 hover:text-rose-500 text-xs transition cursor-pointer p-1"
+                                                    title="Usuń kurs"
+                                                >
+                                                    <i className="fa-solid fa-trash-can"></i> Usuń
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-wrap items-start gap-3">
+                                            {/* Code: ~10 chars (~115px) */}
+                                            <div className="w-[115px] shrink-0">
+                                                <label className="block text-[11px] font-semibold text-slate-600 mb-1 truncate" title="Kod kursu (~10 zn.)">
+                                                    Kod kursu
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    list="historic-course-codes"
+                                                    placeholder="WOE1-10"
+                                                    maxLength={15}
+                                                    value={course.code || ''}
+                                                    onChange={(e) => handleSelectOrMatchCourse(course.id, 'code', e.target.value)}
+                                                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white focus:ring-2 focus:ring-blue-500 font-mono"
+                                                />
+                                            </div>
+
+                                            {/* Topic: flexible wide */}
+                                            <div className="flex-1 min-w-[220px]">
+                                                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                                                    Tematyka zajęć
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    list="historic-course-names"
+                                                    placeholder="Pełny temat formy doskonalenia..."
+                                                    value={course.name || ''}
+                                                    onChange={(e) => handleSelectOrMatchCourse(course.id, 'name', e.target.value)}
+                                                    className="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs bg-white focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+
+                                            {/* Hours: max 2 digits (~70px) */}
+                                            <div className="w-[70px] shrink-0">
+                                                <label className="block text-[11px] font-semibold text-slate-600 mb-1 truncate" title="Liczba godzin (max 2 zn.)">
+                                                    Godz.
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    max="99"
+                                                    placeholder="5"
+                                                    value={course.hours || ''}
+                                                    onChange={(e) => handleUpdateCourse(course.id, 'hours', e.target.value)}
+                                                    className="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs text-center bg-white focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+
+                                            {/* Participants: max 4 digits (~90px) */}
+                                            <div className="w-[90px] shrink-0">
+                                                <label className="block text-[11px] font-semibold text-slate-600 mb-1 truncate" title="Liczba uczestników (max 4 zn.)">
+                                                    Uczestn.
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    max="9999"
+                                                    placeholder="15"
+                                                    value={course.participants || ''}
+                                                    onChange={(e) => handleUpdateCourse(course.id, 'participants', e.target.value)}
+                                                    className="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs text-center bg-white focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+
+                                            {/* Priorities */}
+                                            <div className="w-[140px] shrink-0">
+                                                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                                                    Priorytety (P. / OE.)
+                                                </label>
+                                                <div className="grid grid-cols-2 gap-1">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Państwa"
+                                                        value={course.statePriorities || ''}
+                                                        onChange={(e) => handleUpdateCourse(course.id, 'statePriorities', e.target.value)}
+                                                        className="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs text-center bg-white"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="OEIIZK"
+                                                        value={course.oeizkPriorities || ''}
+                                                        onChange={(e) => handleUpdateCourse(course.id, 'oeizkPriorities', e.target.value)}
+                                                        className="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs text-center bg-white"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Tasks section */}
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <div>
+                                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                    <i className="fa-solid fa-list-check text-emerald-500"></i>
+                                    Wykaz zrealizowanych zadań
+                                </h3>
+                                {existingTasksList.length > 0 && (
+                                    <p className="text-[11px] text-slate-500 mt-0.5">
+                                        <i className="fa-solid fa-circle-info text-blue-500 mr-1"></i>
+                                        Wpisz lub wybierz zadanie z listy podpowiedzi, aby automatycznie uzupełnić znane dane.
+                                    </p>
+                                )}
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleAddTask}
+                                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition flex items-center gap-1.5 cursor-pointer"
+                            >
+                                <i className="fa-solid fa-plus"></i> Dodaj zadanie
+                            </button>
+                        </div>
+
+                        {/* Autocomplete Datalists for Tasks */}
+                        <datalist id="historic-task-descriptions">
+                            {existingTasksList.map((t, i) => (
+                                <option key={i} value={t.description}>{t.taskNo ? `[Zadanie ${t.taskNo}] ${t.description}` : t.description}</option>
+                            ))}
+                        </datalist>
+
+                        <datalist id="historic-task-collaborations">
+                            {existingCollaborationsList.map((col, i) => (
+                                <option key={i} value={col}>{col}</option>
+                            ))}
+                        </datalist>
+
+                        {(!currentMonthData.tasks || currentMonthData.tasks.length === 0) ? (
+                            <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-xl text-xs text-slate-400">
+                                Brak wpisanych zadań. Kliknij "Dodaj zadanie", aby dodać pozycję.
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {currentMonthData.tasks.map((task, idx) => (
+                                    <div key={task.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 relative">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-slate-600">Zadanie #{idx + 1}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveTask(task.id)}
+                                                className="text-slate-400 hover:text-rose-500 text-xs transition cursor-pointer p-1"
+                                                title="Usuń zadanie"
+                                            >
+                                                <i className="fa-solid fa-trash-can"></i> Usuń
+                                            </button>
+                                        </div>
+                                        <div className="flex flex-wrap lg:flex-nowrap items-start gap-3">
+                                            {/* Opis zadania */}
+                                            <div className="flex-1 min-w-[220px]">
+                                                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                                                    Zrealizowane zadanie
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    list="historic-task-descriptions"
+                                                    placeholder="Opis zadania..."
+                                                    value={task.description || ''}
+                                                    onChange={(e) => handleSelectOrMatchTask(task.id, 'description', e.target.value)}
+                                                    className="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs bg-white focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+
+                                            {/* Numer zadania (10 znaków) */}
+                                            <div className="w-[100px] shrink-0">
+                                                <label className="block text-[11px] font-semibold text-slate-600 mb-1 truncate" title="Numer zadania (max 10 zn.)">
+                                                    Nr zadania
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    maxLength={10}
+                                                    placeholder="1, 2, 6"
+                                                    value={task.taskNo || ''}
+                                                    onChange={(e) => handleUpdateTask(task.id, 'taskNo', e.target.value)}
+                                                    className="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs text-center bg-white focus:ring-2 focus:ring-blue-500 font-mono"
+                                                />
+                                            </div>
+
+                                            {/* Priorytety państwa (10 znaków) */}
+                                            <div className="w-[100px] shrink-0">
+                                                <label className="block text-[11px] font-semibold text-slate-600 mb-1 truncate" title="Priorytety państwa (max 10 zn.)">
+                                                    P. państwa
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    maxLength={10}
+                                                    placeholder="3, 4"
+                                                    value={task.statePriorities || ''}
+                                                    onChange={(e) => handleUpdateTask(task.id, 'statePriorities', e.target.value)}
+                                                    className="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs text-center bg-white focus:ring-2 focus:ring-blue-500 font-mono"
+                                                />
+                                            </div>
+
+                                            {/* Priorytety OEIIZK (10 znaków) */}
+                                            <div className="w-[100px] shrink-0">
+                                                <label className="block text-[11px] font-semibold text-slate-600 mb-1 truncate" title="Priorytety OEIIZK (max 10 zn.)">
+                                                    P. OEIIZK
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    maxLength={10}
+                                                    placeholder="1, 2"
+                                                    value={task.oeizkPriorities || ''}
+                                                    onChange={(e) => handleUpdateTask(task.id, 'oeizkPriorities', e.target.value)}
+                                                    className="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs text-center bg-white focus:ring-2 focus:ring-blue-500 font-mono"
+                                                />
+                                            </div>
+
+                                            {/* We współpracy */}
+                                            <div className="flex-1 min-w-[180px]">
+                                                <label className="block text-[11px] font-semibold text-slate-600 mb-1 truncate" title="We współpracy (kod pracowni lub osoba)">
+                                                    We współpracy
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    list="historic-task-collaborations"
+                                                    placeholder="np. PDC / Zespół..."
+                                                    value={task.collaboration || ''}
+                                                    onChange={(e) => handleUpdateTask(task.id, 'collaboration', e.target.value)}
+                                                    className="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs bg-white focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Additional fields and date */}
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+                            <i className="fa-solid fa-pen text-amber-500"></i>
+                            Informacje uzupełniające i data sprawozdania
+                        </h3>
+
+                        <div className="space-y-4">
+                            {/* Inne */}
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-xs font-semibold text-slate-700">Inne:</label>
+                                    {existingSupplementaryData.otherActivities.length > 0 && (
+                                        <span className="text-[10px] text-blue-600 font-medium">
+                                            <i className="fa-solid fa-lightbulb mr-1"></i>Kliknij podpowiedź, aby dodać
+                                        </span>
+                                    )}
+                                </div>
+                                <textarea
+                                    rows="2"
+                                    placeholder="Dodatkowe aktywności..."
+                                    value={currentMonthData.otherActivities || ''}
+                                    onChange={(e) => updateCurrentMonth({ otherActivities: e.target.value })}
+                                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 transition"
+                                />
+                                {existingSupplementaryData.otherActivities.length > 0 && (
+                                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                                        <span className="text-[10px] font-semibold text-slate-500 mr-1">Wcześniej wpisane:</span>
+                                        {existingSupplementaryData.otherActivities.map((item, i) => (
+                                            <button
+                                                key={i}
+                                                type="button"
+                                                onClick={() => handleAppendSupplementary('otherActivities', item)}
+                                                className="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-slate-200 text-[11px] text-slate-700 transition cursor-pointer text-left truncate max-w-xs"
+                                                title={item}
+                                            >
+                                                + {item}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Tematyka konsultacji */}
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-xs font-semibold text-slate-700">Tematyka udzielanych konsultacji:</label>
+                                    {existingSupplementaryData.consultationTopics.length > 0 && (
+                                        <span className="text-[10px] text-blue-600 font-medium">
+                                            <i className="fa-solid fa-lightbulb mr-1"></i>Kliknij podpowiedź, aby dodać
+                                        </span>
+                                    )}
+                                </div>
+                                <textarea
+                                    rows="2"
+                                    placeholder="Poruszana tematyka..."
+                                    value={currentMonthData.consultationTopics || ''}
+                                    onChange={(e) => updateCurrentMonth({ consultationTopics: e.target.value })}
+                                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 transition"
+                                />
+                                {existingSupplementaryData.consultationTopics.length > 0 && (
+                                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                                        <span className="text-[10px] font-semibold text-slate-500 mr-1">Wcześniej wpisane:</span>
+                                        {existingSupplementaryData.consultationTopics.map((item, i) => (
+                                            <button
+                                                key={i}
+                                                type="button"
+                                                onClick={() => handleAppendSupplementary('consultationTopics', item)}
+                                                className="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-slate-200 text-[11px] text-slate-700 transition cursor-pointer text-left truncate max-w-xs"
+                                                title={item}
+                                            >
+                                                + {item}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Własny rozwój */}
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-xs font-semibold text-slate-700">Własny rozwój:</label>
+                                    {existingSupplementaryData.selfDevelopment.length > 0 && (
+                                        <span className="text-[10px] text-blue-600 font-medium">
+                                            <i className="fa-solid fa-lightbulb mr-1"></i>Kliknij podpowiedź, aby dodać
+                                        </span>
+                                    )}
+                                </div>
+                                <textarea
+                                    rows="2"
+                                    placeholder="Udział w szkoleniach, literatura..."
+                                    value={currentMonthData.selfDevelopment || ''}
+                                    onChange={(e) => updateCurrentMonth({ selfDevelopment: e.target.value })}
+                                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 transition"
+                                />
+                                {existingSupplementaryData.selfDevelopment.length > 0 && (
+                                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                                        <span className="text-[10px] font-semibold text-slate-500 mr-1">Wcześniej wpisane:</span>
+                                        {existingSupplementaryData.selfDevelopment.map((item, i) => (
+                                            <button
+                                                key={i}
+                                                type="button"
+                                                onClick={() => handleAppendSupplementary('selfDevelopment', item)}
+                                                className="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-slate-200 text-[11px] text-slate-700 transition cursor-pointer text-left truncate max-w-xs"
+                                                title={item}
+                                            >
+                                                + {item}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Data sprawozdania */}
+                            <div className="pt-3 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                                        Data sprawozdania
+                                    </label>
+                                    <input
+                                        type="date"
+                                        min={schoolYearMinDate}
+                                        max={schoolYearMaxDate}
+                                        value={currentMonthData.reportPickerDate || ''}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            const verbal = formatPolishVerbalDate(val);
+                                            updateCurrentMonth({
+                                                reportPickerDate: val,
+                                                reportDate: verbal
+                                            });
+                                        }}
+                                        className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 transition bg-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 mb-1">Zapis słowny:</label>
+                                    <input
+                                        type="text"
+                                        value={currentMonthData.reportDate || formatPolishVerbalDate(currentMonthData.reportPickerDate)}
+                                        onChange={(e) => updateCurrentMonth({ reportDate: e.target.value })}
+                                        className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-medium text-slate-800 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Print Document Preview Component
+        function DocumentPreview({
+            teacherName,
+            workshop,
+            schoolYear,
+            activeMonthId,
+            currentMonthData,
+            updateCurrentMonth,
+            employeeSignature,
+            showEmployeeSignature,
+            companyLetterhead,
+            showCompanyLetterhead
+        }) {
+            const currentMonthObj = MONTHS.find(m => m.id === activeMonthId);
+            const currentYearNum = getMonthYear(activeMonthId, schoolYear);
+
+            const signatureStyle = {
+                scale: 1,
+                rotation: 0,
+                offsetX: 0,
+                offsetY: 0,
+                ...(currentMonthData.signatureStyle || {})
+            };
+
+            const [showSignatureHint, setShowSignatureHint] = React.useState(true);
+
+            React.useEffect(() => {
+                setShowSignatureHint(true);
+            }, [activeMonthId]);
+
+            const updateSignatureStyle = (patch) => {
+                updateCurrentMonth({
+                    signatureStyle: {
+                        ...signatureStyle,
+                        ...patch
+                    }
+                });
+            };
+
+            const resetSignatureStyle = () => {
+                updateCurrentMonth({
+                    signatureStyle: {
+                        scale: 1,
+                        rotation: 0,
+                        offsetX: 0,
+                        offsetY: 0
+                    }
+                });
+            };
+
+            const startSignatureInteraction = (mode, event) => {
+                if (!employeeSignature || !showEmployeeSignature) return;
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                const editor = event.currentTarget.closest('[data-signature-editor]');
+                if (!editor) return;
+
+                const rect = editor.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const startX = event.clientX;
+                const startY = event.clientY;
+                const startStyle = { ...signatureStyle };
+
+                const startDistance = Math.max(
+                    1,
+                    Math.hypot(startX - centerX, startY - centerY)
+                );
+                const startAngle = Math.atan2(startY - centerY, startX - centerX) * 180 / Math.PI;
+
+                const handleMove = (moveEvent) => {
+                    moveEvent.preventDefault();
+
+                    if (mode === 'move') {
+                        updateSignatureStyle({
+                            offsetX: Math.round(startStyle.offsetX + (moveEvent.clientX - startX)),
+                            offsetY: Math.round(startStyle.offsetY + (moveEvent.clientY - startY))
+                        });
+                        return;
+                    }
+
+                    if (mode === 'resize') {
+                        const distance = Math.max(
+                            1,
+                            Math.hypot(moveEvent.clientX - centerX, moveEvent.clientY - centerY)
+                        );
+                        const nextScale = Math.min(2.5, Math.max(0.4, startStyle.scale * (distance / startDistance)));
+                        updateSignatureStyle({
+                            scale: Math.round(nextScale * 100) / 100
+                        });
+                        return;
+                    }
+
+                    if (mode === 'rotate') {
+                        const angle = Math.atan2(moveEvent.clientY - centerY, moveEvent.clientX - centerX) * 180 / Math.PI;
+                        let nextRotation = startStyle.rotation + (angle - startAngle);
+
+                        while (nextRotation > 180) nextRotation -= 360;
+                        while (nextRotation < -180) nextRotation += 360;
+
+                        updateSignatureStyle({
+                            rotation: Math.round(nextRotation)
+                        });
+                    }
+                };
+
+                const handleUp = () => {
+                    window.removeEventListener('pointermove', handleMove);
+                    window.removeEventListener('pointerup', handleUp);
+                    window.removeEventListener('pointercancel', handleUp);
+                };
+
+                window.addEventListener('pointermove', handleMove, { passive: false });
+                window.addEventListener('pointerup', handleUp, { once: true });
+                window.addEventListener('pointercancel', handleUp, { once: true });
+            };
+
+            const hasDyzur = Boolean(
+                currentMonthData.ordinaryConsultations || 
+                currentMonthData.kkConsultations || 
+                currentMonthData.ordinaryHours || 
+                currentMonthData.kkHours
+            );
+            const hasOrg = Boolean(currentMonthData.orgMeetingsHours && currentMonthData.orgMeetingsHours !== '0');
+            const hasSeminarium = Boolean(currentMonthData.internalSeminarsHours && currentMonthData.internalSeminarsHours !== '0');
+            const hasTable1 = hasDyzur || hasOrg || hasSeminarium;
+
+            const activeCourses = (currentMonthData.courses || []).filter(c => 
+                (c.code && c.code.trim()) || 
+                (c.name && c.name.trim()) || 
+                (c.hours && String(c.hours).trim()) || 
+                (c.participants && String(c.participants).trim()) || 
+                (c.statePriorities && c.statePriorities.trim()) || 
+                (c.oeizkPriorities && c.oeizkPriorities.trim())
+            );
+
+            const activeTasks = (currentMonthData.tasks || []).filter(t => 
+                (t.description && t.description.trim()) || 
+                (t.taskNo && t.taskNo.trim()) || 
+                (t.statePriorities && t.statePriorities.trim()) || 
+                (t.oeizkPriorities && t.oeizkPriorities.trim()) || 
+                (t.collaboration && t.collaboration.trim())
+            );
+
+            const hasOtherActivities = Boolean(currentMonthData.otherActivities && currentMonthData.otherActivities.trim());
+            const hasConsultationTopics = Boolean(currentMonthData.consultationTopics && currentMonthData.consultationTopics.trim());
+            const hasSelfDevelopment = Boolean(currentMonthData.selfDevelopment && currentMonthData.selfDevelopment.trim());
+            const hasSupplementary = hasOtherActivities || hasConsultationTopics || hasSelfDevelopment;
+
+            const totalConsultationHours = (parseInt(currentMonthData.ordinaryHours || 0, 10) + parseInt(currentMonthData.kkHours || 0, 10));
+
+            const isEntirelyEmpty = !hasTable1 && activeCourses.length === 0 && activeTasks.length === 0 && !hasSupplementary;
+
+            return (
+                <div className="space-y-4">
+                    {/* Official Document Sheet */}
+                    <div className="bg-white p-8 sm:p-12 rounded-2xl shadow-sm border border-slate-200 text-slate-900 page-card max-w-4xl mx-auto space-y-5 text-sm leading-relaxed">
+                        
+                        {/* Company Letterhead */}
+                        {companyLetterhead && showCompanyLetterhead && (
+                            <div className="pb-1">
+                                <img
+                                    src={companyLetterhead}
+                                    alt="Nagłówek papieru firmowego"
+                                    className="company-letterhead"
+                                />
+                            </div>
+                        )}
+
+                        {/* Title */}
+                        <div className="text-center font-bold text-base uppercase tracking-wider pb-2 border-b-2 border-slate-900">
+                            SPRAWOZDANIE MIESIĘCZNE
+                        </div>
+
+                        {/* Metadata Header */}
+                        <div className="space-y-1.5 text-xs">
+                            <div className="flex">
+                                <span className="font-semibold w-72 shrink-0">Imię i nazwisko nauczyciela konsultanta:</span>
+                                <span className="font-bold border-b border-slate-400 flex-1 px-1">{teacherName}</span>
+                            </div>
+                            <div className="flex">
+                                <span className="font-semibold w-72 shrink-0">Pracownia:</span>
+                                <span className="border-b border-slate-400 flex-1 px-1">{workshop}</span>
+                            </div>
+                            <div className="flex">
+                                <span className="font-semibold w-72 shrink-0">Miesiąc:</span>
+                                <span className="font-bold border-b border-slate-400 flex-1 px-1">{currentMonthObj?.name} {currentYearNum} roku</span>
+                            </div>
+                            {(currentMonthData.vacationDays || currentMonthData.sickLeaveDays) && (
+                                <div className="grid grid-cols-2 gap-4 pt-1">
+                                    {currentMonthData.vacationDays ? (
+                                        <div className="flex">
+                                            <span className="font-semibold mr-2 shrink-0">Urlop i odbiór godzin:</span>
+                                            <span className="border-b border-slate-400 flex-1 px-1">{currentMonthData.vacationDays}</span>
+                                        </div>
+                                    ) : <div />}
+                                    {currentMonthData.sickLeaveDays ? (
+                                        <div className="flex">
+                                            <span className="font-semibold mr-2 shrink-0">Zwolnienie lekarskie:</span>
+                                            <span className="border-b border-slate-400 flex-1 px-1">{currentMonthData.sickLeaveDays}</span>
+                                        </div>
+                                    ) : <div />}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Empty Month Fallback */}
+                        {isEntirelyEmpty && (
+                            <div className="py-8 text-center text-slate-400 text-xs italic border border-dashed border-slate-300 rounded-lg">
+                                Brak wpisanych aktywności i form w tym miesiącu.
+                            </div>
+                        )}
+
+                        {/* Table I: Consultations & Meetings */}
+                        {hasTable1 && (
+                            <div className="space-y-1">
+                                <table className="w-full text-xs border-collapse border border-slate-800">
+                                    <thead>
+                                        <tr className="bg-gray-35 text-slate-900 font-bold">
+                                            <th colSpan="4" className="border border-slate-800 p-2 text-left">
+                                                Konsultacje i zebrania pracowników Ośrodka
+                                            </th>
+                                        </tr>
+                                        {hasDyzur ? (
+                                            <>
+                                                <tr className="bg-gray-35 text-slate-900 font-bold text-center">
+                                                    <th rowSpan="2" className="border border-slate-800 p-1.5 text-left w-1/2"></th>
+                                                    <th colSpan="2" className="border border-slate-800 p-1">Liczba udzielonych konsultacji</th>
+                                                    <th rowSpan="2" className="border border-slate-800 p-1 w-24">Liczba godzin</th>
+                                                </tr>
+                                                <tr className="bg-gray-35 text-slate-900 font-bold text-center">
+                                                    <th className="border border-slate-800 p-1">Zwykłe</th>
+                                                    <th className="border border-slate-800 p-1">Dla kadry kierowniczej</th>
+                                                </tr>
+                                            </>
+                                        ) : (
+                                            <tr className="bg-gray-35 text-slate-900 font-bold text-center">
+                                                <th colSpan="3" className="border border-slate-800 p-1.5 text-left">Rodzaj zebrania / seminarium</th>
+                                                <th className="border border-slate-800 p-1 w-24">Liczba godzin</th>
+                                            </tr>
+                                        )}
+                                    </thead>
+                                    <tbody>
+                                        {hasDyzur && (
+                                            <tr>
+                                                <td className="border border-slate-800 p-1.5 font-semibold">Dyżur konsultacyjny</td>
+                                                <td className="border border-slate-800 p-1 text-center">
+                                                    {currentMonthData.ordinaryConsultations ? `${currentMonthData.ordinaryConsultations} (osób: ${currentMonthData.ordinaryPeople || currentMonthData.ordinaryConsultations})` : ''}
+                                                </td>
+                                                <td className="border border-slate-800 p-1 text-center">
+                                                    {currentMonthData.kkConsultations ? `${currentMonthData.kkConsultations} (osób: ${currentMonthData.kkPeople || currentMonthData.kkConsultations})` : ''}
+                                                </td>
+                                                <td className="border border-slate-800 p-1 text-center font-bold">
+                                                    {totalConsultationHours || ''}
+                                                </td>
+                                            </tr>
+                                        )}
+                                        {hasOrg && (
+                                            <tr>
+                                                <td colSpan="3" className="border border-slate-800 p-1.5">Zebranie organizacyjne pracowników Ośrodka</td>
+                                                <td className="border border-slate-800 p-1 text-center font-bold">{currentMonthData.orgMeetingsHours}</td>
+                                            </tr>
+                                        )}
+                                        {hasSeminarium && (
+                                            <tr>
+                                                <td colSpan="3" className="border border-slate-800 p-1.5">Seminarium wewnętrzne dla pracowników Ośrodka</td>
+                                                <td className="border border-slate-800 p-1 text-center font-bold">{currentMonthData.internalSeminarsHours}</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {/* Table II: Teaching courses */}
+                        {activeCourses.length > 0 && (
+                            <div className="space-y-1">
+                                <table className="w-full text-xs border-collapse border border-slate-800">
+                                    <thead>
+                                        <tr className="bg-gray-35 text-slate-900 font-bold">
+                                            <th colSpan="6" className="border border-slate-800 p-2 text-left">
+                                                Zajęcia dydaktyczne w miesiącu
+                                            </th>
+                                        </tr>
+                                        <tr className="bg-gray-35 text-slate-900 font-bold text-center">
+                                            <th className="border border-slate-800 p-1.5 w-24">Kod kursu</th>
+                                            <th className="border border-slate-800 p-1.5">Tematyka</th>
+                                            <th className="border border-slate-800 p-1.5 w-20">Liczba godzin zajęć</th>
+                                            <th className="border border-slate-800 p-1.5 w-20">Liczba uczestników</th>
+                                            <th className="border border-slate-800 p-1.5 w-24">Priorytety państwa</th>
+                                            <th className="border border-slate-800 p-1.5 w-24">Priorytety OEIIZK</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {activeCourses.map((c, i) => (
+                                            <tr key={i} className={c.cancelled ? 'line-through text-slate-500' : ''}>
+                                                <td className="border border-slate-800 p-1.5 text-center font-mono">{c.code}</td>
+                                                <td className="border border-slate-800 p-1.5">
+                                                    {c.name}
+                                                    {c.cancelled && (
+                                                        <span className="ml-2 text-[10px] font-bold uppercase no-underline inline-block">
+                                                            (odwołano)
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="border border-slate-800 p-1.5 text-center">{c.hours}</td>
+                                                <td className="border border-slate-800 p-1.5 text-center">{c.participants}</td>
+                                                <td className="border border-slate-800 p-1.5 text-center">{c.statePriorities}</td>
+                                                <td className="border border-slate-800 p-1.5 text-center">{c.oeizkPriorities}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {/* Table III: Tasks completed */}
+                        {activeTasks.length > 0 && (
+                            <div className="space-y-1">
+                                <table className="w-full text-xs border-collapse border border-slate-800">
+                                    <thead>
+                                        <tr className="bg-gray-35 text-slate-900 font-bold">
+                                            <th colSpan="5" className="border border-slate-800 p-2 text-left">
+                                                Wykaz zrealizowanych zadań
+                                            </th>
+                                        </tr>
+                                        <tr className="bg-gray-35 text-slate-900 font-bold text-center">
+                                            <th className="border border-slate-800 p-1.5">Zrealizowane zadania</th>
+                                            <th className="border border-slate-800 p-1.5 w-28">Numer zadania</th>
+                                            <th className="border border-slate-800 p-1.5 w-24">Priorytety państwa</th>
+                                            <th className="border border-slate-800 p-1.5 w-24">Priorytety OEIIZK</th>
+                                            <th className="border border-slate-800 p-1.5 w-40">We współpracy (kod pracowni lub osoba)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {activeTasks.map((t, i) => (
+                                            <tr key={i}>
+                                                <td className="border border-slate-800 p-1.5">{t.description}</td>
+                                                <td className="border border-slate-800 p-1.5 text-center">{t.taskNo}</td>
+                                                <td className="border border-slate-800 p-1.5 text-center">{t.statePriorities}</td>
+                                                <td className="border border-slate-800 p-1.5 text-center">{t.oeizkPriorities}</td>
+                                                <td className="border border-slate-800 p-1.5">{t.collaboration}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {/* Supplementary text areas */}
+                        {hasSupplementary && (
+                            <div className="space-y-2 text-xs pt-2">
+                                {hasOtherActivities && (
+                                    <div>
+                                        <span className="font-bold block">Inne:</span>
+                                        <div className="min-h-[20px] p-1 border-b border-slate-300">{currentMonthData.otherActivities}</div>
+                                    </div>
+                                )}
+                                {hasConsultationTopics && (
+                                    <div>
+                                        <span className="font-bold block">Tematyka udzielanych konsultacji:</span>
+                                        <div className="min-h-[20px] p-1 border-b border-slate-300">{currentMonthData.consultationTopics}</div>
+                                    </div>
+                                )}
+                                {hasSelfDevelopment && (
+                                    <div>
+                                        <span className="font-bold block">Własny rozwój:</span>
+                                        <div className="min-h-[20px] p-1 border-b border-slate-300">{currentMonthData.selfDevelopment}</div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Signatures Footer */}
+                        <div className="pt-8 space-y-8 text-xs">
+                            <div>
+                                <span>{currentMonthData.reportDate || formatPolishVerbalDate(currentMonthData.reportPickerDate)}</span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-12 pt-20">
+                                <div className="text-center">
+                                    <div className="relative pt-12">
+                                        {employeeSignature && showEmployeeSignature && (
+                                            <>
+                                                <div
+                                                    data-signature-editor
+                                                    className="signature-edit-wrapper"
+                                                    style={{
+                                                        transform: `translateX(-50%) translate(${signatureStyle.offsetX}px, ${signatureStyle.offsetY}px) rotate(${signatureStyle.rotation}deg) scale(${signatureStyle.scale})`
+                                                    }}
+                                                >
+                                                    <img
+                                                        src={employeeSignature}
+                                                        alt="Podpis pracownika"
+                                                        className="employee-signature"
+                                                    />
+
+                                                    <div className="no-print">
+                                                        <div className="signature-drag-surface" onPointerDown={(e) => startSignatureInteraction('move', e)}></div>
+                                                        <div className="signature-edit-frame"></div>
+                                                        <div className="signature-rotate-line"></div>
+                                                        <button
+                                                            type="button"
+                                                            className="signature-edit-handle rotate"
+                                                            onPointerDown={(e) => startSignatureInteraction('rotate', e)}
+                                                            title="Przeciągnij, aby obrócić podpis"
+                                                            aria-label="Obróć podpis"
+                                                        ></button>
+                                                        <button
+                                                            type="button"
+                                                            className="signature-edit-handle resize"
+                                                            onPointerDown={(e) => startSignatureInteraction('resize', e)}
+                                                            title="Przeciągnij, aby zmienić rozmiar podpisu"
+                                                            aria-label="Zmień rozmiar podpisu"
+                                                        ></button>
+                                                    </div>
+                                                </div>
+
+                                                {showSignatureHint && (
+                                                    <div className="no-print absolute left-0 right-0 -top-20 z-[70] flex items-center justify-between gap-2 rounded-lg border border-blue-100 bg-blue-50/95 px-3 py-2 text-left shadow-sm">
+                                                        <div className="text-[10px] text-blue-800 leading-snug">
+                                                            <strong>{currentMonthObj?.name}:</strong> przeciągnij podpis, użyj dolnego punktu do zmiany rozmiaru i górnego do obrotu.
+                                                        </div>
+                                                        <div className="flex items-center gap-2 shrink-0">
+                                                            <button
+                                                                type="button"
+                                                                onClick={resetSignatureStyle}
+                                                                className="text-[10px] font-semibold text-blue-700 hover:text-blue-900 transition cursor-pointer"
+                                                                title="Przywróć domyślne ustawienie podpisu"
+                                                            >
+                                                                <i className="fa-solid fa-rotate-left mr-1"></i>Resetuj
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setShowSignatureHint(false)}
+                                                                className="w-6 h-6 inline-flex items-center justify-center rounded-md text-blue-500 hover:text-blue-900 hover:bg-blue-100 transition cursor-pointer"
+                                                                title="Zamknij podpowiedź"
+                                                                aria-label="Zamknij podpowiedź"
+                                                            >
+                                                                <i className="fa-solid fa-xmark"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+                                        <div className="border-t border-slate-800 pt-1 relative z-[3]">
+                                            Podpis pracownika
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="text-center space-y-8">
+                                    <div className="border-t border-slate-800 pt-1">
+                                        <div>Potwierdzenie wykonania prac</div>
+                                        <div className="text-[10px] text-slate-600">Podpis kierownika pracowni</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            );
+        }
+
+        // Annual Summary Dashboard Component
+        function AnnualSummary({
+            teacherName,
+            workshop,
+            schoolYear,
+            monthlyData
+        }) {
+            let totalOrdConsultations = 0;
+            let totalOrdPeople = 0;
+            let totalOrdHours = 0;
+
+            let totalKkConsultations = 0;
+            let totalKkPeople = 0;
+            let totalKkHours = 0;
+
+            let totalOrgHours = 0;
+            let totalSeminarsHours = 0;
+            let totalCourseHours = 0;
+            let totalParticipants = 0;
+            let totalCoursesCount = 0;
+            let totalCancelledCoursesCount = 0;
+            let totalCancelledCourseHours = 0;
+            let totalCancelledParticipants = 0;
+            let totalTasksCount = 0;
+
+            MONTHS.forEach(m => {
+                const key = `${schoolYear}_${m.id}`;
+                const data = monthlyData[key];
+                if (data) {
+                    const ordC = parseInt(data.ordinaryConsultations || 0, 10);
+                    const ordP = parseInt(data.ordinaryPeople || data.ordinaryConsultations || 0, 10);
+                    const ordH = parseInt(data.ordinaryHours || 0, 10);
+
+                    const kkC = parseInt(data.kkConsultations || 0, 10);
+                    const kkP = parseInt(data.kkPeople || data.kkConsultations || 0, 10);
+                    const kkH = parseInt(data.kkHours || 0, 10);
+
+                    totalOrdConsultations += ordC;
+                    totalOrdPeople += ordP;
+                    totalOrdHours += ordH;
+
+                    totalKkConsultations += kkC;
+                    totalKkPeople += kkP;
+                    totalKkHours += kkH;
+
+                    totalOrgHours += parseInt(data.orgMeetingsHours || 0, 10);
+                    totalSeminarsHours += parseInt(data.internalSeminarsHours || 0, 10);
+
+                    if (data.courses && Array.isArray(data.courses)) {
+                        const realizedCourses = data.courses.filter(c => !c.cancelled);
+                        const cancelledCourses = data.courses.filter(c => c.cancelled);
+
+                        totalCoursesCount += realizedCourses.length;
+                        realizedCourses.forEach(c => {
+                            totalCourseHours += parseInt(c.hours || 0, 10);
+                            totalParticipants += parseInt(c.participants || 0, 10);
+                        });
+
+                        totalCancelledCoursesCount += cancelledCourses.length;
+                        cancelledCourses.forEach(c => {
+                            totalCancelledCourseHours += parseInt(c.hours || 0, 10);
+                            totalCancelledParticipants += parseInt(c.participants || 0, 10);
+                        });
+                    }
+
+                    if (data.tasks && Array.isArray(data.tasks)) {
+                        totalTasksCount += data.tasks.length;
+                    }
+                }
+            });
+
+            const totalConsultations = totalOrdConsultations + totalKkConsultations;
+            const totalPeopleConsulted = totalOrdPeople + totalKkPeople;
+            const totalConsultationHours = totalOrdHours + totalKkHours;
+
+            return (
+                <div className="space-y-6">
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
+                            <div>
+                                <h2 className="text-base font-bold text-slate-900">
+                                    Podsumowanie Roczne – Rok szkolny {schoolYear}
+                                </h2>
+                                <p className="text-xs text-slate-500">
+                                    {teacherName || 'Brak nazwiska'} ({workshop})
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Key Metrics Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col justify-between">
+                                <div>
+                                    <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider block">Konsultacje Łącznie</span>
+                                    <span className="text-2xl font-black text-blue-900 mt-1 block">
+                                        {totalConsultations} <span className="text-xs font-normal text-blue-700">({totalConsultationHours}h)</span>
+                                    </span>
+                                </div>
+                                <div className="text-[11px] text-blue-800 mt-2 space-y-0.5 border-t border-blue-200/60 pt-2">
+                                    <div className="flex justify-between">
+                                        <span className="font-semibold">Zwykłe:</span>
+                                        <span>{totalOrdConsultations} ({totalOrdPeople} os. / {totalOrdHours}h)</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="font-semibold">Kierownicze:</span>
+                                        <span>{totalKkConsultations} ({totalKkPeople} os. / {totalKkHours}h)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 flex flex-col justify-between">
+                                <div>
+                                    <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wider block">Dydaktyka</span>
+                                    <span className="text-2xl font-black text-indigo-900 mt-1 block">{totalCoursesCount} form</span>
+                                </div>
+                                <div className="text-[11px] text-indigo-700 mt-2 space-y-1 border-t border-indigo-200/60 pt-2">
+                                    <div>
+                                        Uczestnicy: <strong className="font-semibold">{totalParticipants}</strong> | Godziny: <strong className="font-semibold">{totalCourseHours}h</strong>
+                                    </div>
+                                    <div className="text-rose-700">
+                                        Odwołane: <strong className="font-semibold">{totalCancelledCoursesCount}</strong>
+                                        {totalCancelledCoursesCount > 0 && (
+                                            <span> ({totalCancelledParticipants} os. / {totalCancelledCourseHours}h)</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 flex flex-col justify-between">
+                                <div>
+                                    <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wider block">Zrealizowane Zadania</span>
+                                    <span className="text-2xl font-black text-emerald-900 mt-1 block">{totalTasksCount}</span>
+                                </div>
+                                <span className="text-[11px] text-emerald-700 mt-2 block border-t border-emerald-200/60 pt-2">
+                                    Wszystkie zadania ze sprawozdań
+                                </span>
+                            </div>
+
+                            <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex flex-col justify-between">
+                                <div>
+                                    <span className="text-xs font-semibold text-amber-600 uppercase tracking-wider block">Zebrania & Seminaria</span>
+                                    <span className="text-2xl font-black text-amber-900 mt-1 block">{totalOrgHours + totalSeminarsHours}h</span>
+                                </div>
+                                <span className="text-[11px] text-amber-700 mt-2 block border-t border-amber-200/60 pt-2">
+                                    Zebrania: <strong className="font-semibold">{totalOrgHours}h</strong> | Seminaria: <strong className="font-semibold">{totalSeminarsHours}h</strong>
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Breakdown Table */}
+                        <div className="pt-4">
+                            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">
+                                Szczegółowe zestawienie miesięczne
+                            </h3>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-xs border-collapse border border-slate-200">
+                                    <thead>
+                                        <tr className="bg-slate-100 text-slate-700 font-bold text-center">
+                                            <th rowSpan="2" className="border border-slate-200 p-2 text-left align-middle">Miesiąc</th>
+                                            <th colSpan="2" className="border border-slate-200 p-1.5 border-b-slate-300">Konsultacje (il. / os. / h)</th>
+                                            <th rowSpan="2" className="border border-slate-200 p-2 align-middle">Zebrania / Seminaria (h)</th>
+                                            <th rowSpan="2" className="border border-slate-200 p-2 align-middle">Formy dydaktyczne (il. / os. / h)</th>
+                                            <th rowSpan="2" className="border border-slate-200 p-2 align-middle">Zadania (ilość)</th>
+                                        </tr>
+                                        <tr className="bg-slate-100 text-slate-700 font-bold text-center text-[11px]">
+                                            <th className="border border-slate-200 p-1.5 bg-slate-50">Zwykłe</th>
+                                            <th className="border border-slate-200 p-1.5 bg-slate-50">Dla kadry kierowniczej</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {MONTHS.map(m => {
+                                            const key = `${schoolYear}_${m.id}`;
+                                            const d = monthlyData[key] || {};
+                                            const ordC = parseInt(d.ordinaryConsultations || 0, 10);
+                                            const ordP = parseInt(d.ordinaryPeople || d.ordinaryConsultations || 0, 10);
+                                            const ordH = parseInt(d.ordinaryHours || 0, 10);
+
+                                            const kkC = parseInt(d.kkConsultations || 0, 10);
+                                            const kkP = parseInt(d.kkPeople || d.kkConsultations || 0, 10);
+                                            const kkH = parseInt(d.kkHours || 0, 10);
+
+                                            const realizedCourses = d.courses ? d.courses.filter(c => !c.cancelled) : [];
+                                            const cancelledCourses = d.courses ? d.courses.filter(c => c.cancelled) : [];
+                                            const cCount = realizedCourses.length;
+                                            const cCancelledCount = cancelledCourses.length;
+                                            let cPart = 0;
+                                            let cHours = 0;
+                                            realizedCourses.forEach(c => {
+                                                cPart += parseInt(c.participants || 0, 10);
+                                                cHours += parseInt(c.hours || 0, 10);
+                                            });
+
+                                            const tCount = d.tasks ? d.tasks.length : 0;
+
+                                            return (
+                                                <tr key={m.id} className="hover:bg-slate-50 text-center">
+                                                    <td className="border border-slate-200 p-2 text-left font-bold text-slate-800">
+                                                        {m.name} {getMonthYear(m.id, schoolYear)}
+                                                    </td>
+                                                    <td className="border border-slate-200 p-2">
+                                                        {ordC > 0 ? `${ordC} / ${ordP} / ${ordH}h` : '-'}
+                                                    </td>
+                                                    <td className="border border-slate-200 p-2">
+                                                        {kkC > 0 ? `${kkC} / ${kkP} / ${kkH}h` : '-'}
+                                                    </td>
+                                                    <td className="border border-slate-200 p-2">
+                                                        {(parseInt(d.orgMeetingsHours || 0, 10) || parseInt(d.internalSeminarsHours || 0, 10))
+                                                            ? `${d.orgMeetingsHours || 0}h / ${d.internalSeminarsHours || 0}h`
+                                                            : '-'}
+                                                    </td>
+                                                    <td className="border border-slate-200 p-2">
+                                                        <div>{cCount > 0 ? `${cCount} form / ${cPart} os. / ${cHours}h` : '-'}</div>
+                                                        {cCancelledCount > 0 && (
+                                                            <div className="text-[10px] text-rose-600 mt-0.5">
+                                                                odwołane: {cCancelledCount}
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td className="border border-slate-200 p-2 font-semibold">
+                                                        {tCount > 0 ? `${tCount}` : '-'}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                        
+                                        {/* Summary Row */}
+                                        <tr className="bg-slate-100 font-bold text-slate-900 text-center border-t-2 border-slate-300">
+                                            <td className="border border-slate-200 p-2 text-left">SUMA ROCZNA</td>
+                                            <td className="border border-slate-200 p-2">
+                                                {totalOrdConsultations > 0 ? `${totalOrdConsultations} / ${totalOrdPeople} / ${totalOrdHours}h` : '-'}
+                                            </td>
+                                            <td className="border border-slate-200 p-2">
+                                                {totalKkConsultations > 0 ? `${totalKkConsultations} / ${totalKkPeople} / ${totalKkHours}h` : '-'}
+                                            </td>
+                                            <td className="border border-slate-200 p-2">
+                                                {(totalOrgHours || totalSeminarsHours) ? `${totalOrgHours}h / ${totalSeminarsHours}h` : '-'}
+                                            </td>
+                                            <td className="border border-slate-200 p-2">
+                                                <div>{totalCoursesCount > 0 ? `${totalCoursesCount} form / ${totalParticipants} os. / ${totalCourseHours}h` : '-'}</div>
+                                                {totalCancelledCoursesCount > 0 && (
+                                                    <div className="text-[10px] text-rose-600 mt-0.5">
+                                                        odwołane: {totalCancelledCoursesCount}
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="border border-slate-200 p-2">
+                                                {totalTasksCount > 0 ? `${totalTasksCount}` : '-'}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* List of all realized teaching forms */}
+                        <div className="pt-6">
+                            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">
+                                Spis wszystkich zrealizowanych form
+                            </h3>
+                            {(() => {
+                                const realizedForms = [];
+                                MONTHS.forEach(m => {
+                                    const key = `${schoolYear}_${m.id}`;
+                                    const data = monthlyData[key];
+                                    if (!data || !Array.isArray(data.courses)) return;
+
+                                    data.courses
+                                        .filter(c => !c.cancelled)
+                                        .filter(c =>
+                                            (c.code && c.code.trim()) ||
+                                            (c.name && c.name.trim()) ||
+                                            (c.hours && String(c.hours).trim()) ||
+                                            (c.participants && String(c.participants).trim())
+                                        )
+                                        .forEach(c => {
+                                            realizedForms.push({
+                                                month: m.name,
+                                                code: c.code || '',
+                                                name: c.name || '',
+                                                hours: c.hours || '',
+                                                participants: c.participants || ''
+                                            });
+                                        });
+                                });
+
+                                if (realizedForms.length === 0) {
+                                    return (
+                                        <div className="border border-slate-200 rounded-xl p-4 text-xs text-slate-500 bg-slate-50">
+                                            Brak zrealizowanych form dydaktycznych w wybranym roku szkolnym.
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-xs border-collapse border border-slate-200">
+                                            <thead>
+                                                <tr className="bg-slate-100 text-slate-700">
+                                                    <th className="border border-slate-200 p-2 text-center w-10">Lp.</th>
+                                                    <th className="border border-slate-200 p-2 text-left">Miesiąc</th>
+                                                    <th className="border border-slate-200 p-2 text-left">Kod</th>
+                                                    <th className="border border-slate-200 p-2 text-left">Nazwa formy</th>
+                                                    <th className="border border-slate-200 p-2 text-center">Godziny</th>
+                                                    <th className="border border-slate-200 p-2 text-center">Uczestnicy</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {realizedForms.map((form, index) => (
+                                                    <tr key={`${form.month}-${form.code}-${index}`} className="hover:bg-slate-50">
+                                                        <td className="border border-slate-200 p-2 text-center">{index + 1}</td>
+                                                        <td className="border border-slate-200 p-2 font-semibold text-slate-700">{form.month}</td>
+                                                        <td className="border border-slate-200 p-2 font-mono">{form.code || '-'}</td>
+                                                        <td className="border border-slate-200 p-2">{form.name || '-'}</td>
+                                                        <td className="border border-slate-200 p-2 text-center">{form.hours || '-'}</td>
+                                                        <td className="border border-slate-200 p-2 text-center">{form.participants || '-'}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                            <tfoot>
+                                                <tr className="bg-slate-100 font-bold">
+                                                    <td colSpan="3" className="border border-slate-200 p-2 text-right">Razem:</td>
+                                                    <td className="border border-slate-200 p-2">
+                                                        {(() => {
+                                                            const uniqueCodes = new Set(
+                                                                realizedForms
+                                                                    .map(form => (form.code || '').trim().toLocaleLowerCase('pl-PL'))
+                                                                    .filter(Boolean)
+                                                            );
+                                                            return (
+                                                                <span>
+                                                                    {uniqueCodes.size} form
+                                                                    <span className="font-normal text-slate-500"> ({realizedForms.length} wszystkich form)</span>
+                                                                </span>
+                                                            );
+                                                        })()}
+                                                    </td>
+                                                    <td className="border border-slate-200 p-2 text-center">{totalCourseHours}h</td>
+                                                    <td className="border border-slate-200 p-2 text-center">{totalParticipants}</td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                );
+                            })()}
+
+                        {/* Annual completed tasks */}
+                        <div className="pt-6">
+                            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">
+                                Wykaz zrealizowanych zadań
+                            </h3>
+                            {(() => {
+                                const taskMap = new Map();
+                                MONTHS.forEach(m => {
+                                    const data = monthlyData[`${schoolYear}_${m.id}`];
+                                    if (!data || !Array.isArray(data.tasks)) return;
+                                    data.tasks.forEach(task => {
+                                        const description = (task.description || '').trim();
+                                        const taskNo = (task.taskNo || '').trim();
+                                        const statePriorities = (task.statePriorities || '').trim();
+                                        const oeizkPriorities = (task.oeizkPriorities || '').trim();
+                                        const collaboration = (task.collaboration || '').trim();
+                                        if (!description && !taskNo && !statePriorities && !oeizkPriorities && !collaboration) return;
+
+                                        const dedupeKey = [description, taskNo, statePriorities, oeizkPriorities, collaboration]
+                                            .map(v => v.toLocaleLowerCase('pl-PL').replace(/\s+/g, ' ').trim())
+                                            .join('|');
+
+                                        if (!taskMap.has(dedupeKey)) {
+                                            taskMap.set(dedupeKey, {
+                                                months: [m.name], description, taskNo,
+                                                statePriorities, oeizkPriorities, collaboration
+                                            });
+                                        } else {
+                                            const existing = taskMap.get(dedupeKey);
+                                            if (!existing.months.includes(m.name)) existing.months.push(m.name);
+                                        }
+                                    });
+                                });
+                                const annualTasks = Array.from(taskMap.values());
+
+                                if (annualTasks.length === 0) {
+                                    return <div className="border border-slate-200 rounded-xl p-4 text-xs text-slate-500 bg-slate-50">Brak zrealizowanych zadań w wybranym roku szkolnym.</div>;
+                                }
+
+                                return (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-xs border-collapse border border-slate-200">
+                                            <thead>
+                                                <tr className="bg-slate-100 text-slate-700">
+                                                    <th className="border border-slate-200 p-2 text-center w-10">Lp.</th>
+                                                    <th className="border border-slate-200 p-2 text-left">Miesiąc</th>
+                                                    <th className="border border-slate-200 p-2 text-left">Zrealizowane zadanie</th>
+                                                    <th className="border border-slate-200 p-2 text-center">Nr zadania</th>
+                                                    <th className="border border-slate-200 p-2 text-center">Priorytety państwa</th>
+                                                    <th className="border border-slate-200 p-2 text-center">Priorytety OEIIZK</th>
+                                                    <th className="border border-slate-200 p-2 text-left">We współpracy</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {annualTasks.map((task, index) => (
+                                                    <tr key={`${task.description}-${task.taskNo}-${index}`}>
+                                                        <td className="border border-slate-200 p-2 text-center">{index + 1}</td>
+                                                        <td className="border border-slate-200 p-2 font-semibold text-slate-700">{task.months.join(', ')}</td>
+                                                        <td className="border border-slate-200 p-2">{task.description || '-'}</td>
+                                                        <td className="border border-slate-200 p-2 text-center">{task.taskNo || '-'}</td>
+                                                        <td className="border border-slate-200 p-2 text-center">{task.statePriorities || '-'}</td>
+                                                        <td className="border border-slate-200 p-2 text-center">{task.oeizkPriorities || '-'}</td>
+                                                        <td className="border border-slate-200 p-2">{task.collaboration || '-'}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                            <tfoot>
+                                                <tr className="bg-slate-100 font-bold">
+                                                    <td colSpan="2" className="border border-slate-200 p-2 text-right">Razem:</td>
+                                                    <td colSpan="5" className="border border-slate-200 p-2">{annualTasks.length} unikalnych zadań</td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+
+                        {/* Annual supplementary information without duplicates */}
+                        <div className="pt-6">
+                            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">
+                                Informacje uzupełniające
+                            </h3>
+                            {(() => {
+                                const collectUniqueEntries = (fieldName) => {
+                                    const seen = new Set();
+                                    const result = [];
+                                    MONTHS.forEach(m => {
+                                        const value = (monthlyData[`${schoolYear}_${m.id}`]?.[fieldName] || '').trim();
+                                        if (!value) return;
+                                        value.split(/[;\n]+/)
+                                            .map(item => item.trim())
+                                            .filter(Boolean)
+                                            .forEach(item => {
+                                                const normalized = item.toLocaleLowerCase('pl-PL').replace(/\s+/g, ' ').trim();
+                                                if (!seen.has(normalized)) {
+                                                    seen.add(normalized);
+                                                    result.push(item);
+                                                }
+                                            });
+                                    });
+                                    return result;
+                                };
+
+                                const otherItems = collectUniqueEntries('otherActivities');
+                                const consultationItems = collectUniqueEntries('consultationTopics');
+                                const developmentItems = collectUniqueEntries('selfDevelopment');
+
+                                const InfoBlock = ({ title, items }) => (
+                                    <div className="border border-slate-200 rounded-xl p-4 bg-white">
+                                        <div className="text-xs font-bold text-slate-700 mb-2">{title}</div>
+                                        {items.length ? (
+                                            <ol className="list-decimal pl-5 space-y-1 text-xs text-slate-700">
+                                                {items.map((item, index) => <li key={`${title}-${index}`}>{item}</li>)}
+                                            </ol>
+                                        ) : (
+                                            <div className="text-xs text-slate-400">Brak wpisów.</div>
+                                        )}
+                                    </div>
+                                );
+
+                                return (
+                                    <div className="grid grid-cols-1 gap-3">
+                                        <InfoBlock title="Inne" items={otherItems} />
+                                        <InfoBlock title="Tematyka udzielanych konsultacji" items={consultationItems} />
+                                        <InfoBlock title="Własny rozwój" items={developmentItems} />
+                                    </div>
+                                );
+                            })()}
+                        </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            );
+        }
+
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<App />);
+    </script>
+</body>
+</html>
