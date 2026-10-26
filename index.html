@@ -1,182 +1,39 @@
-<!DOCTYPE html>
-<html lang="pl" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projekty Edukacyjne – Repozytorium GitHub</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background-color: #0f172a;
-            color: #f8fafc;
-            font-family: 'Inter', sans-serif;
-        }
-        /* Subtelne tło gradientowe */
-        .ambient-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-            background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0f172a 70%);
-        }
-        /* Card Blur Effect */
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .glass-card:hover {
-            border-color: rgba(16, 185, 129, 0.4);
-        }
-    </style>
-</head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-white antialiased">
+<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Eksperymentalne aplikacje, symulacje oraz narzędzia edukacyjne tworzone przy wsparciu Sztucznej Inteligencji."><title>Michał Tycjan Grześlak – Projekty edukacyjne</title><style>
+:root{color-scheme:dark;font-family:Inter,system-ui,Arial,sans-serif}*{box-sizing:border-box}body{margin:0;background:#0f172a;color:#f8fafc}button,input,textarea,select{font:inherit}button{cursor:pointer}header{padding:22px 28px;border-bottom:1px solid #334155;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}h1{font-size:23px;margin:0}h2{font-size:19px;margin:0 0 16px}p{color:#94a3b8}main{display:grid;grid-template-columns:minmax(300px,410px) 1fr;min-height:calc(100vh - 90px)}aside{padding:24px;border-right:1px solid #334155;background:#111d31}section{padding:24px;min-width:0}label{display:block;font-size:13px;color:#cbd5e1;margin:13px 0 6px}input,textarea,select{width:100%;padding:11px 12px;border:1px solid #475569;border-radius:10px;background:#1e293b;color:white}textarea{min-height:95px;resize:vertical}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}.btn{border:1px solid #475569;background:#334155;color:white;border-radius:10px;padding:10px 13px}.primary{background:#059669;border-color:#059669}.danger{background:#7f1d1d;border-color:#991b1b}.small{padding:6px 9px;font-size:12px}.hint{font-size:12px;line-height:1.5}.list{display:grid;gap:8px;margin:18px 0}.item{display:flex;gap:6px;align-items:center;border:1px solid #334155;border-radius:10px;padding:8px}.item>button:first-child{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.preview{max-width:880px;margin:0 auto}.hero{text-align:center;padding:32px 8px 40px}.hero .symbol{display:inline-grid;place-items:center;background:#064e3b66;border:1px solid #065f46;border-radius:16px;width:65px;height:65px;color:#34d399;font-size:27px}.hero h2{font-size:34px;margin:15px 0 5px}.accent{color:#34d399}.cards{display:grid;gap:16px}.card{background:rgba(30,41,59,.8);border:1px solid #334155;border-radius:17px;padding:23px;display:flex;justify-content:space-between;gap:18px;align-items:center}.card h3{margin:0;font-size:18px}.card p{font-size:14px;line-height:1.55}.tag{display:inline-block;border-radius:7px;background:#334155;color:#cbd5e1;padding:5px 8px;font-size:11px;margin:3px}.category{color:#6ee7b7;border:1px solid #065f46;background:#064e3b55}.links{display:flex;gap:8px;flex-shrink:0}.links a{padding:10px 13px;border-radius:10px;text-decoration:none;background:#334155;color:white;font-size:12px}.links a.demo{background:#059669}.muted{opacity:.4;pointer-events:none}.foot{text-align:center;margin:45px 0;border-top:1px solid #334155;padding:22px;color:#94a3b8}.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}.toolbar p{margin:0}.hidden{display:none!important}@media(max-width:900px){main{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid #334155}.card{align-items:flex-start;flex-direction:column}.hero h2{font-size:26px}}
+/* Stabilny układ przycisków i kart */
+header>.actions{margin-top:0;justify-content:flex-end;max-width:100%}
+.actions>.btn{min-height:40px;white-space:normal;overflow-wrap:anywhere;text-align:center}
+.item{min-width:0;display:grid;grid-template-columns:minmax(0,1fr) 34px 34px 34px;gap:6px}
+.item>button:first-child{min-width:0;max-width:100%}
+.item>.btn.small:not(:first-child){width:34px;min-width:34px;padding:6px 0;text-align:center}
+.card>div:first-child{min-width:0;flex:1}
+.card h3{overflow-wrap:anywhere}
+.links{display:flex;flex-wrap:wrap;justify-content:flex-end;min-width:0}
+.links a{white-space:nowrap;text-align:center;min-width:64px}
+@media(max-width:1100px){header>.actions{justify-content:flex-start;width:100%}}
+@media(max-width:600px){aside,section{padding:16px}.card{padding:16px}.links{justify-content:flex-start;width:100%}.actions>.btn{flex:1 1 145px}header{padding:16px}}
 
-    <!-- Ambient Background -->
-    <div class="ambient-bg" aria-hidden="true"></div>
+/* v4: jednolite kontrolki i czytelny panel importu */
+aside{min-width:0;overflow-wrap:break-word}
+aside .btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;line-height:1.3;max-width:100%;border-radius:10px}
+.import-panel{margin:16px 0 18px;padding:14px;border:1px solid #334155;border-radius:14px;background:#17263c;min-width:0}
+.import-panel summary{cursor:pointer;font-weight:650;color:#d1fae5;padding:3px 0;list-style-position:inside}
+.import-panel label{margin-top:14px}
+.import-panel textarea{display:block;width:100%;min-width:0;max-width:100%;height:145px;min-height:110px;line-height:1.5;resize:vertical;overflow:auto;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
+.import-panel .actions{margin-top:12px;display:grid;grid-template-columns:minmax(0,1fr)}
+.import-panel .btn{width:100%;white-space:normal}
+#newBtn{width:100%;margin:0 0 4px}
+@media(max-width:600px){.import-panel{padding:12px}}
 
-    <!-- Main Container -->
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-12 w-full flex-grow flex flex-col justify-center">
-        
-        <!-- Header / Bio Section -->
-        <header class="text-center mb-12">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-4 shadow-lg">
-                <i class="fa-solid fa-wand-magic-sparkles text-2xl"></i>
-            </div>
-            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-1">
-                Michał Tycjan Grześlak
-            </h1>
-            <p class="text-emerald-400 font-medium text-sm sm:text-base mb-3">
-                Projekty Edukacyjne & Eksperymenty AI
-            </p>
-            <p class="text-slate-400 text-sm sm:text-base max-w-lg mx-auto leading-relaxed">
-                Eksperymentalne aplikacje, symulacje oraz narzędzia edukacyjne tworzone przy wsparciu <span class="text-emerald-400 font-medium">Sztucznej Inteligencji</span>.
-            </p>
-            
-            <!-- Badge AI + Link do GitHub -->
-            <div class="mt-5 flex flex-wrap justify-center items-center gap-3">
-                <span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-xl border border-emerald-500/20">
-                    <i class="fa-solid fa-robot text-xs"></i>
-                    <span>AI-Assisted Projects</span>
-                </span>
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-xs font-medium bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white px-4 py-2 rounded-xl border border-slate-700/80 transition-all">
-                    <i class="fa-brands fa-github text-sm"></i>
-                    <span>Mój Profil GitHub</span>
-                </a>
-            </div>
-        </header>
-
-        <!-- Projects List (Clean Minimal Cards) -->
-        <main class="space-y-4">
-            
-            <!-- Projekt 1: Mapping 3D -->
-            <div class="glass-card rounded-2xl p-5 sm:p-6 transition-all duration-200 hover:-translate-y-0.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="space-y-2">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                        <h2 class="text-lg font-bold text-white">Mapping Projekcyjny Elewacji 3D</h2>
-                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">3D & WebGL</span>
-                    </div>
-                    <p class="text-slate-400 text-sm max-w-xl">
-                        Aplikacja webowa do symulacji mappingu 3D na elewacjach budynków. Posiada interaktywne panele pływające, modyfikację właściwości i warstw oraz edycję punktów w pełnym ekranie.
-                    </p>
-                    <div class="flex flex-wrap gap-2 pt-1">
-                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Three.js</span>
-                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">HTML5 Canvas</span>
-                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Tailwind CSS</span>
-                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Font Awesome</span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 sm:self-center pt-2 sm:pt-0 border-t sm:border-0 border-slate-800">
-                    <a href="https://github.com" target="_blank" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700 transition-colors flex items-center gap-1.5" title="Kod źródłowy">
-                        <i class="fa-brands fa-github"></i>
-                        <span>Kod</span>
-                    </a>
-                    <a href="#" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-xl transition-colors flex items-center gap-1.5" title="Podgląd Na Żywo">
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
-                        <span>Demo</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Projekt 2: GPS Story Studio -->
-            <div class="glass-card rounded-2xl p-5 sm:p-6 transition-all duration-200 hover:-translate-y-0.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="space-y-2">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-blue-400"></span>
-                        <h2 class="text-lg font-bold text-white">GPS Story Studio</h2>
-                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Storytelling</span>
-                    </div>
-                    <p class="text-slate-400 text-sm max-w-xl">
-                        Narzędzie do projektowania interaktywnych opowieści i gier terenowych wyzwalanych lokalizacją GPS użytkownika.
-                    </p>
-                    <div class="flex flex-wrap gap-2 pt-1">
-                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Geolocation API</span>
-                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Leaflet.js</span>
-                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Interactive UI</span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 sm:self-center pt-2 sm:pt-0 border-t sm:border-0 border-slate-800">
-                    <a href="https://github.com" target="_blank" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700 transition-colors flex items-center gap-1.5">
-                        <i class="fa-brands fa-github"></i>
-                        <span>Kod</span>
-                    </a>
-                    <a href="#" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-xl transition-colors flex items-center gap-1.5">
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
-                        <span>Demo</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Projekt 3: GPX Trail Simulator & Creator -->
-            <div class="glass-card rounded-2xl p-5 sm:p-6 transition-all duration-200 hover:-translate-y-0.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="space-y-2">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-purple-400"></span>
-                        <h2 class="text-lg font-bold text-white">GPX Trail Simulator & Creator</h2>
-                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">GIS & Symulacje</span>
-                    </div>
-                    <p class="text-slate-400 text-sm max-w-xl">
-                        Planer tras z profilami wysokościowymi, kalkulatorem marszu wg reguły Naismitha, symulacją micro-dryfu GPS smartwatcha, importem/eksportem GPX oraz eksportem metadanych punktów do JSON.
-                    </p>
-                    <div class="flex flex-wrap gap-2 pt-1">
-                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Leaflet.js</span>
-                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Chart.js</span>
-                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Open-Meteo Elevation API</span>
-                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">Lucide Icons</span>
-                        <span class="text-[11px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700">OpenTopoMap</span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 sm:self-center pt-2 sm:pt-0 border-t sm:border-0 border-slate-800">
-                    <a href="https://github.com" target="_blank" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700 transition-colors flex items-center gap-1.5">
-                        <i class="fa-brands fa-github"></i>
-                        <span>Kod</span>
-                    </a>
-                    <a href="#" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-xl transition-colors flex items-center gap-1.5">
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
-                        <span>Demo</span>
-                    </a>
-                </div>
-            </div>
-
-        </main>
-
-        <!-- Minimal Contact / Footer -->
-        <footer class="mt-12 text-center border-t border-slate-800/80 pt-6">
-            <p class="text-sm font-medium text-slate-400">
-                Michał Tycjan Grześlak
-            </p>
-        </footer>
-
-    </div>
-
-</body>
-</html>
+/* v4: jednolite kontrolki i czytelny panel importu */
+aside{min-width:0;overflow-wrap:break-word}
+aside .btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;line-height:1.3;max-width:100%;border-radius:10px}
+.import-panel{margin:16px 0 18px;padding:14px;border:1px solid #334155;border-radius:14px;background:#17263c;min-width:0}
+.import-panel summary{cursor:pointer;font-weight:650;color:#d1fae5;padding:3px 0;list-style-position:inside}
+.import-panel label{margin-top:14px}
+.import-panel textarea{display:block;width:100%;min-width:0;max-width:100%;height:145px;min-height:110px;line-height:1.5;resize:vertical;overflow:auto;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
+.import-panel .actions{margin-top:12px;display:grid;grid-template-columns:minmax(0,1fr)}
+.import-panel .btn{width:100%;white-space:normal}
+#newBtn{width:100%;margin:0 0 4px}
+@media(max-width:600px){.import-panel{padding:12px}}
+</style></head><body><div class="preview" style="padding:30px 18px"><div class="hero"><div class="symbol">✦</div><h2>Michał Tycjan Grześlak</h2><div class="accent">Projekty Edukacyjne &amp; Eksperymenty AI</div><p>Eksperymentalne aplikacje, symulacje oraz narzędzia edukacyjne tworzone przy wsparciu Sztucznej Inteligencji.</p><p><span class="tag category">AI-Assisted Projects</span> <a class="tag" href="https://github.com/" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Mój Profil GitHub ↗</a></p></div><main style="display:block;min-height:0"><div class="cards"><article class="card"><div><h3>Projekcja3D – Mapping Projekcyjny Elewacji <span class="tag category">Multimedia i mapping projekcyjny</span></h3><p>Aplikacja webowa do projektowania mappingu projekcyjnego na elewacjach budynków. Umożliwia nakładanie grafik i filmów, dopasowywanie powierzchni za pomocą siatek punktów, tworzenie masek, stosowanie efektów wizualnych oraz import projektów ZIP/JSON.</p><div><span class="tag">HTML5</span><span class="tag">CSS</span><span class="tag">JavaScript</span></div></div><div class="links"><a class="muted">⌘ Kod</a><a class="demo " href="https://trawiasty.github.io/Projekcja3D_v2.6.9.html" target="_blank" rel="noopener noreferrer">↗ Demo</a></div></article><article class="card"><div><h3>GPX Trail Simulator &amp; Creator <span class="tag category">Mapy, turystyka i symulacje GPS</span></h3><p>Interaktywny planer tras turystycznych umożliwiający tworzenie, edytowanie, importowanie i eksportowanie plików GPX. Oferuje symulację marszu i niedokładności GPS smartwatcha, analizę dystansu, czasu i przewyższeń oraz różne podkłady mapowe, w tym ortofotomapę.</p><div><span class="tag">HTML</span><span class="tag">JavaScript</span><span class="tag">CSS</span><span class="tag">GPX</span></div></div><div class="links"><a href="https://github.com/Trawiasty/Trawiasty.github.io" target="_blank" rel="noopener noreferrer">⌘ Kod</a><a class="demo " href="https://trawiasty.github.io/interactive_gpx_route_planner_v8.html" target="_blank" rel="noopener noreferrer">↗ Demo</a></div></article><article class="card"><div><h3>GPS Story Studio v77 <span class="tag category">Mapy i multimedia</span></h3><p>Aplikacja internetowa tworząca animowane filmy z tras GPX, zdjęć dopasowanych według lokalizacji lub czasu EXIF oraz podkładu muzycznego. Umożliwia personalizację mapy, przebiegu animacji, oznaczeń i plansz oraz eksport nagrania do MP4 lub WebM.</p><div><span class="tag">HTML</span><span class="tag">JavaScript</span><span class="tag">GPX</span><span class="tag">EXIF</span><span class="tag">FFmpeg.wasm</span></div></div><div class="links"><a class="muted">⌘ Kod</a><a class="demo " href="https://trawiasty.github.io/gps_story_studio_v77.html" target="_blank" rel="noopener noreferrer">↗ Demo</a></div></article><article class="card"><div><h3>Generator Kart Pracy i Zestawienie Roczne <span class="tag category">Edukacja i administracja szkolna</span></h3><p>Aplikacja do przygotowywania miesięcznych kart pracy nauczyciela-konsultanta i rocznych zestawień działalności. Umożliwia ewidencję szkoleń, konsultacji, zadań i nieobecności, import i eksport danych JSON oraz drukowanie dokumentów do PDF.</p><div><span class="tag">HTML5</span><span class="tag">CSS3</span><span class="tag">JavaScript</span><span class="tag">React 18</span><span class="tag">Tailwind CSS</span><span class="tag">Babel</span></div></div><div class="links"><a href="https://github.com/trawiasty/trawiasty.github.io/blob/main/generator_kart_pracy_i_zestawienie_roczne_v20.html" target="_blank" rel="noopener noreferrer">⌘ Kod</a><a class="demo " href="https://trawiasty.github.io/generator_kart_pracy_i_zestawienie_roczne_v20.html" target="_blank" rel="noopener noreferrer">↗ Demo</a></div></article><article class="card"><div><h3>Edytor projektów GitHub <span class="tag category">Narzędzia webowe</span></h3><p>Aplikacja do zarządzania katalogiem projektów GitHub. Umożliwia dodawanie i usuwanie wpisów, import i eksport danych JSON, podgląd strony oraz generowanie gotowego pliku index.html. Zmiany zapisuje lokalnie w przeglądarce.</p><div><span class="tag">HTML5</span><span class="tag">JavaScript</span></div></div><div class="links"><a class="muted">⌘ Kod</a><a class="demo " href="https://trawiasty.github.io/edytor_projektow_github_v4.html" target="_blank" rel="noopener noreferrer">↗ Demo</a></div></article></div></main><div class="foot">Michał Tycjan Grześlak</div></div></body></html>
