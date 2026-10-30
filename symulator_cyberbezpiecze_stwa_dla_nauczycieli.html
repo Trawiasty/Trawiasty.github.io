@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduMail Secure - Profesjonalny Symulator Poczty</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col justify-between overflow-hidden">
+
+    <!-- MODAL KOMUNIKATU -->
+    <div id="alert-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl border border-slate-200">
+            <h3 id="alert-title" class="text-lg font-bold text-slate-900 mb-2">Komunikat</h3>
+            <p id="alert-message" class="text-slate-600 text-sm mb-4"></p>
+            <button onclick="closeAlert()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition">Rozumiem</button>
+        </div>
+    </div>
+
+    <!-- MODAL PODGLĄDU ZAŁĄCZNIKA -->
+    <div id="attachment-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">📎</span>
+                    <h3 id="attachment-modal-title" class="font-bold text-slate-900 text-base">Podgląd załącznika</h3>
+                </div>
+                <button onclick="closeAttachmentModal()" class="text-slate-400 hover:text-slate-700 font-bold text-lg px-2">✕</button>
+            </div>
+            <div id="attachment-modal-content" class="overflow-y-auto flex-grow text-xs text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <!-- Zawartość załącznika -->
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-200 flex justify-end">
+                <button onclick="closeAttachmentModal()" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-5 rounded-lg text-xs transition">Zamknij podgląd</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL WYBORU PLIKU DO ZAŁĄCZENIA (Dla wiadomości RODO) -->
+    <div id="file-picker-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 flex flex-col relative">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
+                <h3 class="font-bold text-slate-900 text-base flex items-center space-x-2">
+                    <span>📁</span>
+                    <span>Wybierz plik z dysku / komputera</span>
+                </h3>
+                <button onclick="closeFilePicker()" class="text-slate-400 hover:text-slate-700 font-bold text-lg px-2">✕</button>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">Kliknij na plik, aby dołączyć go do wiadomości e-mail. Najedź kursorem myszy na pozycję, aby podejrzeć zawartość.</p>
+            <div class="space-y-2 mb-4 relative">
+                <div 
+                    onmouseenter="showPeselPreview(true)" 
+                    onmouseleave="showPeselPreview(false)" 
+                    onclick="attachFile('lista_uczniów_pesel.xlsx')"
+                    class="p-3 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-xl cursor-pointer transition flex items-center justify-between group"
+                >
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">📊</span>
+                        <div>
+                            <div class="font-bold text-xs text-slate-800 group-hover:text-blue-700">lista_uczniów_pesel.xlsx</div>
+                            <div class="text-[10px] text-slate-400">Arkusz kalkulacyjny • 14.2 KB</div>
+                        </div>
+                    </div>
+                    <span class="text-xs bg-blue-600 text-white px-3 py-1 rounded-lg font-semibold opacity-0 group-hover:opacity-100 transition">Dołącz plik ✓</span>
+                </div>
+                <div 
+                    onclick="attachFile('notatki_robocze.txt')"
+                    class="p-3 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-xl cursor-pointer transition flex items-center justify-between group"
+                >
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">📝</span>
+                        <div>
+                            <div class="font-bold text-xs text-slate-800 group-hover:text-blue-700">notatki_robocze.txt</div>
+                            <div class="text-[10px] text-slate-400">Dokument tekstowy • 2.1 KB</div>
+                        </div>
+                    </div>
+                    <span class="text-xs bg-blue-600 text-white px-3 py-1 rounded-lg font-semibold opacity-0 group-hover:opacity-100 transition">Dołącz plik ✓</span>
+                </div>
+
+                <!-- Podgląd najechany myszką jako absolutny panel popover -->
+                <div id="pesel-preview-box" class="hidden absolute left-0 right-0 top-full mt-2 bg-white border border-blue-200 rounded-xl p-3 shadow-xl text-[11px] text-slate-700 z-50 max-h-52 overflow-y-auto" onmouseenter="showPeselPreview(true)" onmouseleave="showPeselPreview(false)">
+                    <div class="font-bold text-blue-900 mb-1 flex items-center justify-between">
+                        <span>👁️ Podgląd zawartości: lista_uczniów_pesel.xlsx</span>
+                        <span class="text-[10px] text-slate-400">10 rekordów</span>
+                    </div>
+                    <table class="w-full text-left border-collapse border border-slate-200">
+                        <thead>
+                            <tr class="bg-slate-100 text-[10px]">
+                                <th class="border border-slate-200 p-1">Lp</th>
+                                <th class="border border-slate-200 p-1">Imię i Nazwisko</th>
+                                <th class="border border-slate-200 p-1">PESEL</th>
+                                <th class="border border-slate-200 p-1">Telefon</th>
+                            </tr>
+                        </thead>
+                        <tbody id="preview-pesel-rows">
+                            <!-- Generowane dynamicznie -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-slate-200 mt-2">
+                <button onclick="closeFilePicker()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold px-4 py-2 rounded-lg transition">Anuluj</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KROK 1: FORMULARZ STARTOWY -->
+    <div id="step-setup" class="fixed inset-0 bg-slate-900/60 z-40 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 border border-slate-200 relative">
+            <!-- Przycisk szybkiego wypełnienia testowego -->
+            <button type="button" onclick="fillTestData()" class="absolute top-4 right-4 bg-amber-100 hover:bg-amber-200 text-amber-800 p-2 rounded-xl text-xs font-bold transition flex items-center space-x-1" title="Wypełnij testowo automatycznie">
+                <span>🛡️</span>
+                <span>Test Fill</span>
+            </button>
+
+            <div class="text-center mb-6">
+                <div class="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">🛡️</div>
+                <h1 class="text-2xl font-bold text-slate-900">Symulator klienta poczty w placówce</h1>
+                <p class="text-slate-500 text-sm mt-1">Przygotowanie do szkolenia z cyberbezpieczeństwa i RODO</p>
+            </div>
+            
+            <form id="setup-form" onsubmit="startSimulation(event)" class="space-y-3.5">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Typ placówki oświatowej</label>
+                    <select id="facility-type" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs font-semibold text-slate-800 bg-white">
+                        <option value="school" selected>Szkoła Podstawowa / Ponadpodstawowa</option>
+                        <option value="ppp">Poradnia Psychologiczno-Pedagogiczna (PPP)</option>
+                        <option value="directors">Dyrektorzy Placówek Oświatowych</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Twoje Imię i Nazwisko</label>
+                    <input type="text" id="user-name" required placeholder="np. Anna Nowak" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Twój służbowy adres e-mail</label>
+                    <input type="email" id="user-email" required placeholder="np. a.nowak@szkola.edu.pl" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Imię i Nazwisko Dyrektora / Przełożonego</label>
+                    <input type="text" id="dir-name" required placeholder="np. Jan Kowalski" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Służbowy e-mail Dyrektora / Przełożonego</label>
+                    <input type="email" id="dir-email" required placeholder="np. dyrektor@szkola.edu.pl" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Imię i Nazwisko Sekretarki / Sekretarza</label>
+                    <input type="text" id="sec-name" required placeholder="np. Maria Wiśniewska" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Służbowy e-mail Sekretariatu</label>
+                    <input type="email" id="sec-email" required placeholder="np. sekretariat@szkola.edu.pl" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition shadow-lg shadow-blue-600/20">
+                        Otwórz Skrzynkę Pocztową ✉️
+                    </button>
+                </div>
+                <p class="text-xs text-slate-400 text-center mt-2">🔒 Dane są używane wyłącznie w tej sesji przeglądarki do personalizacji wiadomości.</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- KROK 2: INTERFEJS KLIENTA POCZTY (WEBMAIL) -->
+    <div id="step-simulation" class="flex-grow flex flex-col h-screen hidden">
+        <!-- Górny pasek menu pocztowego -->
+        <header class="bg-slate-900 text-white px-6 py-3 flex justify-between items-center shadow-md shrink-0">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 text-white p-2 rounded-lg font-bold text-sm">📧 EduMail</div>
+                <span class="font-semibold text-sm tracking-wide text-slate-200">Klient Poczty Oświatowej</span>
+            </div>
+            <div class="text-sm flex items-center space-x-6">
+                <span id="profile-display" class="text-slate-300 font-medium hidden md:inline"></span>
+                <button id="finish-simulation-btn" onclick="finishSimulationManually()" disabled class="bg-slate-700 text-slate-400 cursor-not-allowed px-4 py-1.5 rounded-lg text-xs font-semibold transition" title="Przycisk odblokuje się po wykonaniu wymaganych akcji (odpowiedź na mail dyrektora i obsługa phishingu)">Zakończ i podsumuj (Zablokowane)</button>
+            </div>
+        </header>
+
+        <!-- Układ główny aplikacji pocztowej: Pasek boczny folderów | Lista wiadomości | Okno odczytu -->
+        <div class="flex-grow flex overflow-hidden">
+            <!-- Pasek folderów (Lewa kolumna) -->
+            <div class="w-56 bg-slate-900/95 text-slate-300 border-r border-slate-800 flex flex-col shrink-0 hidden lg:flex">
+                <div class="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Konta i Foldery</div>
+                <nav class="space-y-1 px-2">
+                    <button onclick="switchFolder('inbox')" id="folder-btn-inbox" class="w-full text-left flex items-center space-x-3 px-3 py-2 rounded-lg bg-blue-600/20 text-blue-400 font-medium text-sm transition">
+                        <span>📥</span>
+                        <span class="flex-grow">Skrzynka odbiorcza</span>
+                        <span id="sidebar-unread-count" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">2</span>
+                    </button>
+                    <button onclick="switchFolder('sent')" id="folder-btn-sent" class="w-full text-left flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-400 text-sm transition">
+                        <span>📤</span>
+                        <span class="flex-grow">Wysłane</span>
+                    </button>
+                    <button onclick="switchFolder('spam')" id="folder-btn-spam" class="w-full text-left flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-400 text-sm transition">
+                        <span>⚠️</span>
+                        <span class="flex-grow">Spam / Phishing</span>
+                    </button>
+                    <button onclick="switchFolder('trash')" id="folder-btn-trash" class="w-full text-left flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-400 text-sm transition">
+                        <span>🗑️</span>
+                        <span class="flex-grow">Kosz</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Lista wiadomości (Środkowa kolumna) -->
+            <div class="w-full md:w-96 bg-white border-r border-slate-200 flex flex-col shrink-0">
+                <div class="p-3.5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                    <span id="current-folder-title" class="font-bold text-xs uppercase tracking-wider text-slate-600">Odebrane</span>
+                    <span id="unread-badge" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">2</span>
+                </div>
+                <div id="email-list" class="overflow-y-auto flex-grow divide-y divide-slate-100">
+                    <!-- Generowane dynamicznie -->
+                </div>
+            </div>
+
+            <!-- Podgląd wiadomości / Czytnik e-maili (Prawa kolumna) -->
+            <div class="flex-grow bg-slate-50 flex flex-col overflow-hidden" id="email-view-container">
+                <div id="no-email-selected" class="flex flex-col items-center justify-center h-full text-slate-400 p-6 text-center">
+                    <span class="text-6xl mb-3">📬</span>
+                    <h3 class="text-base font-semibold text-slate-700 mb-1">Brak zaznaczonej wiadomości</h3>
+                    <p class="text-xs max-w-sm">Wybierz wiadomość z listy po lewej stronie, aby otworzyć pełną treść e-maila w czytniku.</p>
+                </div>
+                <div id="email-active-view" class="flex-grow flex flex-col overflow-y-auto hidden p-6 lg:p-8">
+                    <!-- Treść aktywnego maila generowana dynamicznie -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KROK 3: EKRAN PODSUMOWANIA -->
+    <div id="step-summary" class="fixed inset-0 bg-slate-900/80 z-40 flex items-center justify-center p-4 overflow-y-auto hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 border border-slate-200 my-8">
+            <div class="text-center mb-6">
+                <span class="text-5xl">🏆</span>
+                <h2 class="text-2xl font-bold text-slate-900 mt-2">Oto raport z Twoich decyzji w symulatorze klienta poczty</h2>
+                <p class="text-slate-500 text-sm">Szczegółowa analiza podjętych działań w zakresie ochrony informacji</p>
+            </div>
+            
+            <div id="summary-results" class="space-y-3 mb-6 max-h-72 overflow-y-auto pr-2">
+                <!-- Wyniki generowane dynamicznie -->
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-xs text-blue-900 leading-relaxed">
+                <h4 class="font-bold mb-1 text-sm">💡 Wnioski i dobre praktyki dla nauczycieli:</h4>
+                <ul class="list-disc list-inside space-y-1.5">
+                    <li><b>Szyfrowanie i ochrona danych osobowych (RODO):</b> Pliki zawierające wrażliwe dane (np. numery PESEL, wykazy uczniów) zawsze przesyłamy w formie zaszyfrowanej (np. chronione silnym hasłem archiwum ZIP/7Z), a klucz deszyfrujący przekazujemy odbiorcy osobnym, bezpiecznym kanałem łączności (np. telefonicznie lub komunikatorem), nigdy w tej samej wiadomości e-mail.</li>
+                    <li><b>Nagłówki i adresy:</b> Zawsze sprawdzaj rzeczywisty adres nadawcy, a nie tylko wyświetlaną nazwę (np. oszustwa z domenami `.cloud`).</li>
+                    <li><b>Autorytet i presja czasu:</b> Oszuści często podszywają się pod dyrekcję lub instytucje państwowe, wymuszając szybkie działanie pod presją.</li>
+                </ul>
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-6 rounded-xl transition shadow">
+                Rozpocznij szkolenie ponownie 🔄
+            </button>
+        </div>
+    </div>
+
+    <!-- Stopka -->
+    <footer class="bg-white border-t border-slate-200 py-2.5 text-center text-xs text-slate-400 shrink-0">
+        EduMail Secure • Platforma Szkoleniowa Nauczycieli ds. Bezpieczeństwa Informacji
+    </footer>
+
+    <!-- SKRYPT LOGIKI APLIKACJI -->
+    <script>
+        let userData = {};
+        let emails = [];
+        let sentMessages = [];
+        let activeEmailId = null;
+        let currentFolder = 'inbox';
+        let clickedPhishing = false;
+        let attachedFileForReply = null;
+        let replyMode = 'reply_all'; // 'reply_all' lub 'reply_sender'
+
+        function fillTestData() {
+            document.getElementById('facility-type').value = "school";
+            document.getElementById('user-name').value = "Anna Nowak";
+            document.getElementById('user-email').value = "a.nowak@szkola.edu.pl";
+            document.getElementById('dir-name').value = "Jan Kowalski";
+            document.getElementById('dir-email').value = "dyrektor@szkola.edu.pl";
+            document.getElementById('sec-name').value = "Maria Wiśniewska";
+            document.getElementById('sec-email').value = "sekretariat@szkola.edu.pl";
+        }
+
+        function switchFolder(folderName) {
+            currentFolder = folderName;
+            activeEmailId = null;
+
+            const folders = ['inbox', 'sent', 'spam', 'trash'];
+            folders.forEach(f => {
+                const btn = document.getElementById(`folder-btn-${f}`);
+                if (btn) {
+                    if (f === folderName) {
+                        btn.className = "w-full text-left flex items-center space-x-3 px-3 py-2 rounded-lg bg-blue-600/20 text-blue-400 font-medium text-sm transition";
+                    } else {
+                        btn.className = "w-full text-left flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-400 text-sm transition";
+                    }
+                }
+            });
+
+            const titles = {
+                'inbox': 'Odebrane',
+                'sent': 'Wysłane',
+                'spam': 'Spam / Phishing',
+                'trash': 'Kosz'
+            };
+            const titleEl = document.getElementById('current-folder-title');
+            if (titleEl) {
+                titleEl.innerText = titles[folderName] || 'Odebrane';
+            }
+
+            document.getElementById('no-email-selected').classList.remove('hidden');
+            document.getElementById('email-active-view').classList.add('hidden');
+            renderEmailList();
+        }
+
+        function playNotificationSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } catch (e) {}
+        }
+
+        function showAlert(title, message) {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-message').innerText = message;
+            document.getElementById('alert-modal').classList.remove('hidden');
+        }
+
+        function closeAlert() {
+            document.getElementById('alert-modal').classList.add('hidden');
+        }
+
+        function openAttachmentModal(title, contentHtml) {
+            document.getElementById('attachment-modal-title').innerText = title;
+            document.getElementById('attachment-modal-content').innerHTML = contentHtml;
+            document.getElementById('attachment-modal').classList.remove('hidden');
+        }
+
+        function closeAttachmentModal() {
+            document.getElementById('attachment-modal').classList.add('hidden');
+        }
+
+        function openFilePicker() {
+            document.getElementById('file-picker-modal').classList.remove('hidden');
+            populatePeselPreviewRows();
+        }
+
+        function closeFilePicker() {
+            document.getElementById('file-picker-modal').classList.add('hidden');
+        }
+
+        function showPeselPreview(show) {
+            const box = document.getElementById('pesel-preview-box');
+            if (box) {
+                if (show) box.classList.remove('hidden');
+                else box.classList.add('hidden');
+            }
+        }
+
+        function populatePeselPreviewRows() {
+            const tbody = document.getElementById('preview-pesel-rows');
+            if (!tbody) return;
+            const sampleData = [
+                {lp: 1, name: "Kacper Kowalski", pesel: "12051408921", phone: "+48 501-200-300"},
+                {lp: 2, name: "Zuzanna Nowak", pesel: "12082204412", phone: "+48 502-300-400"},
+                {lp: 3, name: "Jan Wiśniewski", pesel: "11030509918", phone: "+48 503-400-500"},
+                {lp: 4, name: "Lena Wójcik", pesel: "12111003325", phone: "+48 504-500-600"},
+                {lp: 5, name: "Aleksander Kamiński", pesel: "11011208833", phone: "+48 505-600-700"},
+                {lp: 6, name: "Julia Lewandowski", pesel: "12090401144", phone: "+48 506-700-800"},
+                {lp: 7, name: "Filip Zieliński", pesel: "11071802255", phone: "+48 507-800-900"},
+                {lp: 8, name: "Maja Szymańska", pesel: "12042506677", phone: "+48 508-900-100"},
+                {lp: 9, name: "Antoni Dąbrowski", pesel: "11022804488", phone: "+48 509-100-200"},
+                {lp: 10, name: "Hanna Kozłowska", pesel: "12120105599", phone: "+48 510-200-300"}
+            ];
+            tbody.innerHTML = sampleData.map(r => `
+                <tr class="hover:bg-blue-50">
+                    <td class="border border-slate-200 p-1 text-center">${r.lp}</td>
+                    <td class="border border-slate-200 p-1 font-medium">${r.name}</td>
+                    <td class="border border-slate-200 p-1 text-blue-800 font-mono">${r.pesel}</td>
+                    <td class="border border-slate-200 p-1 text-slate-600">${r.phone}</td>
+                </tr>
+            `).join('');
+        }
+
+        function attachFile(fileName) {
+            attachedFileForReply = fileName;
+            closeFilePicker();
+            showAlert("Załącznik dodany", `Plik "${fileName}" został pomyślnie dołączony do wiadomości.`);
+            const indicator = document.getElementById('attached-file-indicator');
+            if (indicator) {
+                indicator.innerText = `📎 ${fileName} (Dołączony)`;
+                indicator.classList.remove('hidden');
+            }
+        }
+
+        function setReplyMode(mode) {
+            replyMode = mode;
+            const btnAll = document.getElementById('btn-mode-all');
+            const btnSender = document.getElementById('btn-mode-sender');
+            const infoText = document.getElementById('reply-recipients-info');
+            if (btnAll && btnSender) {
+                if (mode === 'reply_all') {
+                    btnAll.className = "px-3 py-1 bg-blue-600 text-white font-semibold rounded-lg text-xs transition shadow-sm";
+                    btnSender.className = "px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition";
+                    if (infoText) infoText.innerText = `Odbiorcy: Dyrektor (${userData.dirEmail}), Sekretariat (${userData.secEmail}), Pokój Nauczycielski`;
+                } else {
+                    btnSender.className = "px-3 py-1 bg-blue-600 text-white font-semibold rounded-lg text-xs transition shadow-sm";
+                    btnAll.className = "px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition";
+                    if (infoText) infoText.innerText = `Odbiorca: Tylko Dyrektor (${userData.dirEmail})`;
+                }
+            }
+        }
+
+        function clickedPhishingLink() {
+            clickedPhishing = true;
+            showAlert("⚠️ Zidentyfikowano Zagrożenie (Phishing)", "Kliknąłeś w zewnętrzny odnośnik w fałszywym e-mailu PGE! W realnych warunkach mogłoby to prowadzić do przejęcia konta. Zawsze sprawdzaj adresy URL oraz rzeczywistą domenę nadawcy.");
+            checkSimulationCompletion();
+        }
+
+        function startSimulation(e) {
+            e.preventDefault();
+            userData.facilityType = document.getElementById('facility-type').value;
+            userData.name = document.getElementById('user-name').value;
+            userData.email = document.getElementById('user-email').value;
+            userData.dirName = document.getElementById('dir-name').value;
+            userData.dirEmail = document.getElementById('dir-email').value;
+            userData.secName = document.getElementById('sec-name').value;
+            userData.secEmail = document.getElementById('sec-email').value;
+
+            initEmails(userData.facilityType);
+
+            document.getElementById('profile-display').innerText = `${userData.name} (${userData.email})`;
+            document.getElementById('step-setup').classList.add('hidden');
+            document.getElementById('step-simulation').classList.remove('hidden');
+            renderEmailList();
+            playNotificationSound();
+        }
+
+        function initEmails(facilityType) {
+            clickedPhishing = false;
+            attachedFileForReply = null;
+
+            const now = new Date();
+            const basePastTime = new Date(now.getTime() - 5 * 3600000);
+            
+            const formatTime = (dateObj) => {
+                return dateObj.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+            };
+
+            const getStaggeredTime = (index) => {
+                const t = new Date(basePastTime.getTime() + index * 17 * 60000);
+                return formatTime(t);
+            };
+
+            const currentTimeStr = formatTime(now);
+
+            if (facilityType === 'ppp') {
+                emails = [
+                    {
+                        id: 1,
+                        senderName: userData.secName,
+                        senderEmail: userData.secEmail,
+                        subject: "Szczegółowy harmonogram gabinetów diagnostycznych i przydział sal",
+                        date: getStaggeredTime(0),
+                        read: false,
+                        visible: true,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "grafik_gabinetow_diag_szczegolowy.pdf",
+                        attachmentContent: `
+                            <div class="space-y-4">
+                                <div class="border-b border-slate-200 pb-3">
+                                    <h4 class="font-bold text-slate-900 text-sm">PORADNIA PSYCHOLOGICZNO-PEDAGOGICZNA W REGIONIE</h4>
+                                    <p class="text-xs text-slate-500">Wydział Diagnostyczno-Terapeutyczny • Zarządzenie Wewnętrzne nr 14/2026</p>
+                                </div>
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-xs leading-relaxed">
+                                    <b>Zasady korzystania z gabinetów diagnostycznych:</b> Klucze elektroniczne do gabinetów 1 oraz 2 pobiera się każdorazowo w sekretariacie za pokwitowaniem. Przypominamy o bezwzględnym przestrzeganiu 15-minutowych przerw wietrzenia pomieszczeń między kolejnymi badaniami psychologicznymi (WISC-V, Stanford-Binet 5).
+                                </div>
+                                <table class="w-full text-left border-collapse border border-slate-200 text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-100">
+                                            <th class="border border-slate-200 p-2">Dzień tygodnia</th>
+                                            <th class="border border-slate-200 p-2">Gabinet 1 (Diagnoza IQ / WISC-V)</th>
+                                            <th class="border border-slate-200 p-2">Gabinet 2 (Terapia Integracji Sensorycznej)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">Poniedziałek</td><td class="border border-slate-200 p-2">${userData.name} (08:00 - 13:00)</td><td class="border border-slate-200 p-2">Zespół Terapeutyczny (mgr K. Lis)</td></tr>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">Wtorek</td><td class="border border-slate-200 p-2">Przerwa Techniczna / Kalibracja sprzętu</td><td class="border border-slate-200 p-2">Diagnoza Autyzm ASD (dr P. Borek)</td></tr>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">Środa</td><td class="border border-slate-200 p-2">${userData.name} (09:00 - 14:00)</td><td class="border border-slate-200 p-2">Terapia Pedagogiczna (mgr A. Żuk)</td></tr>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">Czwartek</td><td class="border border-slate-200 p-2">Konsultacje Indywidualne dla Rodziców</td><td class="border border-slate-200 p-2">Grupa Wsparcia Emocjonalnego</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: userData.secName, fromEmail: userData.secEmail, toEmail: userData.email, text: `Dzień dobry,<br><br>W załączniku przesyłam szczegółowy, zatwierdzony harmonogram gabinetów diagnostycznych oraz sal terapeutycznych na bieżący tydzień. Proszę o dokładne zapoznanie się z przydziałem godzin i sal.<br><br>Z poważaniem,<br>${userData.secName}<br>Sekretariat Poradni`, time: getStaggeredTime(0) }],
+                        unlocks: [2]
+                    },
+                    {
+                        id: 2,
+                        senderName: "Pani Jolanta Maj (Mama Kacpra)",
+                        senderEmail: "jola.maj.rodzic@gmail.com",
+                        subject: "Zapytanie dotyczące dokumentacji na nadchodzące badanie psychologiczne",
+                        date: getStaggeredTime(1),
+                        read: false,
+                        visible: true,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Jolanta Maj", fromEmail: "jola.maj.rodzic@gmail.com", toEmail: userData.email, text: `Dzień dobry,<br><br>Piszę, aby upewnić się co do zaplanowanego na środę badania psychologicznego mojego syna Kacpra. Czy powinnam przynieść ze sobą zeszyty szkolne, opinie od wychowawcy lub dotychczasowe zaświadczenia lekarskie?<br><br>Bardzo dziękuję za informację i pozdrawiam serdecznie,<br>Jolanta Maj`, time: getStaggeredTime(1) }],
+                        unlocks: [3]
+                    },
+                    {
+                        id: 3,
+                        senderName: "Marta Nowak (Mama Zuzi)",
+                        senderEmail: "marta.nowak.rodzic@wp.pl",
+                        subject: "Pytanie ws. dostarczenia opinii z poradni i dokumentacji",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "parent_document",
+                        thread: [{ sender: "Marta Nowak", fromEmail: "marta.nowak.rodzic@wp.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Piszę z zapytaniem, czy oryginał opinii z poradni psychologiczno-pedagogicznej powinnam dostarczyć osobiście do sekretariatu, czy wystarczy przesłanie skanu w systemie elektronicznym?<br><br>Z góry dziękuję za pomoc,<br>Marta Nowak`, time: currentTimeStr }],
+                        unlocks: [4]
+                    },
+                    {
+                        id: 4,
+                        senderName: "Prof. Tomasz Barański",
+                        senderEmail: "t.baranski@uniwersytet.edu.pl",
+                        subject: "Ustalenie terminu konsultacji ws. nowych standardów diagnozy specyficznych trudności",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Tomasz Barański", fromEmail: "t.baranski@uniwersytet.edu.pl", toEmail: userData.email, text: `Szanowny Panie / Szanowna Pani,<br><br>W nawiązaniu do najnowszych wytycznych Ministerstwa Edukacji Narodowej dotyczących ujednolicenia procedur diagnostycznych w poradniach, chciałbym zaproponować krótkie spotkanie robocze online w czwartek o godzinie 10:00.<br><br>Z poważaniem,<br>Prof. zw. dr hab. Tomasz Barański<br>Instytut Badań Edukacyjnych`, time: currentTimeStr }],
+                        unlocks: [5]
+                    },
+                    {
+                        id: 5,
+                        senderName: "Magdalena Lis (Kierownik Zespołu Diagnostów)",
+                        senderEmail: "m.lis@poradnia.edu.pl",
+                        subject: "Wstępny kosztorys zakupu nowych testów psychologicznych WISC-V",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "kosztorys_testow_2026_szczegolowy.xlsx",
+                        attachmentContent: `
+                            <div class="space-y-3">
+                                <h4 class="font-bold text-slate-900 text-sm">KOSZTORYS ZAKUPU LICENCJONOWANYCH POMOCY DIAGNOSTYCZNYCH</h4>
+                                <p class="text-xs text-slate-500">Budżet celowy na doposażenie poradni w roku 2026</p>
+                                <table class="w-full text-left border-collapse border border-slate-200 text-xs">
+                                    <tr class="bg-slate-100">
+                                        <th class="border border-slate-200 p-2">Nazwa testu / pakietu</th>
+                                        <th class="border border-slate-200 p-2">Ilość szt.</th>
+                                        <th class="border border-slate-200 p-2">Cena Netto</th>
+                                        <th class="border border-slate-200 p-2">Wartość Razem</th>
+                                    </tr>
+                                    <tr>
+                                        <td class="border border-slate-200 p-2 font-medium">Skala Inteligencji WISC-V (Kompletny zestaw cyfrowo-papierowy)</td>
+                                        <td class="border border-slate-200 p-2 text-center">2</td>
+                                        <td class="border border-slate-200 p-2">4 500,00 PLN</td>
+                                        <td class="border border-slate-200 p-2 font-bold">9 000,00 PLN</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="border border-slate-200 p-2 font-medium">Bateria Testów IDS-2 (Inteligencja i Rozwój Dziecka)</td>
+                                        <td class="border border-slate-200 p-2 text-center">1</td>
+                                        <td class="border border-slate-200 p-2">6 200,00 PLN</td>
+                                        <td class="border border-slate-200 p-2 font-bold">6 200,00 PLN</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: "Magdalena Lis", fromEmail: "m.lis@poradnia.edu.pl", toEmail: userData.email, text: `Cześć,<br><br>W załączniku przesyłam zestawienie i wstępny kosztorys zakupowy nowych zestawów testowych WISC-V oraz IDS-2 do ostatecznej akceptacji przez dyrekcję.<br><br>Pozdrawiam,<br>Magda`, time: currentTimeStr }],
+                        unlocks: [6]
+                    },
+                    {
+                        id: 6,
+                        senderName: "Wydawnictwo TestEdu",
+                        senderEmail: "zamowienia@testedu.pl",
+                        subject: "Nowy katalog pomocy terapeutycznych i multimedialnych na rok 2026",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "katalog_pomocy_testedu_2026.pdf",
+                        attachmentContent: `
+                            <div class="space-y-3">
+                                <h4 class="font-bold text-slate-900 text-sm">KATALOG OFERTOWY TESTEDU • EDYCJA WIOSNA 2026</h4>
+                                <p class="text-xs text-slate-600">Nowoczesne pakiety interaktywne do terapii integracji sensorycznej, logopedii oraz korekcji wad wymowy u dzieci w wieku przedszkolnym i szkolnym.</p>
+                                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs">
+                                    <b>Promocja dla poradni:</b> Przy zamówieniu powyżej 5 000 PLN, licencja wielostanowiskowa na oprogramowanie logopedyczne gratis.
+                                </div>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: "Zespół TestEdu", fromEmail: "zamowienia@testedu.pl", toEmail: userData.email, text: `Szanowni Państwo,<br><br>Zapraszamy do zapoznania się z najnowszym katalogiem specjalistycznych pomocy terapeutycznych na rok 2026. Przygotowaliśmy dedykowaną ofertę rabatową dla publicznych poradni psychologiczno-pedagogicznych.<br><br>Z poważaniem,<br>Dział Obsługi Placówek Oświatowych TestEdu`, time: currentTimeStr }],
+                        unlocks: [7]
+                    },
+                    {
+                        id: 7,
+                        senderName: userData.dirName,
+                        senderEmail: userData.dirEmail,
+                        subject: "Pilne zestawienie pacjentów do sprawozdania dotacyjnego",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "dangerous_rodo",
+                        thread: [{ sender: userData.dirName, fromEmail: userData.dirEmail, toEmail: userData.email, text: `Dzień dobry,<br><br>Fundacja wspierająca naszą poradnię poprosiła o szybkie spięcie zbiorczej listy pacjentów zakwalifikowanych do terapii (imiona, nazwiska, numery PESEL oraz telefony). Ponieważ koordynatorka sekretariatu jest dzisiaj na zwolnieniu, bardzo proszę o uzupełnienie danych.<br><br>Żeby sekretariat oraz inni pracownicy od razu mieli wgląd, użyj proszę opcji <b>„Odpowiedz wszystkim”</b> i dołącz plik z listą PESEL bez szyfrowania.<br><br>Z poważaniem,<br>${userData.dirName}<br>Dyrektor Poradni`, time: currentTimeStr }],
+                        unlocks: [8]
+                    },
+                    {
+                        id: 8,
+                        senderName: "Tomasz Zieliński (Administrator IT)",
+                        senderEmail: "t.zielinski@poradnia.edu.pl",
+                        subject: "Zaplanowana przerwa techniczna w działaniu serwera bazodanowego",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Tomasz Zieliński", fromEmail: "t.zielinski@poradnia.edu.pl", toEmail: userData.email, text: `Cześć,<br><br>Informuję, że dzisiaj w godzinach popołudniowych (od 15:00 do 16:30) przeprowadzona zostanie niezbędna przerwa techniczna oraz aktualizacja oprogramowania bazodanowego systemu gabinetowego. W tym czasie system może być niedostępny.<br><br>Pozdrawiam,<br>Tomek Zieliński (IT)`, time: currentTimeStr }],
+                        unlocks: [9]
+                    },
+                    {
+                        id: 9,
+                        senderName: "Kuratorium Oświaty w Regionie",
+                        senderEmail: "edukacja@kuratorium.gov.pl",
+                        subject: "Komunikat ws. wdrożenia nowych druków opinii i orzeczeń",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Wydział Oświaty", fromEmail: "edukacja@kuratorium.gov.pl", toEmail: userData.email, text: `Szanowni Państwo,<br><br>Przypominamy o bezwzględnym obowiązku stosowania od nowego miesiąca zaktualizowanych druków opinii i orzeczeń wydawanych przez zespoły orzekające działające w publicznych poradniach psychologiczno-pedagogicznych.<br><br>Z poważaniem,<br>Kuratorium Oświaty`, time: currentTimeStr }],
+                        unlocks: [10]
+                    },
+                    {
+                        id: 10,
+                        senderName: "PPP w Rejonie",
+                        senderEmail: "kontakt@ppp-rejon.edu.pl",
+                        subject: "Zaproszenie na międzyporadnianą sieć współpracy psychologów",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "PPP Rejon", fromEmail: "kontakt@ppp-rejon.edu.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Serdecznie zapraszamy specjalistów z Państwa poradni na cykliczne spotkanie sieci współpracy i samokształcenia psychologów, które odbędzie się w przyszły czwartek o godzinie 12:00.<br><br>Pozdrowienia,<br>Zespół PPP`, time: currentTimeStr }],
+                        unlocks: [11]
+                    },
+                    {
+                        id: 11,
+                        senderName: "Fundacja Pomocy Dzieciom",
+                        senderEmail: "biuro@fundacja.pl",
+                        subject: "Zaproszenie na specjalistyczne warsztaty terapii behawioralnej",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Fundacja Pomocy Dzieciom", fromEmail: "biuro@fundacja.pl", toEmail: userData.email, text: `Szanowni Państwo,<br><br>Mamy przyjemność zaprosić psychologów i pedagogów na bezpłatne warsztaty poświęcone nowoczesnym metodom terapii behawioralnej dzieci z zaburzeniami ze spektrum autyzmu.<br><br>Zarząd Fundacji`, time: currentTimeStr }],
+                        unlocks: [12]
+                    },
+                    {
+                        id: 12,
+                        senderName: "PGE-eBOK",
+                        senderEmail: "dta3@accessoalp-pg1297.cloud",
+                        subject: "Informacje dotyczące Twojej umowy - Zwrot nadpłaty",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "phishing_pge",
+                        thread: [{ 
+                            sender: "PGE-eBOK", 
+                            fromEmail: "dta3@accessoalp-pg1297.cloud", 
+                            toEmail: userData.email, 
+                            text: `
+                                <div style="background-color: #f8fafc; padding: 24px; font-family: 'Inter', sans-serif; border-radius: 12px; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0;">
+                                    <div style="text-align: center; margin-bottom: 24px;">
+                                        <h1 style="color: #003366; font-size: 32px; font-weight: 800; letter-spacing: 2px; margin: 0;">P G E</h1>
+                                    </div>
+                                    <div style="background: white; padding: 24px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
+                                        <p style="font-weight: 700; margin-bottom: 16px;">Dzień dobry,</p>
+                                        <div style="border-left: 4px solid #003366; padding-left: 12px; margin-bottom: 20px; color: #475569; font-size: 13px; line-height: 1.6;">
+                                            W wyniku przeprowadzonej weryfikacji Państwa umowy stwierdzono, że została ona przypisana do niewłaściwej grupy taryfowej, nieodpowiadającej rzeczywistemu poziomowi zużycia energii. W konsekwencji stawki jednostkowe zastosowane na ostatnich fakturach nie były zgodne z właściwymi warunkami rozliczenia. Po skorygowaniu parametrów rozliczeniowych oraz ponownym przeliczeniu należności ustalono kwotę nadpłaty wynikającą z zastosowania nieprawidłowych stawek.
+                                        </div>
+                                        <div style="display: flex; justify-content: space-around; text-align: center; margin-bottom: 24px; font-size: 11px; font-weight: 600; color: #003366;">
+                                            <div>
+                                                <div style="background: #003366; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">✓</div>
+                                                ROZLICZENIE
+                                            </div>
+                                            <div>
+                                                <div style="background: #003366; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">✓</div>
+                                                NADPŁATA
+                                            </div>
+                                            <div>
+                                                <div style="background: #f59e0b; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">➔</div>
+                                                ZWROT
+                                            </div>
+                                        </div>
+                                        <div style="background: #f0f6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; text-align: center; margin-bottom: 20px;">
+                                            <div style="font-size: 11px; color: #1e40af; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">NADPŁATA DO ZWROTU</div>
+                                            <div style="font-size: 26px; font-weight: 800; color: #003366; margin-bottom: 4px;">398,79 PLN</div>
+                                            <div style="font-size: 11px; color: #64748b;">Termin: <b>3 dni robocze</b></div>
+                                        </div>
+                                        <div style="text-align: center;">
+                                            <a href="#" onclick="clickedPhishingLink(); return false;" style="background-color: #001f3f; color: white; padding: 12px 24px; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-block; font-size: 13px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">ZATWIERDŹ W PANELU KLIENTA</a>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center; font-size: 10px; color: #94a3b8; line-height: 1.4;">
+                                        Sp. z o.o. | ul. Energetyczna 1, 00-850 Warszawa<br>
+                                        NIP 527-26-15-348 | REGON 146285432 | KRS 0000384721<br>
+                                        <a href="#" style="color: #64748b; text-decoration: underline;">Polityka prywatności</a> | <a href="#" style="color: #64748b; text-decoration: underline;">Rezygnacja</a>
+                                    </div>
+                                </div>
+                            `, 
+                            time: currentTimeStr 
+                        }],
+                        unlocks: []
+                    }
+                ];
+            } else if (facilityType === 'directors') {
+                emails = [
+                    {
+                        id: 1,
+                        senderName: userData.secName,
+                        senderEmail: userData.secEmail,
+                        subject: "Pilna korespondencja z Urzędu Miasta - zatwierdzenie rezerwy celowej",
+                        date: getStaggeredTime(0),
+                        read: false,
+                        visible: true,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "pismo_um_wyplata_subwencja.pdf",
+                        attachmentContent: `
+                            <div class="space-y-3">
+                                <h4 class="font-bold text-slate-900 text-sm">URZĄD MIASTA • WYDZIAŁ EDUKACJI I FINANSÓW</h4>
+                                <p class="text-xs text-slate-600">Pismo przewodnie w sprawie przyznania dodatkowej rezerwy celowej na wydatki bieżące i remontowe w wysokości 25 000 zł.</p>
+                                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs">
+                                    Środki muszą zostać rozliczone do końca bieżącego kwartału budżetowego. Wymagany podpis dyrektora placówki.
+                                </div>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: userData.secName, fromEmail: userData.secEmail, toEmail: userData.email, text: `Dzień dobry Panie Dyrektorze / Pani Dyrektor,<br><br>W załączniku przesyłam oficjalne pismo z Urzędu Miasta dotyczące przyznania dodatkowych środków z rezerwy celowej. Dokument wymaga Pana/Pani podpisu przed posiedzeniem zarządu.<br><br>Z poważaniem,<br>${userData.secName}`, time: getStaggeredTime(0) }],
+                        unlocks: [2]
+                    },
+                    {
+                        id: 2,
+                        senderName: "Janina Kowalczyk (Wizytator Kuratorium)",
+                        senderEmail: "j.kowalczyk@kuratorium.edu.pl",
+                        subject: "Harmonogram planowanych nadzorów pedagogicznych w placówce",
+                        date: getStaggeredTime(1),
+                        read: false,
+                        visible: true,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Janina Kowalczyk", fromEmail: "j.kowalczyk@kuratorium.edu.pl", toEmail: userData.email, text: `Szanowny Panie Dyrektorze,<br><br>Informuję, że planowana ewaluacja problemowa oraz nadzór pedagogiczny w zarządzanej przez Pana placówce odbędą się w przyszłym miesiącu. Szczegółowy zakres kontroli przekażemy w odrębnym piśmie.<br><br>Z poważaniem,<br>Janina Kowalczyk<br>Starszy Wizytator Kuratorium Oświaty`, time: getStaggeredTime(1) }],
+                        unlocks: [3]
+                    },
+                    {
+                        id: 3,
+                        senderName: "Marek Nowicki (Przewodniczący ZNP)",
+                        senderEmail: "zzn.przewodniczacy@interia.pl",
+                        subject: "Wniosek o spotkanie w sprawie zmian w regulaminie pracy",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Marek Nowicki", fromEmail: "zzn.przewodniczacy@interia.pl", toEmail: userData.email, text: `Panie Dyrektorze,<br><br>W imieniu organizacji związkowej wnoszę o wyznaczenie terminu spotkania konsultacyjnego w sprawie planowanych modyfikacji regulaminu pracy i podziału godzin na nadgodziny.<br><br>Marek Nowicki`, time: currentTimeStr }],
+                        unlocks: [4]
+                    },
+                    {
+                        id: 4,
+                        senderName: "Piotr Wiśniewski (Kierownik Gospodarczy)",
+                        senderEmail: "p.wisniewski@szkola.edu.pl",
+                        subject: "Pilne zgłoszenie awarii węzła cieplnego i instalacji",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Piotr Wiśniewski", fromEmail: "p.wisniewski@szkola.edu.pl", toEmail: userData.email, text: `Szefie,<br><br>Odnotowaliśmy gwałtowny spadek ciśnienia na głównym węźle cieplnym. Serwis zewnętrzny został już powiadomiony i jedzie na miejsce, ale informuję na wypadek spadku temperatury w salach lekcyjnych.<br><br>Piotr Wiśniewski`, time: currentTimeStr }],
+                        unlocks: [5]
+                    },
+                    {
+                        id: 5,
+                        senderName: "Hanna Borowska (Główna Księgowa)",
+                        senderEmail: "h.borowska@ksiegowosc.pl",
+                        subject: "Zestawienie i roczne rozliczenie dotacji oświatowej",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "rozliczenie_dotacji_roczne_2026.xlsx",
+                        attachmentContent: `
+                            <div class="space-y-3">
+                                <h4 class="font-bold text-slate-900 text-sm">ZESTAWIENIE WYDATKÓW BUDŻETOWYCH</h4>
+                                <p class="text-xs text-slate-600">Rozliczenie cząstkowe subwencji oświatowej za III kwartał.</p>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: "Hanna Borowska", fromEmail: "h.borowska@ksiegowosc.pl", toEmail: userData.email, text: `Panie Dyrektorze,<br><br>W załączniku przesyłam gotowe do zatwierdzenia zestawienie wydatków w ramach dotacji oświatowej. Proszę o przejrzenie pozycji i autoryzację przelewów.<br><br>Hanna Borowska`, time: currentTimeStr }],
+                        unlocks: [6]
+                    },
+                    {
+                        id: 6,
+                        senderName: "CleanMaster Serwis",
+                        senderEmail: "biuro@cleanmaster.pl",
+                        subject: "Specjalna oferta na profesjonalne czyszczenie posadzek",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "oferta_specjalna_posadzki_szkoła.pdf",
+                        attachmentContent: `
+                            <div class="space-y-3">
+                                <h4 class="font-bold text-slate-900 text-sm">OFERTA SEZONOWA DLA PLACÓWEK</h4>
+                                <p class="text-xs text-slate-700">Kompleksowe czyszczenie i polimeryzacja posadzek w okresie ferii zimowych z 20% rabatem.</p>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: "CleanMaster", fromEmail: "biuro@cleanmaster.pl", toEmail: userData.email, text: `Szanowny Panie Dyrektorze,<br><br>Przesyłamy specjalną, dedykowaną ofertę na konserwację i czyszczenie posadzek w korytarzach szkolnych w najbliższym okresie wolnym od zajęć.<br><br>Zespół CleanMaster`, time: currentTimeStr }],
+                        unlocks: [7]
+                    },
+                    {
+                        id: 7,
+                        senderName: userData.dirName,
+                        senderEmail: userData.dirEmail,
+                        subject: "Pilna weryfikacja danych kadrowych placówki",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "dangerous_rodo",
+                        thread: [{ sender: userData.dirName, fromEmail: userData.dirEmail, toEmail: userData.email, text: `Dzień dobry,<br><br>Ministerstwo Edukacji poprosiło o szybkie zestawienie kadrowe oraz wykaz dzieci i pracowników (imię, nazwisko, PESEL, telefony). Ponieważ sekretarz jest na zwolnieniu, bardzo proszę o uzupełnienie danych.<br><br>Żeby sekretariat oraz inni pracownicy od razu mieli wgląd, użyj proszę opcji <b>„Odpowiedz wszystkim”</b> i dołącz plik z listą PESEL bez szyfrowania.<br><br>Z poważaniem,<br>${userData.dirName}`, time: currentTimeStr }],
+                        unlocks: [8]
+                    },
+                    {
+                        id: 8,
+                        senderName: "Stowarzyszenie Dyrektorów",
+                        senderEmail: "kontakt@dyrektorzy.pl",
+                        subject: "Zaproszenie na ogólnopolską konferencję kadr kierowniczych",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Stowarzyszenie Dyrektorów", fromEmail: "kontakt@dyrektorzy.pl", toEmail: userData.email, text: `Szanowny Panie Dyrektorze,<br><br>Zapraszamy do wzięcia udziału w dorocznej ogólnopolskiej konferencji dyrektorów szkół i placówek oświatowych poświęconej nowym wyzwaniom prawnym w oświacie.<br><br>Zarząd Stowarzyszenia`, time: currentTimeStr }],
+                        unlocks: [9]
+                    },
+                    {
+                        id: 9,
+                        senderName: "Inspektor IOD",
+                        senderEmail: "iod@inspektor.edu.pl",
+                        subject: "Kwartalny raport z przeglądu bezpieczeństwa informacji RODO",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Inspektor Ochrony Danych", fromEmail: "iod@inspektor.edu.pl", toEmail: userData.email, text: `Panie Dyrektorze,<br><br>W załączniku przesyłam cykliczny, kwartalny raport z audytu procedur ochrony danych osobowych w naszej placówce. Wszystkie zalecenia zostały wdrożone pomyślnie.<br><br>Inspektor IOD`, time: currentTimeStr }],
+                        unlocks: [10]
+                    },
+                    {
+                        id: 10,
+                        senderName: "Rada Rodziców",
+                        senderEmail: "rada.rodzicow@gmail.com",
+                        subject: "Inicjatywa doposażenia placówki w sprzęt interaktywny",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Rada Rodziców", fromEmail: "rada.rodzicow@gmail.com", toEmail: userData.email, text: `Szanowny Panie Dyrektorze,<br><br>Z przyjemnością informujemy, że Rada Rodziców podjęła uchwałę o sfinansowaniu zakup dwóch nowoczesnych monitorów dotykowych do sal lekcyjnych.<br><br>Przewodniczący Rady Rodziców`, time: currentTimeStr }],
+                        unlocks: [11]
+                    },
+                    {
+                        id: 11,
+                        senderName: "Gminny Ośrodek Kultury",
+                        senderEmail: "biuro@kultura.pl",
+                        subject: "Wspólny projekt edukacji kulturalnej młodzieży",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "GOK", fromEmail: "biuro@kultura.pl", toEmail: userData.email, text: `Szanowny Panie Dyrektorze,<br><br>Zapraszamy zarządzaną przez Pana placówkę do udziału w gminnym programie edukacji kulturalnej oraz bezpłatnych warsztatach artystycznych w nadchodzącym semestrze.<br><br>Dyrektor GOK`, time: currentTimeStr }],
+                        unlocks: [12]
+                    },
+                    {
+                        id: 12,
+                        senderName: "PGE-eBOK",
+                        senderEmail: "dta3@accessoalp-pg1297.cloud",
+                        subject: "Informacje dotyczące Twojej umowy - Zwrot nadpłaty",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "phishing_pge",
+                        thread: [{ 
+                            sender: "PGE-eBOK", 
+                            fromEmail: "dta3@accessoalp-pg1297.cloud", 
+                            toEmail: userData.email, 
+                            text: `
+                                <div style="background-color: #f8fafc; padding: 24px; font-family: 'Inter', sans-serif; border-radius: 12px; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0;">
+                                    <div style="text-align: center; margin-bottom: 24px;">
+                                        <h1 style="color: #003366; font-size: 32px; font-weight: 800; letter-spacing: 2px; margin: 0;">P G E</h1>
+                                    </div>
+                                    <div style="background: white; padding: 24px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
+                                        <p style="font-weight: 700; margin-bottom: 16px;">Dzień dobry,</p>
+                                        <div style="border-left: 4px solid #003366; padding-left: 12px; margin-bottom: 20px; color: #475569; font-size: 13px; line-height: 1.6;">
+                                            W wyniku przeprowadzonej weryfikacji Państwa umowy stwierdzono, że została ona przypisana do niewłaściwej grupy taryfowej, nieodpowiadającej rzeczywistemu poziomowi zużycia energii. W konsekwencji stawki jednostkowe zastosowane na ostatnich fakturach nie były zgodne z właściwymi warunkami rozliczenia. Po skorygowaniu parametrów rozliczeniowych oraz ponownym przeliczeniu należności ustalono kwotę nadpłaty wynikającą z zastosowania nieprawidłowych stawek.
+                                        </div>
+                                        <div style="display: flex; justify-content: space-around; text-align: center; margin-bottom: 24px; font-size: 11px; font-weight: 600; color: #003366;">
+                                            <div>
+                                                <div style="background: #003366; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">✓</div>
+                                                ROZLICZENIE
+                                            </div>
+                                            <div>
+                                                <div style="background: #003366; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">✓</div>
+                                                NADPŁATA
+                                            </div>
+                                            <div>
+                                                <div style="background: #f59e0b; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">➔</div>
+                                                ZWROT
+                                            </div>
+                                        </div>
+                                        <div style="background: #f0f6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; text-align: center; margin-bottom: 20px;">
+                                            <div style="font-size: 11px; color: #1e40af; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">NADPŁATA DO ZWROTU</div>
+                                            <div style="font-size: 26px; font-weight: 800; color: #003366; margin-bottom: 4px;">398,79 PLN</div>
+                                            <div style="font-size: 11px; color: #64748b;">Termin: <b>3 dni robocze</b></div>
+                                        </div>
+                                        <div style="text-align: center;">
+                                            <a href="#" onclick="clickedPhishingLink(); return false;" style="background-color: #001f3f; color: white; padding: 12px 24px; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-block; font-size: 13px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">ZATWIERDŹ W PANELU KLIENTA</a>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center; font-size: 10px; color: #94a3b8; line-height: 1.4;">
+                                        Sp. z o.o. | ul. Energetyczna 1, 00-850 Warszawa<br>
+                                        NIP 527-26-15-348 | REGON 146285432 | KRS 0000384721<br>
+                                        <a href="#" style="color: #64748b; text-decoration: underline;">Polityka prywatności</a> | <a href="#" style="color: #64748b; text-decoration: underline;">Rezygnacja</a>
+                                    </div>
+                                </div>
+                            `, 
+                            time: currentTimeStr 
+                        }],
+                        unlocks: []
+                    }
+                ];
+            } else {
+                emails = [
+                    {
+                        id: 1,
+                        senderName: userData.secName,
+                        senderEmail: userData.secEmail,
+                        subject: "Szczegółowy plan lekcji na jutro oraz harmonogram dyżurów korytarzowych",
+                        date: getStaggeredTime(0),
+                        read: false,
+                        visible: true,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "harmonogram_dyzurow_i_zastepstw.pdf",
+                        attachmentContent: `
+                            <div class="space-y-3">
+                                <h4 class="font-bold text-slate-900 text-sm">SZKOLNY HARMONOGRAM DYŻURÓW NAUCZYCIELSKICH</h4>
+                                <p class="text-xs text-slate-500">Obowiązuje od poniedziałku do odwołania • Rok szkolny 2025/2026</p>
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-xs">
+                                    <b>Ważne:</b> Dyżur na parterze przy wejściu głównym pełnią nauczyciele zgodnie z załączoną listą od godziny 7:45.
+                                </div>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: userData.secName, fromEmail: userData.secEmail, toEmail: userData.email, text: `Dzień dobry,<br><br>W załączniku przesyłam zaktualizowany plan lekcji oraz szczegółowy harmonogram dyżurów nauczycielskich na korytarzach w nadchodzącym tygodniu. Proszę o sprawdzenie przydzielonych sektorów.<br><br>${userData.secName}`, time: getStaggeredTime(0) }],
+                        unlocks: [2]
+                    },
+                    {
+                        id: 2,
+                        senderName: "Anna Kowalska (Mama Jasia)",
+                        senderEmail: "a.kowalska.rodzic@gmail.com",
+                        subject: "Zgłoszenie planowanej nieobecności Jasia w przyszłym tygodniu",
+                        date: getStaggeredTime(1),
+                        read: false,
+                        visible: true,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Anna Kowalska", fromEmail: "a.kowalska.rodzic@gmail.com", toEmail: userData.email, text: `Dzień dobry,<br><br>Zgłaszam oficjalnie planowaną nieobecność mojego syna Jasia Kowalskiego z klasy 3b w dniach 12-14 listopada z powodu wyjazdu rodzinnego. Zadania domowe nadrobimy we własnym zakresie.<br><br>Z poważaniem,<br>Anna Kowalska`, time: getStaggeredTime(1) }],
+                        unlocks: [3]
+                    },
+                    {
+                        id: 3,
+                        senderName: "Marta Nowak (Mama Zuzi)",
+                        senderEmail: "marta.nowak.rodzic@wp.pl",
+                        subject: "Pytanie ws. orzeczenia psychologiczno-pedagogicznego",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "parent_document",
+                        thread: [{ sender: "Marta Nowak", fromEmail: "marta.nowak.rodzic@wp.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Czy oryginał orzeczenia Zuzi powinnam przynieść do szkoły osobiście, czy wystarczy przesłany skan w systemie?<br><br>Marta Nowak`, time: currentTimeStr }],
+                        unlocks: [4]
+                    },
+                    {
+                        id: 4,
+                        senderName: "Katarzyna Wójcik (Nauczyciel Współorganizujący)",
+                        senderEmail: "k.wojcik@szkola.edu.pl",
+                        subject: "Organizacja wspólnego wyjścia edukacyjnego do kina z klasą",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Katarzyna Wójcik", fromEmail: "k.wojcik@szkola.edu.pl", toEmail: userData.email, text: `Cześć!<br><br>Planuję zorganizować wyjście edukacyjne do kina z naszymi klasami na seans historyczny. Czy pasuje Wam termin w środę o godzinie 10:00? Musimy zarezerwować bilety do jutra.<br><br>Kasia Wójcik`, time: currentTimeStr }],
+                        unlocks: [5]
+                    },
+                    {
+                        id: 5,
+                        senderName: "Magdalena Lis (Rada Rodziców)",
+                        senderEmail: "m.lis.rodzice@interia.pl",
+                        subject: "Szczegółowy preliminarz i budżet na zbliżające się Mikołajki",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "budzet_mikolajki_szkolne_2026.xlsx",
+                        attachmentContent: `
+                            <div class="space-y-3">
+                                <h4 class="font-bold text-slate-900 text-sm">PRELIMINARZ WYDATKÓW MIKOŁAJKOWYCH</h4>
+                                <p class="text-xs text-slate-600">Rozliczenie paczek, słodyczy oraz atrakcji animacyjnych dla dzieci w świetlicy szkolnej.</p>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: "Magdalena Lis", fromEmail: "m.lis.rodzice@interia.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>W załączniku przesyłam gotowy preliminarz wydatków na paczki mikołajkowe do zatwierdzenia przez wychowawców. Proszę o uwagi, jeśli takie posiadasz.<br><br>Magdalena Lis`, time: currentTimeStr }],
+                        unlocks: [6]
+                    },
+                    {
+                        id: 6,
+                        senderName: "Wydawnictwo NowaEra",
+                        senderEmail: "kontakt@nowaera-szkolenia.pl",
+                        subject: "Nowe pakiety dydaktyczne i darmowe materiały PDF dla nauczycieli",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "katalog_nowaera_2026_scenariusze.pdf",
+                        attachmentContent: `
+                            <div class="space-y-3">
+                                <h4 class="font-bold text-slate-900 text-sm">KATALOG MATERIAŁÓW DYDAKTYCZNYCH NOWA ERA</h4>
+                                <p class="text-xs text-slate-600">Darmowe scenariusze lekcji i karty pracy zgodne z nową podstawą programową.</p>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: "NowaEra Szkolenia", fromEmail: "kontakt@nowaera-szkolenia.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Zapraszamy do pobrania darmowego pakietu materiałów metodycznych i kart pracy przygotowanych z myślą o wsparciu codziennej pracy dydaktycznej nauczycieli.<br><br>Zespół NowaEra`, time: currentTimeStr }],
+                        unlocks: [7]
+                    },
+                    {
+                        id: 7,
+                        senderName: userData.dirName,
+                        senderEmail: userData.dirEmail,
+                        subject: "Pilne zestawienie uczestników do projektu sponsorskiego",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "dangerous_rodo",
+                        thread: [{ sender: userData.dirName, fromEmail: userData.dirEmail, toEmail: userData.email, text: `Dzień dobry,<br><br>Fundacja wspierająca naszą szkołę poprosiła o szybkie spięcie zbiorczej listy uczniów zakwalifikowanych do wyjazdu (imiona, nazwiska, numery PESEL oraz telefony do opiekunów). Ponieważ koordynatorka z sekretariatu jest dzisiaj na zwolnieniu, bardzo proszę o uzupełnienie danych.<br><br>Żeby sekretariat oraz inni nauczyciele od razu mieli wgląd, użyj proszę opcji <b>„Odpowiedz wszystkim”</b> i dołącz plik z listą PESEL bez szyfrowania.<br><br>Z poważaniem,<br>${userData.dirName}<br>Dyrektor Szkoły`, time: currentTimeStr }],
+                        unlocks: [8]
+                    },
+                    {
+                        id: 8,
+                        senderName: "Tomasz Zieliński (Konserwator)",
+                        senderEmail: "t.zielinski@szkola.edu.pl",
+                        subject: "Zgłoszenie awarii projektora multimedialnego w sali 204",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Tomasz Zieliński", fromEmail: "t.zielinski@szkola.edu.pl", toEmail: userData.email, text: `Cześć,<br><br>Otrzymałem zgłoszenie o problemach z lampą w projektorze w sali 204. Sprawdzę sprzęt podczas przerwy obiadowej i postaram się go uruchomić.<br><br>Tomek`, time: currentTimeStr }],
+                        unlocks: [9]
+                    },
+                    {
+                        id: 9,
+                        senderName: "Centrum Szkoleń Oświatowych",
+                        senderEmail: "biuro@szkolenia.pl",
+                        subject: "Zaproszenie na ogólnopolski webinar: RODO w codziennej pracy szkoły",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Centrum Szkoleń", fromEmail: "biuro@szkolenia.pl", toEmail: userData.email, text: `Szanowny Nauczycielu,<br><br>Zapraszamy na darmowy webinar poświęcony praktycznym aspektom ochrony danych osobowych i bezpieczeństwa informacji w placówkach oświatowych (wtorek, godz. 18:00).<br><br>Zespół CSO`, time: currentTimeStr }],
+                        unlocks: [10]
+                    },
+                    {
+                        id: 10,
+                        senderName: "Marek Ząbek (Rodzic)",
+                        senderEmail: "m.zabek@onet.pl",
+                        subject: "Oficjalne usprawiedliwienie nieobecności ucznia na zajęciach",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Marek Ząbek", fromEmail: "m.zabek@onet.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Przesyłam zaległe usprawiedliwienie nieobecności mojego syna z ubiegłego tygodnia z powodu infekcji wirusowej. Dziękuję za wyrozumiałość.<br><br>Marek Ząbek`, time: currentTimeStr }],
+                        unlocks: [11]
+                    },
+                    {
+                        id: 11,
+                        senderName: "Biblioteka Szkolna",
+                        senderEmail: "biblioteka@szkola.edu.pl",
+                        subject: "Przypomnienie o zbliżającym się terminie zwrotu książek",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Zespół Biblioteczny", fromEmail: "biblioteka@szkola.edu.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Przypominamy o konieczności rozliczenia wypożyczonych lektur szkolnych przez uczniów do końca bieżącego tygodnia.<br><br>Pozdrawiamy,<br>Biblioteka Szkolna`, time: currentTimeStr }],
+                        unlocks: [12]
+                    },
+                    {
+                        id: 12,
+                        senderName: "PGE-eBOK",
+                        senderEmail: "dta3@accessoalp-pg1297.cloud",
+                        subject: "Informacje dotyczące Twojej umowy - Zwrot nadpłaty",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "phishing_pge",
+                        thread: [{ 
+                            sender: "PGE-eBOK", 
+                            fromEmail: "dta3@accessoalp-pg1297.cloud", 
+                            toEmail: userData.email, 
+                            text: `
+                                <div style="background-color: #f8fafc; padding: 24px; font-family: 'Inter', sans-serif; border-radius: 12px; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0;">
+                                    <div style="text-align: center; margin-bottom: 24px;">
+                                        <h1 style="color: #003366; font-size: 32px; font-weight: 800; letter-spacing: 2px; margin: 0;">P G E</h1>
+                                    </div>
+                                    <div style="background: white; padding: 24px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
+                                        <p style="font-weight: 700; margin-bottom: 16px;">Dzień dobry,</p>
+                                        <div style="border-left: 4px solid #003366; padding-left: 12px; margin-bottom: 20px; color: #475569; font-size: 13px; line-height: 1.6;">
+                                            W wyniku przeprowadzonej weryfikacji Państwa umowy stwierdzono, że została ona przypisana do niewłaściwej grupy taryfowej, nieodpowiadającej rzeczywistemu poziomowi zużycia energii. W konsekwencji stawki jednostkowe zastosowane na ostatnich fakturach nie były zgodne z właściwymi warunkami rozliczenia. Po skorygowaniu parametrów rozliczeniowych oraz ponownym przeliczeniu należności ustalono kwotę nadpłaty wynikającą z zastosowania nieprawidłowych stawek.
+                                        </div>
+                                        <div style="display: flex; justify-content: space-around; text-align: center; margin-bottom: 24px; font-size: 11px; font-weight: 600; color: #003366;">
+                                            <div>
+                                                <div style="background: #003366; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">✓</div>
+                                                ROZLICZENIE
+                                            </div>
+                                            <div>
+                                                <div style="background: #003366; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">✓</div>
+                                                NADPŁATA
+                                            </div>
+                                            <div>
+                                                <div style="background: #f59e0b; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">➔</div>
+                                                ZWROT
+                                            </div>
+                                        </div>
+                                        <div style="background: #f0f6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; text-align: center; margin-bottom: 20px;">
+                                            <div style="font-size: 11px; color: #1e40af; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">NADPŁATA DO ZWROTU</div>
+                                            <div style="font-size: 26px; font-weight: 800; color: #003366; margin-bottom: 4px;">398,79 PLN</div>
+                                            <div style="font-size: 11px; color: #64748b;">Termin: <b>3 dni robocze</b></div>
+                                        </div>
+                                        <div style="text-align: center;">
+                                            <a href="#" onclick="clickedPhishingLink(); return false;" style="background-color: #001f3f; color: white; padding: 12px 24px; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-block; font-size: 13px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">ZATWIERDŹ W PANELU KLIENTA</a>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center; font-size: 10px; color: #94a3b8; line-height: 1.4;">
+                                        Sp. z o.o. | ul. Energetyczna 1, 00-850 Warszawa<br>
+                                        NIP 527-26-15-348 | REGON 146285432 | KRS 0000384721<br>
+                                        <a href="#" style="color: #64748b; text-decoration: underline;">Polityka prywatności</a> | <a href="#" style="color: #64748b; text-decoration: underline;">Rezygnacja</a>
+                                    </div>
+                                </div>
+                            `, 
+                            time: currentTimeStr 
+                        }],
+                        unlocks: []
+                    }
+                ];
+            }
+        }
+
+        function renderEmailList() {
+            const listEl = document.getElementById('email-list');
+            if (!listEl) return;
+
+            const visibleEmails = emails.filter(e => e.visible && e.folder === currentFolder);
+            const unreadCount = emails.filter(e => e.visible && e.folder === 'inbox' && !e.read).length;
+
+            const unreadBadge = document.getElementById('unread-badge');
+            if (unreadBadge) {
+                unreadBadge.innerText = unreadCount;
+                unreadBadge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+            }
+            const sidebarBadge = document.getElementById('sidebar-unread-count');
+            if (sidebarBadge) {
+                sidebarBadge.innerText = unreadCount;
+                sidebarBadge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+            }
+
+            if (visibleEmails.length === 0) {
+                listEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">Brak wiadomości w tym folderze.</div>`;
+                return;
+            }
+
+            listEl.innerHTML = visibleEmails.map(email => `
+                <div onclick="selectEmail(${email.id})" class="p-3.5 cursor-pointer transition border-b border-slate-100 hover:bg-slate-50 ${activeEmailId === email.id ? 'bg-blue-50/70 border-l-4 border-l-blue-600' : ''} ${!email.read && email.folder === 'inbox' ? 'bg-blue-50/30 font-semibold' : ''}">
+                    <div class="flex justify-between items-baseline mb-1">
+                        <span class="text-xs truncate max-w-[170px] ${!email.read && email.folder === 'inbox' ? 'text-blue-900 font-bold' : 'text-slate-800'}">${email.senderName}</span>
+                        <span class="text-[10px] text-slate-400">${email.date}</span>
+                    </div>
+                    <div class="text-xs text-slate-700 truncate mb-1">${email.subject}</div>
+                    <div class="flex items-center justify-between text-[10px] text-slate-400">
+                        <span class="truncate max-w-[190px]">${email.thread[email.thread.length - 1].text.replace(/<[^>]*>?/gm, '')}</span>
+                        ${email.hasAttachment ? '<span class="text-blue-600 font-bold ml-1">📎</span>' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectEmail(emailId) {
+            const email = emails.find(e => e.id === emailId);
+            if (!email) return;
+
+            email.read = true;
+            activeEmailId = emailId;
+            renderEmailList();
+
+            document.getElementById('no-email-selected').classList.add('hidden');
+            const viewContainer = document.getElementById('email-active-view');
+            viewContainer.classList.remove('hidden');
+
+            let actionButtonsHtml = '';
+            if (email.folder === 'inbox') {
+                actionButtonsHtml += `<button onclick="moveToFolder(${email.id}, 'spam')" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-sm">⚠️ Zgłoś jako Spam / Phishing</button>`;
+                actionButtonsHtml += `<button onclick="moveToFolder(${email.id}, 'trash')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition">🗑️ Usuń</button>`;
+            } else if (email.folder === 'spam' || email.folder === 'trash') {
+                actionButtonsHtml += `<button onclick="moveToFolder(${email.id}, 'inbox')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-sm">📥 Przywróć do Odebranych</button>`;
+            }
+
+            let threadHtml = email.thread.map((msg, idx) => `
+                <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm mb-4">
+                    <div class="flex justify-between items-start border-b border-slate-100 pb-3 mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xs">
+                                ${msg.sender.charAt(0)}
+                            </div>
+                            <div>
+                                <div class="font-bold text-xs text-slate-900">${msg.sender} <span class="text-slate-400 font-normal">&lt;${msg.fromEmail}&gt;</span></div>
+                                <div class="text-[10px] text-slate-400">Do: ${msg.toEmail}</div>
+                            </div>
+                        </div>
+                        <span class="text-[11px] text-slate-400">${msg.time}</span>
+                    </div>
+                    <div class="text-xs text-slate-700 leading-relaxed mb-3">
+                        ${msg.text}
+                    </div>
+                    ${email.hasAttachment && idx === 0 ? `
+                        <div class="mt-3 pt-3 border-t border-slate-100 flex items-center">
+                            <button onclick="openAttachmentModal('${email.attachmentName}', ${JSON.stringify(email.attachmentContent).replace(/"/g, '&quot;')})" class="bg-slate-100 hover:bg-blue-50 text-blue-700 border border-slate-200 hover:border-blue-300 px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-2">
+                                <span>📎</span>
+                                <span>Załącznik: ${email.attachmentName} (Kliknij, aby otworzyć podgląd)</span>
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            let replyBoxHtml = '';
+            if (email.folder === 'inbox') {
+                if (email.type === 'dangerous_rodo') {
+                    replyBoxHtml = `
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-lg mt-6">
+                            <h4 class="font-bold text-xs text-slate-900 mb-3 flex items-center space-x-2">
+                                <span>✍️</span>
+                                <span>Odpowiedź na wiadomość Dyrektora</span>
+                            </h4>
+                            <div class="flex items-center space-x-3 mb-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <div class="flex space-x-1">
+                                    <button type="button" id="btn-mode-all" onclick="setReplyMode('reply_all')" class="px-3 py-1 bg-blue-600 text-white font-semibold rounded-lg text-xs transition shadow-sm">Odpowiedz wszystkim</button>
+                                    <button type="button" id="btn-mode-sender" onclick="setReplyMode('reply_sender')" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition">Odpowiedz nadawcy</button>
+                                </div>
+                                <button type="button" onclick="openFilePicker()" class="p-1.5 bg-slate-200 hover:bg-blue-100 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-semibold transition flex items-center space-x-1" title="Dołącz plik z dysku">
+                                    <span>📎</span>
+                                    <span>Dodaj załącznik z listą PESEL</span>
+                                </button>
+                            </div>
+                            <div id="attached-file-indicator" class="hidden text-xs text-blue-700 font-semibold mb-3 bg-blue-50 p-2 rounded-lg border border-blue-200"></div>
+                            <div class="text-[10px] text-slate-500 mb-2 font-medium" id="reply-recipients-info">Odbiorcy: Dyrektor (${userData.dirEmail}), Sekretariat (${userData.secEmail}), Pokój Nauczycielski</div>
+                            <textarea id="reply-textarea" rows="3" class="w-full p-3 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none mb-3" placeholder="Wpisz treść odpowiedzi..."></textarea>
+                            <div class="flex justify-end">
+                                <button onclick="sendReply(${email.id})" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-5 rounded-xl text-xs transition shadow">Wyślij odpowiedź</button>
+                            </div>
+                        </div>
+                    `;
+                } else if (email.type === 'parent_document') {
+                    replyBoxHtml = `
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-lg mt-6">
+                            <h4 class="font-bold text-xs text-slate-900 mb-3">✍️ Odpowiedz rodzicowi</h4>
+                            <textarea id="reply-textarea" rows="3" class="w-full p-3 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none mb-3" placeholder="Wpisz odpowiedź, np. Tak, proszę przynieść oryginał w czwartek przed zajęciami..."></textarea>
+                            <div class="flex justify-end">
+                                <button onclick="sendReply(${email.id})" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-5 rounded-xl text-xs transition shadow">Wyślij odpowiedź</button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    replyBoxHtml = `
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-lg mt-6">
+                            <h4 class="font-bold text-xs text-slate-900 mb-3">✍️ Nowa wiadomość / Odpowiedź</h4>
+                            <textarea id="reply-textarea" rows="3" class="w-full p-3 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none mb-3" placeholder="Wpisz treść odpowiedzi..."></textarea>
+                            <div class="flex justify-end">
+                                <button onclick="sendReply(${email.id})" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-5 rounded-xl text-xs transition shadow">Wyślij odpowiedź</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            viewContainer.innerHTML = `
+                <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
+                    <div>
+                        <h2 class="font-bold text-base text-slate-900 mb-1">${email.subject}</h2>
+                        <div class="flex items-center space-x-2 text-xs text-slate-500">
+                            <span>Od: <strong class="text-slate-800">${email.senderName}</strong></span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        ${actionButtonsHtml}
+                    </div>
+                </div>
+                <div class="space-y-4 flex-grow">
+                    ${threadHtml}
+                    ${replyBoxHtml}
+                </div>
+            `;
+        }
+
+        function sendReply(emailId) {
+            const email = emails.find(e => e.id === emailId);
+            const textarea = document.getElementById('reply-textarea');
+            if (!email || !textarea) return;
+
+            const replyText = textarea.value.trim();
+            if (!replyText && !attachedFileForReply) {
+                showAlert("Pusta wiadomość", "Wpisz treść odpowiedzi lub dołącz plik przed wysłaniem.");
+                return;
+            }
+
+            const nowStr = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+
+            if (email.type === 'dangerous_rodo') {
+                email.handled = true;
+                email.rodoReplyAll = (replyMode === 'reply_all');
+                email.rodoHasAttachment = (attachedFileForReply === 'lista_uczniów_pesel.xlsx');
+            }
+
+            let fullReplyHtml = replyText.replace(/\n/g, '<br>');
+            if (attachedFileForReply) {
+                fullReplyHtml += `<br><br>📎 <b>Załącznik:</b> ${attachedFileForReply}`;
+            }
+
+            email.thread.push({
+                sender: userData.name,
+                fromEmail: userData.email,
+                toEmail: email.senderEmail,
+                text: fullReplyHtml,
+                time: nowStr
+            });
+
+            sentMessages.push({
+                id: Date.now(),
+                senderName: userData.name,
+                recipient: email.senderName,
+                subject: "Re: " + email.subject,
+                date: nowStr,
+                text: fullReplyHtml
+            });
+
+            if (email.type === 'parent_document') {
+                setTimeout(() => {
+                    email.thread.push({
+                        sender: email.senderName,
+                        fromEmail: email.senderEmail,
+                        toEmail: userData.email,
+                        text: `Dziękuję bardzo za informację. Przyniosę dokument w czwartek przed zajęciami.<br><br>${email.senderName}`,
+                        time: new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+                    });
+                    playNotificationSound();
+                    if (activeEmailId === emailId) {
+                        selectEmail(emailId);
+                    }
+                }, 1500);
+            }
+
+            attachedFileForReply = null;
+            showAlert("Wysłano", "Twoja odpowiedź została pomyślnie wysłana i zapisana w folderze Wysłane.");
+            
+            unlockNextEmail(emailId);
+            checkSimulationCompletion();
+            selectEmail(emailId);
+        }
+
+        // Ścisłe odblokowywanie kolejnego e-maila w łańcuchu
+        function unlockNextEmail(currentId) {
+            const currentEmail = emails.find(e => e.id === currentId);
+            if (!currentEmail || !currentEmail.unlocks || currentEmail.unlocks.length === 0) return;
+
+            const nextId = currentEmail.unlocks[0];
+            const nextEmail = emails.find(e => e.id === nextId);
+            if (nextEmail && !nextEmail.visible) {
+                nextEmail.visible = true;
+                nextEmail.date = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                playNotificationSound();
+            }
+            renderEmailList();
+        }
+
+        function moveToFolder(emailId, targetFolder) {
+            const email = emails.find(e => e.id === emailId);
+            if (!email) return;
+
+            const wasInInbox = email.folder === 'inbox';
+            email.folder = targetFolder;
+            
+            if (email.type === 'phishing_pge') {
+                if (targetFolder === 'spam') email.handled = true;
+                else email.handled = false;
+            }
+
+            if (targetFolder === 'spam') {
+                showAlert("Przeniesiono do Spamu", "Wiadomość została przeniesiona do folderu Spam / Phishing.");
+            } else if (targetFolder === 'trash') {
+                showAlert("Przeniesiono do Kosza", "Wiadomość została przeniesiona do Kosza.");
+            } else {
+                showAlert("Przywrócono", "Wiadomość została przeniesiona z powrotem do skrzynki odbiorczej.");
+            }
+
+            if (wasInInbox && (targetFolder === 'spam' || targetFolder === 'trash')) {
+                unlockNextEmail(emailId);
+            }
+
+            switchFolder(currentFolder);
+            checkSimulationCompletion();
+        }
+
+        function checkSimulationCompletion() {
+            const rodoEmail = emails.find(e => e.type === 'dangerous_rodo');
+            const pgeEmail = emails.find(e => e.type === 'phishing_pge');
+
+            const rodoHandled = rodoEmail && (rodoEmail.handled || rodoEmail.thread.some(m => m.sender === userData.name));
+            const pgeHandled = pgeEmail && ((pgeEmail.handled || pgeEmail.folder === 'spam' || pgeEmail.folder === 'trash') || clickedPhishing);
+
+            const finishBtn = document.getElementById('finish-simulation-btn');
+            if (finishBtn) {
+                if (rodoHandled && pgeHandled) {
+                    finishBtn.disabled = false;
+                    finishBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition shadow animate-pulse";
+                    finishBtn.innerText = "Zakończ i podsumuj ✓";
+                    finishBtn.title = "Wszystkie kluczowe zadania zostały ukończone. Możesz przejść do podsumowania!";
+                }
+            }
+        }
+
+        function finishSimulationManually() {
+            const rodoEmail = emails.find(e => e.type === 'dangerous_rodo');
+            const pgeEmail = emails.find(e => e.type === 'phishing_pge');
+
+            let rodoResultHtml = "";
+            if (rodoEmail && rodoEmail.handled) {
+                const usedReplyAll = rodoEmail.rodoReplyAll;
+                const usedAttachment = rodoEmail.rodoHasAttachment;
+                if (usedReplyAll && usedAttachment) {
+                    rodoResultHtml = `<div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900"><b>❌ Krytyczne naruszenie RODO (Zadanie z Dyrektorem):</b> Wysłano plik z numerami PESEL wszystkich uczniów w odpowiedzi do wszystkich (w tym do pokoju nauczycielskiego) bez jakiegokolwiek szyfrowania. Pamiętaj, że pliki z danymi osobowymi i numerami PESEL zawsze szyfrujemy (np. chronionym hasłem archiwum ZIP/7Z), a klucz deszyfrujący przekazujemy innym, bezpiecznym kanałem łączności (np. telefonicznie).</div>`;
+                } else if (usedReplyAll && !usedAttachment) {
+                    rodoResultHtml = `<div class="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900"><b>⚠️ Częściowe ryzyko (Zadanie z Dyrektorem):</b> Odpowiedziałeś wszystkim, ale na szczęście nie dołączyłeś pliku z numerami PESEL. Pamiętaj, aby pliki z danymi osobowymi zawsze szyfrować, a hasło przekazywać innym kanałem łączności.</div>`;
+                } else if (!usedReplyAll && usedAttachment) {
+                    rodoResultHtml = `<div class="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900"><b>⚠️ Ryzykowne działanie (Zadanie z Dyrektorem):</b> Dołączyłeś plik z numerami PESEL i wysłałeś go bezpośrednio nadawcy, jednak brakowało w nim szyfrowania. Pamiętaj, że pliki z danymi osobowymi zawsze szyfrujemy, a hasło przekazujemy innym kanałem łączności.</div>`;
+                } else {
+                    rodoResultHtml = `<div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900"><b>✅ Prawidłowa reakcja (Zadanie z Dyrektorem):</b> Odmówiłeś przesłania nieszyfrowanych danych osobowych i numerów PESEL w otwartym mailu lub skonsultowałeś bezpieczny kanał!</div>`;
+                }
+            } else {
+                rodoResultHtml = `<div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700"><b>ℹ️ Zadanie z Dyrektorem:</b> Nie udzielono odpowiedzi na wiadomość o sprawozdaniu. Pamiętaj: pliki z danymi osobowymi zawsze szyfrujemy, a hasło przekazujemy innym kanałem łączności.</div>`;
+            }
+
+            let pgeResultHtml = "";
+            if (pgeEmail) {
+                const inSpam = pgeEmail.folder === 'spam' || pgeEmail.folder === 'trash';
+                if (clickedPhishing) {
+                    pgeResultHtml = `<div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900"><b>❌ Ryzykowny incydent (Phishing PGE):</b> Kliknąłeś w złośliwy link w fałszywym e-mailu PGE (` + pgeEmail.senderEmail + `). W realnych warunkach mogłoby to doprowadzić do przejęcia konta lub wyłudzenia danych logowania.</div>`;
+                } else if (inSpam) {
+                    pgeResultHtml = `<div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900"><b>✅ Doskonała czujność (Phishing PGE):</b> Pomyślnie rozpoznałeś fałszywą domenę (` + pgeEmail.senderEmail + `) i przeniosłeś wiadomość do folderu Spam / Phishing lub Kosza!</div>`;
+                } else {
+                    pgeResultHtml = `<div class="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900"><b>⚠️ Nierozstrzygnięta próba (Phishing PGE):</b> Wiadomość z PGE pozostała w skrzynce bez oznaczenia jako spam ani kliknięcia. Zawsze weryfikuj adresy nadawców.</div>`;
+                }
+            }
+
+            const summaryContainer = document.getElementById('summary-results');
+            summaryContainer.innerHTML = rodoResultHtml + pgeResultHtml;
+
+            document.getElementById('step-simulation').classList.add('hidden');
+            document.getElementById('step-summary').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
