@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduMail - Symulator Bezpieczeństwa Szkolnego</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col justify-between">
+
+    <!-- MODAL KOMUNIKATU -->
+    <div id="alert-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl border border-slate-200">
+            <h3 id="alert-title" class="text-lg font-bold text-slate-900 mb-2">Komunikat</h3>
+            <p id="alert-message" class="text-slate-600 text-sm mb-4"></p>
+            <button onclick="closeAlert()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition">Rozumiem</button>
+        </div>
+    </div>
+
+    <!-- KROK 1: FORMULARZ STARTOWY -->
+    <div id="step-setup" class="flex-grow flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-8 border border-slate-200">
+            <div class="text-center mb-8">
+                <div class="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">🛡️</div>
+                <h1 class="text-2xl font-bold text-slate-900">Symulator Bezpieczeństwa w Szkole</h1>
+                <p class="text-slate-500 text-sm mt-1">Przygotowanie do szkolenia z cyberbezpieczeństwa i RODO</p>
+            </div>
+            
+            <form id="setup-form" onsubmit="startSimulation(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Twoje Imię i Nazwisko</label>
+                    <input type="text" id="user-name" required placeholder="np. Anna Nowak" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Twój służbowy adres e-mail</label>
+                    <input type="email" id="user-email" required placeholder="np. a.nowak@szkola.edu.pl" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Imię i Nazwisko Dyrektora Szkoły</label>
+                    <input type="text" id="dir-name" required placeholder="np. Jan Kowalski" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Imię i Nazwisko Sekretarki / Sekretarza</label>
+                    <input type="text" id="sec-name" required placeholder="np. Maria Wiśniewska" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition shadow-lg shadow-blue-600/20">
+                        Rozpocznij Symulację Poczty ✉️
+                    </button>
+                </div>
+                <p class="text-xs text-slate-400 text-center mt-3">🔒 Wprowadzone dane służą wyłącznie do personalizacji treści symulacji w Twojej przeglądarce i nie są nigdzie wysyłane ani zapisywane.</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- KROK 2: INTERFEJS SKRZYNKI POCZTOWEJ -->
+    <div id="step-simulation" class="flex-grow flex flex-col hidden h-screen">
+        <!-- Górny pasek poczty -->
+        <header class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
+            <div class="flex items-center space-x-3">
+                <span class="text-xl">📧</span>
+                <span class="font-bold tracking-wide">EduMail Secure v3.0</span>
+                <span class="bg-blue-600 text-xs px-2.5 py-1 rounded-full font-medium hidden sm:inline-block">Tryb Symulacji Dynamicznej</span>
+            </div>
+            <div class="text-sm flex items-center space-x-4">
+                <span id="profile-display" class="text-slate-300 font-medium"></span>
+                <div class="bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                    Rozwiązane zagrożenia: <span id="task-counter" class="font-bold text-blue-400">0 / 2</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Główny widok klienta poczty -->
+        <div class="flex-grow flex overflow-hidden">
+            <!-- Lista wiadomości (lewa kolumna) -->
+            <div class="w-full md:w-80 bg-white border-r border-slate-200 flex flex-col">
+                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                    <span class="font-bold text-sm text-slate-700 uppercase tracking-wider">Skrzynka odbiorcza</span>
+                    <span id="unread-badge" class="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full font-bold">2</span>
+                </div>
+                <div id="email-list" class="overflow-y-auto flex-grow divide-y divide-slate-100">
+                    <!-- Generowane dynamicznie przez JS -->
+                </div>
+            </div>
+
+            <!-- Podgląd wiadomości (prawa kolumna) -->
+            <div class="hidden md:flex flex-col flex-grow bg-slate-50 overflow-y-auto" id="email-view-container">
+                <div id="no-email-selected" class="flex flex-col items-center justify-center h-full text-slate-400">
+                    <span class="text-5xl mb-2">📨</span>
+                    <p class="text-sm">Wybierz wiadomość z listy po lewej stronie, aby ją przeczytać.</p>
+                </div>
+                <div id="email-active-view" class="p-8 hidden max-w-3xl mx-auto w-full">
+                    <!-- Treść aktywnego maila -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KROK 3: EKRAN PODSUMOWANIA -->
+    <div id="step-summary" class="flex-grow flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full p-8 border border-slate-200">
+            <div class="text-center mb-6">
+                <span class="text-5xl">🏆</span>
+                <h2 class="text-2xl font-bold text-slate-900 mt-2">Podsumowanie Symulacji Cyberbezpieczeństwa</h2>
+                <p class="text-slate-500 text-sm">Oto raport z Twoich decyzji podjętych w symulatorze</p>
+            </div>
+            
+            <div id="summary-results" class="space-y-4 mb-8">
+                <!-- Wyniki generowane dynamicznie -->
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-sm text-blue-800">
+                <h4 class="font-bold mb-1">💡 Wnioski dla nauczycieli:</h4>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>Zawsze weryfikuj adres nadawcy, zwłaszcza przy nagłych sprawach finansowych.</li>
+                    <li>Nigdy nie przesyłaj danych osobowych (RODO) w otwartych wiadomościach e-mail bez szyfrowania.</li>
+                    <li>Uważaj na fałszywe faktury i powiadomienia o nadpłatach / niedopłatach energii lub usług.</li>
+                </ul>
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-6 rounded-xl transition">
+                Rozpocznij ponownie szkolenie 🔄
+            </button>
+        </div>
+    </div>
+
+    <!-- Stopka -->
+    <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-400">
+        Symulator Szkoleniowy RODO & Cyberbezpieczeństwo • Przygotowany dla Nauczycieli
+    </footer>
+
+    <!-- SKRYPT LOGIKI APLIKACJI -->
+    <script>
+        let userData = {};
+        let emails = [];
+        let completedTasks = 0;
+        const totalTasks = 2; // Liczba głównych zadań do wykrycia zagrożeń
+        let taskResults = [];
+        let timeTicker = 0;
+
+        function showAlert(title, message) {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-message').innerText = message;
+            document.getElementById('alert-modal').classList.remove('hidden');
+        }
+
+        function closeAlert() {
+            document.getElementById('alert-modal').classList.add('hidden');
+        }
+
+        function startSimulation(e) {
+            e.preventDefault();
+            userData.name = document.getElementById('user-name').value;
+            userData.email = document.getElementById('user-email').value;
+            userData.dirName = document.getElementById('dir-name').value;
+            userData.secName = document.getElementById('sec-name').value;
+
+            // Inicjalizacja wiadomości e-mail z użyciem danych personalizowanych
+            initEmails();
+
+            document.getElementById('profile-display').innerText = `${userData.name} (${userData.email})`;
+            document.getElementById('step-setup').classList.add('hidden');
+            document.getElementById('step-simulation').classList.remove('hidden');
+            renderEmailList();
+
+            // Uruchomienie symulatora nadchodzących maili w tle
+            setInterval(checkIncomingEmails, 5000);
+        }
+
+        function initEmails() {
+            // Definicja 12 wiadomości: 2 na start (w tym sekretariat), reszta przychodzi z czasem
+            emails = [
+                {
+                    id: 1,
+                    senderName: userData.secName,
+                    senderEmail: `sekretariat@szkola.edu.pl`,
+                    subject: "Plan lekcji na jutro - proszę o zapoznanie się",
+                    date: "Dzisiaj, 08:15",
+                    read: false,
+                    visible: true,
+                    type: "normal",
+                    body: `Dzień dobry,<br><br>W załączniku przesyłam zaktualizowany harmonogram dyżurów korytarzowych na bieżący tydzień. Proszę o potwierdzenie odebrania wiadomości w odpowiedzi.<br><br>Pozdrawiam,<br>${userData.secName}<br>Sekretariat Szkoły`
+                },
+                {
+                    id: 2,
+                    senderName: "Anna Kowalska (Mama Jasia)",
+                    senderEmail: "a.kowalska.rodzic@gmail.com",
+                    subject: "Nieobecność Jasia w przyszłym tygodniu",
+                    date: "Dzisiaj, 08:42",
+                    read: false,
+                    visible: true,
+                    type: "normal",
+                    body: `Dzień dobry Pani/Panu,<br><br>Chciałam zgłosić, że mój syn Jan Kowalski z klasy 5b nie będzie obecny na zajęciach w dniach 12-14 listopada z powodu wyjazdu rodzinnego. Zadania domowe postaramy się nadrabiać na bieżąco przez dziennik.<br><br>Z poważaniem,<br>Anna Kowalska`
+                },
+                {
+                    id: 3,
+                    senderName: "Piotr Nowak (Tata Zuzi)",
+                    senderEmail: "piotr.nowak.praca@wp.pl",
+                    subject: "Pytanie o konsultacje nauczycielskie",
+                    date: "Dzisiaj, 09:10",
+                    read: false,
+                    visible: false, // Przychodzi z czasem
+                    type: "normal",
+                    body: `Dzień dobry, czy w najbliższy czwartek po godzinie 16:00 znalazłby/znalazłaby Pani chwilę na krótką rozmowę odnośnie postępów Zuzi w nauce matematyki? Chciałbym skonsultować wyniki ze sprawdzianu.<br><br>Pozdrawiam serdecznie,<br>Piotr Nowak`
+                },
+                {
+                    id: 4,
+                    senderName: userData.dirName,
+                    senderEmail: `dyrektor@szkola.edu.pl`,
+                    subject: "Zestawienie uczniów na wycieczkę - PILNE (RODO)",
+                    date: "Dzisiaj, 09:30",
+                    read: false,
+                    visible: false,
+                    type: "dangerous_rodo",
+                    taskType: "rodo_check",
+                    taskSolved: false,
+                    body: `Dzień dobry,<br><br>Potrzebuję pilnie pełnej listy uczniów z Twojej klasy wraz z numerami PESEL i telefonami rodziców, bo sponsor wycieczki prosi o to mailowo. <b>Wyślij mi to proszę w zwykłym mailu zwrotnym do wszystkich nauczycieli w pokoju nauczycielskim bez żadnego szyfrowania</b>, bo księgowość nie ma czasu na instalowanie certyfikatów.<br><br>Z poważaniem,<br>${userData.dirName}<br>Dyrektor Szkoły`,
+                    questionText: "Czy powinieneś wysłać wrażliwe dane osobowe uczniów (PESEL) w zwykłym, nieszyfrowanym mailu do wszystkich?",
+                    options: [
+                        { text: "Tak, to polecenie dyrektora, muszę wysłać.", correct: false, feedback: "BŁĄD! Przesyłanie danych PESEL i telefonów w otwartym mailu do wszystkich to poważne naruszenie RODO i zagrożenie wyciekiem danych." },
+                        { text: "Nie, odmówię i zaproponuję bezpieczny kanał (np. zaszyfrowany plik lub platformę szkolną).", correct: true, feedback: "BRAWO! Dyrektor też podlega przepisom RODO. Dane osobowe (szczególnie numery PESEL) wymagają ochrony i bezpiecznego przesyłania." }
+                    ]
+                },
+                {
+                    id: 5,
+                    senderName: "Katarzyna Wójcik (Nauczyciel Biologii)",
+                    senderEmail: "k.wojcik@szkola.edu.pl",
+                    subject: "Wspólne wyjście do kina z klasą",
+                    date: "Dzisiaj, 10:05",
+                    read: false,
+                    visible: false,
+                    type: "normal",
+                    body: `Cześć!<br><br>Rozmawiałam z wychowawcami równoległych klas i planujemy wyjście do kina na seans edukacyjny pod koniec miesiąca. Czy Twoja klasa też byłaby zainteresowana dołączeniem? Daj znać do piątku, żebym mogła zarezerwować bilety grupowo.<br><br>Pozdrawiam,<br>Kasia`
+                },
+                {
+                    id: 6,
+                    senderName: "PGE-eBOK (Infolinia)",
+                    senderEmail: "dta3@accessoalp-pg1297.cloud",
+                    subject: "Informacje dotyczące Twojej umowy - Zwrot nadpłaty",
+                    date: "Dzisiaj, 10:22",
+                    read: false,
+                    visible: false,
+                    type: "phishing_pge",
+                    taskType: "phishing_detect",
+                    taskSolved: false,
+                    body: `
+                        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h2 style="color: #1e3a8a; text-align: center; font-weight: bold;">P G E</h2>
+                            <p><b>Dzień dobry,</b></p>
+                            <p>W wyniku przeprowadzonej weryfikacji Państwa umowy stwierdzono, że została ona przypisana do niewłaściwej grupy taryfowej. Ustalono kwotę nadpłaty wynikającą z zastosowania nieprawidłowych stawek.</p>
+                            <div style="background: #eff6ff; padding: 15px; border-radius: 8px; text-align: center; margin: 15px 0;">
+                                <span style="font-size: 12px; color: #1e40af; display: block;">NADPŁATA DO ZWROTU</span>
+                                <span style="font-size: 24px; font-weight: bold; color: #1e3a8a;">398,79 PLN</span>
+                                <span style="font-size: 11px; color: #64748b; display: block;">Termin: 3 dni roboczych</span>
+                            </div>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <a href="#" onclick="alert('To jest link phishingowy! W rzeczywistości prowadziłby do fałszywej strony wyłudzającej dane logowania do banku.'); return false;" style="background: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">ZATWIERDŹ W PANELU KLIENTA</a>
+                            </div>
+                            <p style="font-size: 10px; color: #94a3b8; text-align: center; margin-top: 20px;">Sp. z o.o. | ul. Energetyczna 1, 00-850 Warszawa<br>Polityka prywatności | Rezygnacja</p>
+                        </div>
+                    `,
+                    questionText: "Przeanalizuj powyższą wiadomość z PGE. Czy jest to bezpieczny mail urzędowy?",
+                    options: [
+                        { text: "Tak, wygląda profesjonalnie i jest zwrot pieniędzy.", correct: false, feedback: "BŁĄD! Zwróć uwagę na podejrzany adres nadawcy (@accessoalp-pg1297.cloud) oraz ukryty link prowadzący na zewnętrzną domenę." },
+                        { text: "Nie, to klasyczny phishing (próba wyłudzenia danych/pieniędzy).", correct: true, feedback: "BRAWO! To idealny przykład phishingu: dziwna domena nadawcy, pilność i zachęta do kliknięcia w link." }
+                    ]
+                },
+                {
+                    id: 7,
+                    senderName: "Magdalena Lis (Przedstawiciel Rady Rodziców)",
+                    senderEmail: "m.lis.rodzice@interia.pl",
+                    subject: "Ustalenia ws. budżetu na Mikołajki",
+                    date: "Dzisiaj, 11:00",
+                    read: false,
+                    visible: false,
+                    type: "normal",
+                    body: `Dzień dobry Pani/Panie,<br><br>W imieniu Rady Rodziców przesyłam wstępny projekt propozycji paczek mikołajkowych dla dzieci. Proszę o zerknięcie w wolnej chwili, czy termin spotkania ze św. Mikołajem pasuje do planu lekcji.<br><br>Z wyrazami szacunku,<br>Magdalena Lis`
+                },
+                {
+                    id: 8,
+                    senderName: "Wydawnictwo Edukacyjne NowaEra",
+                    senderEmail: "kontakt@nowaera-szkolenia.pl",
+                    subject: "Nowe pakiety dydaktyczne i darmowe materiały PDF",
+                    date: "Dzisiaj, 11:30",
+                    read: false,
+                    visible: false,
+                    type: "normal",
+                    body: `Dzień dobry,<br><br>Zapraszamy do zapoznania się z nową ofertą bezpłatnych scenariuszy lekcyjnych i materiałów ćwiczeniowych dla nauczycieli.<br><br>Materiały można pobrać po zalogowaniu na naszym portalu.<br><br>Z poważaniem,<br>Zespół NowaEra`
+                },
+                {
+                    id: 9,
+                    senderName: "Tomasz Zieliński (Nauczyciel Informatyki)",
+                    senderEmail: "t.zielinski@szkola.edu.pl",
+                    subject: "Awaria projektora w sali 204",
+                    date: "Dzisiaj, 12:05",
+                    read: false,
+                    visible: false,
+                    type: "normal",
+                    body: `Cześć, informuję tylko, że na czwartej godzinie lekcyjnej projektor w sali 204 przestał reagować na sygnał z laptopa. Zgłosiłem to już do serwisu, ale dzisiaj korzystajmy raczej z tablicy tradycyjnej.<br><br>Pozdrawiam,<br>Tomek`
+                },
+                {
+                    id: 10,
+                    senderName: "Centrum Szkoleń Oświatowych",
+                    senderEmail: "biuro@szkolenia-nauczyciele2026.pl",
+                    subject: "Zaproszenie na webinar: RODO w praktyce szkolnej",
+                    date: "Dzisiaj, 12:40",
+                    read: false,
+                    visible: false,
+                    type: "normal",
+                    body: `Szanowni Państwo,<br><br>Serdecznie zapraszamy na bezpłatny webinar online poświęcony zmianom w przepisach o ochronie danych osobowych w placówkach oświatowych. Spotkanie odbędzie się w przyszły wtorek o godz. 18:00.<br><br>Zespół CSO`
+                },
+                {
+                    id: 11,
+                    senderName: "Marek Ząbek (Tata Krzysztofa)",
+                    senderEmail: "m.zabek@onet.pl",
+                    subject: "usprawiedliwienie nieobecności",
+                    date: "Dzisiaj, 13:15",
+                    read: false,
+                    visible: false,
+                    type: "normal",
+                    body: `Dzień dobry, przesyłam usprawiedliwienie dla Krzysztofa za ubiegły czwartek i piątek z powodu choroby gardła. Dziękuję za wyrozumiałość.<br><br>Pozdrawiam, Marek Ząbek`
+                },
+                {
+                    id: 12,
+                    senderName: "Biblioteka Szkolna",
+                    senderEmail: "biblioteka@szkola.edu.pl",
+                    subject: "Zwrot książek bibliotecznych do końca miesiąca",
+                    date: "Dzisiaj, 14:00",
+                    read: false,
+                    visible: false,
+                    type: "normal",
+                    body: `Szanowni Nauczyciele,<br><br>Przypominamy o trwającym inwentarzu bibliotecznym. Prosimy o przekazanie uczniom informacji o konieczności zwrotu wypożyczonych książek do najbliższego piątku.<br><br>Z pozdrowieniami,<br>Zespół Biblioteki`
+                }
+            ];
+        }
+
+        function checkIncomingEmails() {
+            // Stopniowe odkrywanie kolejnych wiadomości co kilka sekund
+            const hiddenEmails = emails.filter(e => !e.visible);
+            if (hiddenEmails.length > 0) {
+                // Odkrywamy kolejną wiadomość
+                hiddenEmails[0].visible = true;
+                renderEmailList();
+            }
+        }
+
+        function renderEmailList() {
+            const listContainer = document.getElementById('email-list');
+            listContainer.innerHTML = '';
+            
+            const visibleEmails = emails.filter(e => e.visible);
+            let unreadCount = visibleEmails.filter(e => !e.read).length;
+            document.getElementById('unread-badge').innerText = unreadCount;
+
+            visibleEmails.forEach(email => {
+                const item = document.createElement('div');
+                let badgeText = '';
+                let badgeClass = '';
+
+                if (email.type === 'normal') {
+                    badgeText = 'Normalny';
+                    badgeClass = 'bg-slate-100 text-slate-600';
+                } else {
+                    badgeText = email.taskSolved ? '✓ Rozwiązane' : '⚡ Zagrożenie';
+                    badgeClass = email.taskSolved ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700';
+                }
+
+                item.className = `p-4 cursor-pointer transition hover:bg-slate-50 border-b border-slate-100 ${!email.read ? 'bg-blue-50/50 font-semibold' : 'bg-white'}`;
+                item.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs text-slate-500 truncate max-w-[150px]">${email.senderName}</span>
+                        <span class="text-[10px] text-slate-400">${email.date}</span>
+                    </div>
+                    <div class="text-sm text-slate-900 truncate">${email.subject}</div>
+                    <div class="flex items-center justify-between mt-2">
+                        <span class="text-[10px] px-2 py-0.5 rounded font-medium ${badgeClass}">
+                            ${badgeText}
+                        </span>
+                    </div>
+                `;
+                item.onclick = () => openEmail(email.id);
+                listContainer.appendChild(item);
+            });
+        }
+
+        function openEmail(id) {
+            const email = emails.find(e => e.id === id);
+            email.read = true;
+            renderEmailList();
+
+            document.getElementById('no-email-selected').classList.add('hidden');
+            const activeView = document.getElementById('email-active-view');
+            activeView.classList.remove('hidden');
+
+            let taskHtml = '';
+
+            if (email.type === 'normal') {
+                taskHtml = `
+                    <div class="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600">
+                        ℹ️ Standardowa wiadomość informacyjna / korespondencja od rodzica lub kolegi z pracy. Brak zagrożeń cyberbezpieczeństwa. Możesz odpowiedzieć lub oznaczyć jako przeczytaną.
+                    </div>
+                `;
+            } else {
+                taskHtml = `
+                    <div class="mt-6 p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold text-slate-800 mb-2 text-sm">Zadanie analityczne:</h4>
+                        <p class="text-xs text-slate-600 mb-3">${email.questionText}</p>
+                        <div class="space-y-2" id="options-container-${email.id}">
+                            ${email.options.map((opt, idx) => `
+                                <button onclick="selectOption(${email.id}, ${idx})" class="w-full text-left p-3 rounded-lg border text-xs font-medium transition ${email.taskSolved ? (opt.correct ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60') : 'bg-slate-50 hover:bg-blue-50 border-slate-200 text-slate-700'}">
+                                    ${opt.text}
+                                </button>
+                            `).join('')}
+                        </div>
+                        <div id="feedback-${email.id}" class="mt-3 text-xs font-semibold ${email.taskSolved ? 'p-3 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-200' : 'hidden'}">
+                            ${email.taskSolved ? '✓ Zagrożenie zostało pomyślnie zidentyfikowane!' : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            activeView.innerHTML = `
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="border-b border-slate-100 pb-4 mb-4">
+                        <h2 class="text-lg font-bold text-slate-900 mb-1">${email.subject}</h2>
+                        <div class="flex justify-between items-center text-xs text-slate-500">
+                            <div>Od: <span class="font-semibold text-slate-700">${email.senderName}</span> &lt;${email.senderEmail}&gt;</div>
+                            <div>${email.date}</div>
+                        </div>
+                    </div>
+                    <div class="text-sm text-slate-700 leading-relaxed space-y-3">
+                        ${email.body}
+                    </div>
+                    ${taskHtml}
+                </div>
+            `;
+        }
+
+        function selectOption(emailId, optionIdx) {
+            const email = emails.find(e => e.id === emailId);
+            if (email.taskSolved) return;
+
+            const selectedOpt = email.options[optionIdx];
+            email.taskSolved = true;
+            completedTasks++;
+            updateCounter();
+
+            taskResults.push({
+                title: email.subject,
+                success: selectedOpt.correct,
+                desc: selectedOpt.feedback
+            });
+
+            showAlert(selectedOpt.correct ? "Świetna decyzja! 🎉" : "Uwaga! Błędna decyzja ⚠️", selectedOpt.feedback);
+
+            openEmail(emailId);
+            renderEmailList();
+            checkSimulationCompletion();
+        }
+
+        function updateCounter() {
+            document.getElementById('task-counter').innerText = `${completedTasks} / ${totalTasks}`;
+        }
+
+        function checkSimulationCompletion() {
+            if (completedTasks >= totalTasks) {
+                setTimeout(() => {
+                    showSummary();
+                }, 1500);
+            }
+        }
+
+        function showSummary() {
+            document.getElementById('step-simulation').classList.add('hidden');
+            document.getElementById('step-summary').classList.remove('hidden');
+
+            const resultsContainer = document.getElementById('summary-results');
+            resultsContainer.innerHTML = taskResults.map(res => `
+                <div class="p-4 rounded-xl border ${res.success ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'} flex items-start space-x-3">
+                    <span class="text-xl">${res.success ? '✅' : '❌'}</span>
+                    <div>
+                        <h4 class="font-bold text-sm">${res.title}</h4>
+                        <p class="text-xs mt-0.5 opacity-90">${res.desc}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
