@@ -1,0 +1,2195 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduMail Secure v18 - Profesjonalny Symulator Poczty</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        :focus-visible { outline:3px solid #2563eb !important; outline-offset:3px; }
+        button, select, input, textarea { min-height: 38px; }
+        .mail-item { display:block; width:100%; text-align:left; }
+        .mail-item:focus-visible { position:relative; z-index:2; }
+        @media(max-width:767px) {
+          #step-simulation { height:100dvh; min-height:0; }
+          #mail-main { min-height:0; }
+          #mail-list-pane, #email-view-container { width:100%; min-width:0; flex:1; }
+          #step-simulation.mobile-reading #mail-list-pane { display:none; }
+          #step-simulation:not(.mobile-reading) #email-view-container { display:none; }
+          #email-active-view { padding:14px !important; }
+          #email-active-view .text-xs { font-size:13px; line-height:1.55; }
+          #email-active-view button { min-height:42px; white-space:normal; }
+          #step-simulation header { padding:10px 12px; gap:8px; }
+          #finish-simulation-btn { max-width:155px; }
+          #mobile-back { display:inline-flex; }
+        }
+        @media(min-width:768px) { #mobile-back { display:none !important; } }
+        @media(max-width:1023px) { #mobile-folders { display:flex; } }
+        @media(min-width:1024px) { #mobile-folders { display:none; } }
+        @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; transition:none !important; animation:none !important; } }
+        .phishing-link-wrap:focus-within .phishing-link-hint { display:block; }
+        .phishing-link-hint { max-width:calc(100vw - 36px); }
+    </style>
+
+    <style>
+        .phishing-link-wrap { position:relative; display:inline-block; max-width:100%; }
+        .phishing-link-hint { display:none; position:absolute; z-index:35; left:50%; bottom:calc(100% + 12px); transform:translateX(-50%); width:min(350px, 80vw); padding:12px 14px; border:1px solid #cbd5e1; border-radius:12px; background:white; box-shadow:0 12px 30px rgba(15,23,42,.20); color:#334155; font-size:12px; line-height:1.5; text-align:left; white-space:normal; overflow-wrap:anywhere; }
+        .phishing-link-hint strong,.phishing-link-hint span { display:block; margin:3px 0; }
+        .phishing-link-hint strong { color:#0f172a; }
+        
+        .phishing-link-wrap:hover .phishing-link-hint,.phishing-link-wrap:focus-within .phishing-link-hint { display:block; }
+        @media (max-width:600px) { .phishing-link-hint { left:0; transform:none; width:min(300px, 76vw); } }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col justify-between overflow-hidden">
+
+    <!-- MODAL KOMUNIKATU -->
+    <div id="alert-modal" role="dialog" aria-modal="true" aria-label="Komunikat" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl border border-slate-200">
+            <h3 id="alert-title" class="text-lg font-bold text-slate-900 mb-2">Komunikat</h3>
+            <p id="alert-message" class="text-slate-600 text-sm mb-4"></p>
+            <button onclick="closeAlert()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition">Rozumiem</button>
+        </div>
+    </div>
+
+    <!-- MODAL PODGLĄDU ZAŁĄCZNIKA -->
+    <div id="attachment-modal" role="dialog" aria-modal="true" aria-label="Podgląd załącznika" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">📎</span>
+                    <h3 id="attachment-modal-title" class="font-bold text-slate-900 text-base">Podgląd załącznika</h3>
+                </div>
+                <button onclick="closeAttachmentModal()" class="text-slate-400 hover:text-slate-700 font-bold text-lg px-2">✕</button>
+            </div>
+            <div id="attachment-modal-content" class="overflow-y-auto flex-grow text-xs text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <!-- Zawartość załącznika -->
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-200 flex justify-end">
+                <button onclick="closeAttachmentModal()" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-5 rounded-lg text-xs transition">Zamknij podgląd</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL WYBORU PLIKU DO ZAŁĄCZENIA (Dla wiadomości RODO) -->
+    <div id="file-picker-modal" role="dialog" aria-modal="true" aria-label="Wybór załącznika" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 flex flex-col relative">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
+                <h3 class="font-bold text-slate-900 text-base flex items-center space-x-2">
+                    <span>📁</span>
+                    <span>Wybierz plik z dysku / komputera</span>
+                </h3>
+                <button onclick="closeFilePicker()" class="text-slate-400 hover:text-slate-700 font-bold text-lg px-2">✕</button>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">Kliknij na plik, aby dołączyć go do wiadomości e-mail. Najedź kursorem myszy na pozycję, aby podejrzeć zawartość.</p>
+            <div class="space-y-2 mb-4 relative">
+                <div 
+                    onfocus="showPeselPreview(true)" onmouseenter="showPeselPreview(true)" 
+                    onblur="showPeselPreview(false)" onmouseleave="showPeselPreview(false)" 
+                    role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();attachFile('lista_uczniów_pesel.xlsx')}" onclick="attachFile('lista_uczniów_pesel.xlsx')"
+                    class="p-3 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-xl cursor-pointer transition flex items-center justify-between group"
+                >
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">📊</span>
+                        <div>
+                            <div class="font-bold text-xs text-slate-800 group-hover:text-blue-700">lista_uczniów_pesel.xlsx</div>
+                            <div class="text-[10px] text-slate-400">Arkusz kalkulacyjny • 14.2 KB</div>
+                        </div>
+                    </div>
+                    <span class="text-xs bg-blue-600 text-white px-3 py-1 rounded-lg font-semibold opacity-0 group-hover:opacity-100 transition">Dołącz plik ✓</span>
+                </div>
+                <div 
+                    role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();attachFile('notatki_robocze.txt')}" onclick="attachFile('notatki_robocze.txt')"
+                    class="p-3 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-xl cursor-pointer transition flex items-center justify-between group"
+                >
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">📝</span>
+                        <div>
+                            <div class="font-bold text-xs text-slate-800 group-hover:text-blue-700">notatki_robocze.txt</div>
+                            <div class="text-[10px] text-slate-400">Dokument tekstowy • 2.1 KB</div>
+                        </div>
+                    </div>
+                    <span class="text-xs bg-blue-600 text-white px-3 py-1 rounded-lg font-semibold opacity-0 group-hover:opacity-100 transition">Dołącz plik ✓</span>
+                </div>
+
+                <!-- Podgląd najechany myszką jako absolutny panel popover -->
+                <div id="pesel-preview-box" class="hidden absolute left-0 right-0 top-full mt-2 bg-white border border-blue-200 rounded-xl p-3 shadow-xl text-[11px] text-slate-700 z-50 max-h-52 overflow-y-auto" onmouseenter="showPeselPreview(true)" onmouseleave="showPeselPreview(false)">
+                    <div class="font-bold text-blue-900 mb-1 flex items-center justify-between">
+                        <span>👁️ Podgląd zawartości: lista_uczniów_pesel.xlsx</span>
+                        <span class="text-[10px] text-slate-400">10 rekordów</span>
+                    </div>
+                    <table class="w-full text-left border-collapse border border-slate-200">
+                        <thead>
+                            <tr class="bg-slate-100 text-[10px]">
+                                <th class="border border-slate-200 p-1">Lp</th>
+                                <th class="border border-slate-200 p-1">Imię i Nazwisko</th>
+                                <th class="border border-slate-200 p-1">PESEL</th>
+                                <th class="border border-slate-200 p-1">Telefon</th>
+                            </tr>
+                        </thead>
+                        <tbody id="preview-pesel-rows">
+                            <!-- Generowane dynamicznie -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-slate-200 mt-2">
+                <button onclick="closeFilePicker()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold px-4 py-2 rounded-lg transition">Anuluj</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KROK 1: FORMULARZ STARTOWY -->
+    <div id="step-setup" role="dialog" aria-modal="true" aria-label="Dane uczestnika szkolenia" class="fixed inset-0 bg-slate-900/60 z-40 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 border border-slate-200 relative">
+            <!-- Przycisk szybkiego wypełnienia testowego -->
+            <button type="button" onclick="fillTestData()" class="absolute top-4 right-4 bg-amber-100 hover:bg-amber-200 text-amber-800 p-2 rounded-xl text-xs font-bold transition flex items-center space-x-1" title="Wypełnij testowo automatycznie">
+                <span>🛡️</span>
+                <span>Test Fill</span>
+            </button>
+
+            <div class="text-center mb-6">
+                <div class="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">🛡️</div>
+                <h1 class="text-2xl font-bold text-slate-900">Symulator klienta poczty w placówce</h1>
+                <p class="text-slate-500 text-sm mt-1">Przygotowanie do szkolenia z cyberbezpieczeństwa i RODO</p>
+            </div>
+            
+            <form id="setup-form" onsubmit="startSimulation(event)" class="space-y-3.5">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Typ placówki oświatowej</label>
+                    <select id="facility-type" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs font-semibold text-slate-800 bg-white">
+                        <option value="school" selected>Szkoła Podstawowa / Ponadpodstawowa</option>
+                        <option value="ppp">Poradnia Psychologiczno-Pedagogiczna (PPP)</option>
+                        <option value="directors">Dyrektorzy Placówek Oświatowych</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Twoje Imię i Nazwisko</label>
+                    <input type="text" id="user-name" required placeholder="np. Anna Nowak" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Twój służbowy adres e-mail</label>
+                    <input type="email" id="user-email" required placeholder="np. a.nowak@szkola.edu.pl" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Imię i Nazwisko Dyrektora / Przełożonego</label>
+                    <input type="text" id="dir-name" required placeholder="np. Jan Kowalski" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Służbowy e-mail Dyrektora / Przełożonego</label>
+                    <input type="email" id="dir-email" required placeholder="np. dyrektor@szkola.edu.pl" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Imię i Nazwisko Sekretarki / Sekretarza</label>
+                    <input type="text" id="sec-name" required placeholder="np. Maria Wiśniewska" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Służbowy e-mail Sekretariatu</label>
+                    <input type="email" id="sec-email" required placeholder="np. sekretariat@szkola.edu.pl" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition shadow-lg shadow-blue-600/20">
+                        Otwórz Skrzynkę Pocztową ✉️
+                    </button>
+                </div>
+                <p class="text-xs text-slate-400 text-center mt-2">🔒 Dane są używane wyłącznie w tej sesji przeglądarki do personalizacji wiadomości.</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- KROK 2: INTERFEJS KLIENTA POCZTY (WEBMAIL) -->
+    <div id="step-simulation" class="flex-grow flex flex-col h-screen hidden">
+        <!-- Górny pasek menu pocztowego -->
+        <header class="bg-slate-900 text-white px-6 py-3 flex justify-between items-center shadow-md shrink-0">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 text-white p-2 rounded-lg font-bold text-sm">📧 EduMail</div>
+                <span class="font-semibold text-sm tracking-wide text-slate-200">Klient Poczty Oświatowej</span>
+            </div>
+            <div class="text-sm flex items-center space-x-6">
+                <span id="profile-display" class="text-slate-300 font-medium hidden md:inline"></span>
+                <button id="finish-simulation-btn" onclick="finishSimulationManually()" disabled class="bg-slate-700 text-slate-400 cursor-not-allowed px-4 py-1.5 rounded-lg text-xs font-semibold transition" title="Przycisk odblokuje się po wykonaniu wymaganych akcji (odpowiedź na mail dyrektora i obsługa phishingu)">Zakończ i podsumuj (Zablokowane)</button>
+            </div>
+        </header>
+
+        <nav id="mobile-folders" aria-label="Foldery poczty" class="hidden bg-slate-800 px-2 py-2 gap-1 overflow-x-auto shrink-0">
+            <button type="button" data-folder="inbox" onclick="switchFolder('inbox')">📥 Odebrane</button>
+            <button type="button" data-folder="sent" onclick="switchFolder('sent')">📤 Wysłane</button>
+            <button type="button" data-folder="spam" onclick="switchFolder('spam')">⚠️ Spam</button>
+            <button type="button" data-folder="trash" onclick="switchFolder('trash')">🗑️ Kosz</button>
+        </nav>
+        <!-- Układ główny aplikacji pocztowej: Pasek boczny folderów | Lista wiadomości | Okno odczytu -->
+        <div id="mail-main" class="flex-grow flex overflow-hidden">
+            <!-- Pasek folderów (Lewa kolumna) -->
+            <div class="w-56 bg-slate-900/95 text-slate-300 border-r border-slate-800 flex flex-col shrink-0 hidden lg:flex">
+                <div class="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Konta i Foldery</div>
+                <nav class="space-y-1 px-2">
+                    <button onclick="switchFolder('inbox')" id="folder-btn-inbox" class="w-full text-left flex items-center space-x-3 px-3 py-2 rounded-lg bg-blue-600/20 text-blue-400 font-medium text-sm transition">
+                        <span>📥</span>
+                        <span class="flex-grow">Skrzynka odbiorcza</span>
+                        <span id="sidebar-unread-count" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">2</span>
+                    </button>
+                    <button onclick="switchFolder('sent')" id="folder-btn-sent" class="w-full text-left flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-400 text-sm transition">
+                        <span>📤</span>
+                        <span class="flex-grow">Wysłane</span>
+                    </button>
+                    <button onclick="switchFolder('spam')" id="folder-btn-spam" class="w-full text-left flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-400 text-sm transition">
+                        <span>⚠️</span>
+                        <span class="flex-grow">Spam / Phishing</span>
+                    </button>
+                    <button onclick="switchFolder('trash')" id="folder-btn-trash" class="w-full text-left flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-400 text-sm transition">
+                        <span>🗑️</span>
+                        <span class="flex-grow">Kosz</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Lista wiadomości (Środkowa kolumna) -->
+            <div id="mail-list-pane" class="w-full md:w-80 xl:w-96 bg-white border-r border-slate-200 flex flex-col shrink-0">
+                <div class="p-3.5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                    <span id="current-folder-title" class="font-bold text-xs uppercase tracking-wider text-slate-600">Odebrane</span>
+                    <span id="unread-badge" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">2</span>
+                </div>
+                <div id="email-list" role="list" aria-label="Lista wiadomości" class="overflow-y-auto flex-grow divide-y divide-slate-100">
+                    <!-- Generowane dynamicznie -->
+                </div>
+            </div>
+
+            <!-- Podgląd wiadomości / Czytnik e-maili (Prawa kolumna) -->
+            <div class="flex-grow bg-slate-50 flex flex-col overflow-hidden" id="email-view-container">
+                <button type="button" id="mobile-back" onclick="showMobileList()" class="hidden items-center gap-2 px-4 py-3 bg-white border-b border-slate-200 text-blue-800 font-semibold">← Wróć do listy wiadomości</button>
+                <div id="no-email-selected" class="flex flex-col items-center justify-center h-full text-slate-400 p-6 text-center">
+                    <span class="text-6xl mb-3">📬</span>
+                    <h3 class="text-base font-semibold text-slate-700 mb-1">Brak zaznaczonej wiadomości</h3>
+                    <p class="text-xs max-w-sm">Wybierz wiadomość z listy po lewej stronie, aby otworzyć pełną treść e-maila w czytniku.</p>
+                </div>
+                <div id="email-active-view" class="flex-grow flex flex-col overflow-y-auto hidden p-6 lg:p-8">
+                    <!-- Treść aktywnego maila generowana dynamicznie -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KROK 3: EKRAN PODSUMOWANIA -->
+    <div id="step-summary" role="dialog" aria-modal="true" aria-label="Raport końcowy" class="fixed inset-0 bg-slate-900/80 z-40 flex items-center justify-center p-4 overflow-y-auto hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-5 sm:p-8 border border-slate-200 my-8">
+            <div class="text-center mb-6">
+                <span class="text-5xl">🏆</span>
+                <h2 class="text-xl font-bold text-slate-900 mt-2">Oto raport z Twoich decyzji w symulatorze klienta poczty</h2>
+                <p class="text-slate-500 text-sm">Szczegółowa analiza podjętych działań w zakresie ochrony informacji</p>
+            </div>
+            
+            <div id="summary-results" class="space-y-4 mb-6 max-h-[60vh] overflow-y-auto pr-2 text-sm leading-relaxed">
+                <!-- Wyniki generowane dynamicznie -->
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-sm text-blue-900 leading-relaxed">
+                <h4 class="font-bold mb-1 text-sm">💡 Wnioski i dobre praktyki dla nauczycieli:</h4>
+                <ul class="list-disc list-inside space-y-1.5">
+                    <li><b>Szyfrowanie i ochrona danych osobowych (RODO):</b> Pliki zawierające wrażliwe dane (np. numery PESEL, wykazy uczniów) zawsze przesyłamy w formie zaszyfrowanej (np. chronione silnym hasłem archiwum ZIP/7Z), a klucz deszyfrujący przekazujemy odbiorcy osobnym, bezpiecznym kanałem łączności (np. telefonicznie lub komunikatorem), nigdy w tej samej wiadomości e-mail.</li>
+                    <li><b>Nagłówki i adresy:</b> Zawsze sprawdzaj rzeczywisty adres nadawcy, a nie tylko wyświetlaną nazwę (np. oszustwa z domenami `.cloud`).</li>
+                    <li><b>Autorytet i presja czasu:</b> Oszuści często podszywają się pod dyrekcję lub instytucje państwowe, wymuszając szybkie działanie pod presją.</li>
+                </ul>
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-6 rounded-xl transition shadow">
+                Rozpocznij szkolenie ponownie 🔄
+            </button>
+        </div>
+    </div>
+
+    <!-- Stopka -->
+    <footer class="bg-white border-t border-slate-200 py-2.5 text-center text-xs text-slate-400 shrink-0">
+        EduMail Secure v18 • Platforma Szkoleniowa Nauczycieli ds. Bezpieczeństwa Informacji
+    </footer>
+
+    <!-- SKRYPT LOGIKI APLIKACJI -->
+    <script>
+        let userData = {};
+        let emails = [];
+        let sentMessages = [];
+        let activeEmailId = null;
+        let currentFolder = 'inbox';
+        let clickedPhishing = false;
+        let phishingEvents = [];
+        let messageSecurityEvents = [];
+        let phishingFlagged = false;
+        let phishingReported = false;
+        let attachedFileForReply = null;
+        let replyMode = 'reply_all'; // 'reply_all' lub 'reply_sender'
+
+        // Escaping for all user-controlled text inserted into HTML templates.
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[char]);
+        }
+        function safeMessageText(text) {
+            return escapeHtml(text).replace(/\r?\n/g, '<br>');
+        }
+        // Lokalna analiza regułowa: ocenia decyzję, a nie samo wystąpienie słów kluczowych.
+        // Niejednoznaczności nie przerywają pracy z pocztą; widoczne są dopiero w raporcie.
+        function analyzeRodoText(text) {
+            const normalized = String(text || '').toLocaleLowerCase('pl-PL')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/\s+/g, ' ').trim();
+            const sentences = normalized.split(/[.!?;\n]+/).map(x => x.trim()).filter(Boolean);
+            const refusalPattern = /\b(?:nie\s+(?:moge|mozemy|nalezy|powinn\w*|wysle|przesle|wysyl\w*|przesyl\w*|udostepn\w*|zalacz\w*|przekaz\w*|zamierzam)|odmawiam|wstrzym\w*|odstepuj\w*|rezygnuj\w*)\b/;
+            const riskPattern = /\b(?:ryzyk\w*|naruszen\w*|niebezpieczn\w*|niezgodn\w*|nieuprawnion\w*|poufn\w*|ochron\w* danych|bez szyfrowania|bez zabezpieczen|nie jest bezpieczn\w*)\b/;
+            const securePattern = /\b(?:zaszyfr\w*|szyfrowan\w*|szyfruj\w*|hasl\w*|bezpieczn\w* (?:kanal\w*|system\w*|sposob\w*)|przez (?:system|platforme)|osobn\w* kanal\w*|telefonicznie|zweryfik\w*|weryfikacj\w*|uprawnien\w*|minimalizacj\w*|ograniczen\w* zakres\w*|podstaw\w* prawn\w*|konsultacj\w* z iod|inspektor\w* ochrony danych)\b/;
+            const promisePattern = /\b(?:wysle|przesle|wysylam|przesylam|zalaczam|przekazuje|udostepniam|dolacze|wysylamy|przeslemy)\b/;
+            const dataPattern = /\b(?:pesel\w*|list\w*|wykaz\w*|dan\w*|plik\w*|arkusz\w*|dokument\w*)\b/;
+            const unprotectedPattern = /\b(?:bez (?:szyfrowania|zabezpieczen|hasla)|zwykl\w* (?:mailem|e-?mailem|poczta)|niezaszyfrowan\w*|otwart\w* zalacznik\w*)\b/;
+            const negatedPromisePattern = /\bnie\s+(?:(?:bede|zamierzam|chce|moge)\s+)?(?:wysle|przesle|wysylam|przesylam|zalaczam|przekazuje|udostepniam|dolacze|wysylamy|przeslemy)\b/;
+            let refusal = false, risk = false, alternative = false, unsafe = false;
+            let uncertainTransfer = false;
+            for (const sentence of sentences) {
+                const isQuestionOrQuote = /^(?:czy|co jesli|co gdy|przyklad|cytat|napisano|w wiadomosci)\b/.test(sentence);
+                if (isQuestionOrQuote) continue;
+                const hasRefusal = refusalPattern.test(sentence);
+                const hasPromise = promisePattern.test(sentence);
+                const hasData = dataPattern.test(sentence);
+                const hasUnsafeMethod = unprotectedPattern.test(sentence);
+                const negatedPromise = negatedPromisePattern.test(sentence);
+                const hasSecureMethod = securePattern.test(sentence) && !/\b(?:nie (?:bede|zamierzam|chce|moge)\s+(?:szyfrowac|weryfikowac)|bez weryfikacji|niezaszyfrowan\w*)\b/.test(sentence);
+                if (hasRefusal) refusal = true;
+                if (riskPattern.test(sentence) && (hasRefusal || /\b(?:ryzyk\w*|naruszen\w*|niebezpieczn\w*|nieuprawnion\w*|niezgodn\w*)\b/.test(sentence))) risk = true;
+                if (hasSecureMethod) alternative = true;
+                // Wyraźnie niezabezpieczony transfer jest ryzykowny; przy metodzie
+                // zabezpieczonej nie traktujemy samego czasownika „prześlę” jako błędu.
+                if (hasPromise && !negatedPromise && !hasRefusal && (hasData || hasUnsafeMethod)) {
+                    if (hasUnsafeMethod) unsafe = true;
+                    else if (!hasSecureMethod) uncertainTransfer = true;
+                }
+            }
+            const conflict = unsafe && (refusal || alternative);
+            return {refusal, risk, alternative, unsafe, conflict, uncertainTransfer, hasText: !!normalized};
+        }
+        function assessRodo(text, replyAll, attachment) {
+            const signals = analyzeRodoText(text);
+            const recipientPoints = replyAll ? 0 : 20;
+            const attachmentRisk = attachment === 'lista_uczniów_pesel.xlsx';
+            const attachmentPoints = attachmentRisk ? 0 : 30;
+            const textNeedsReview = signals.conflict || signals.uncertainTransfer ||
+                (!signals.refusal && !signals.risk && !signals.alternative);
+            // W sytuacji sprzecznej lub niejasnej nie przyznajemy automatycznie
+            // punktów za treść; prowadzący ocenia ją na podstawie cytatu w raporcie.
+            const riskPoints = !textNeedsReview && !signals.unsafe && (signals.refusal || signals.risk) ? 25 : 0;
+            const alternativePoints = !textNeedsReview && !signals.unsafe && signals.alternative ? 25 : 0;
+            const criteria = [
+                {name:'Dobór odbiorców', points:recipientPoints, max:20, explanation:replyAll ? 'Użyto „Odpowiedz wszystkim”; należy ograniczyć liczbę odbiorców.' : 'Odpowiedź skierowano tylko do nadawcy.'},
+                {name:'Postępowanie z załącznikiem', points:attachmentPoints, max:30, explanation:attachmentRisk ? 'Dołączono niezabezpieczoną listę PESEL.' : 'Nie dołączono niezabezpieczonej listy PESEL.'},
+                {name:'Rozpoznanie ryzyka', points:riskPoints, max:25, explanation:textNeedsReview ? 'Ocena treści wymaga weryfikacji prowadzącego.' : riskPoints ? 'Rozpoznano odmowę ryzykownego działania lub opis zagrożenia.' : 'Nie rozpoznano jednoznacznej odmowy ani opisu ryzyka.'},
+                {name:'Bezpieczna alternatywa', points:alternativePoints, max:25, explanation:textNeedsReview ? 'Ocena treści wymaga weryfikacji prowadzącego.' : alternativePoints ? 'Wskazano elementy bezpieczniejszej procedury.' : 'Nie wskazano konkretnej bezpieczniejszej procedury.'}
+            ];
+            let level, reason;
+            if (attachmentRisk) { level='danger'; reason='Dołączono niezabezpieczony plik zawierający dane uczniów.'; }
+            else if (signals.unsafe && !signals.conflict) { level='danger'; reason='Zadeklarowano przekazanie danych w sposób niezabezpieczony.'; }
+            else if (textNeedsReview) { level='unclear'; reason='Nie można jednoznacznie rozstrzygnąć decyzji na podstawie reguł. Odpowiedź należy ocenić w kontekście, korzystając z jej pełnej treści poniżej.'; }
+            else if (replyAll || !riskPoints || !alternativePoints) { level='warning'; reason='Część decyzji jest prawidłowa, ale odpowiedź wymaga doprecyzowania lub bezpieczniejszego sposobu działania.'; }
+            else { level='success'; reason='Rozpoznano ryzyko i wskazano bezpieczniejszy sposób postępowania.'; }
+            const score = criteria.reduce((sum, item) => sum + item.points, 0);
+            return {level, reason, criteria, score, signals, requiresReview:textNeedsReview};
+        }
+
+        function fillTestData() {
+            document.getElementById('facility-type').value = "school";
+            document.getElementById('user-name').value = "Anna Nowak";
+            document.getElementById('user-email').value = "a.nowak@szkola.edu.pl";
+            document.getElementById('dir-name').value = "Jan Kowalski";
+            document.getElementById('dir-email').value = "dyrektor@szkola.edu.pl";
+            document.getElementById('sec-name').value = "Maria Wiśniewska";
+            document.getElementById('sec-email').value = "sekretariat@szkola.edu.pl";
+        }
+
+        function switchFolder(folderName) {
+            currentFolder = folderName;
+            activeEmailId = null;
+
+            const folders = ['inbox', 'sent', 'spam', 'trash'];
+            folders.forEach(f => {
+                const btn = document.getElementById(`folder-btn-${f}`);
+                if (btn) {
+                    if (f === folderName) {
+                        btn.className = "w-full text-left flex items-center space-x-3 px-3 py-2 rounded-lg bg-blue-600/20 text-blue-400 font-medium text-sm transition";
+                    } else {
+                        btn.className = "w-full text-left flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-400 text-sm transition";
+                    }
+                }
+            });
+
+            const titles = {
+                'inbox': 'Odebrane',
+                'sent': 'Wysłane',
+                'spam': 'Spam / Phishing',
+                'trash': 'Kosz'
+            };
+            const titleEl = document.getElementById('current-folder-title');
+            if (titleEl) {
+                titleEl.innerText = titles[folderName] || 'Odebrane';
+            }
+
+            document.getElementById('no-email-selected').classList.remove('hidden');
+            document.getElementById('email-active-view').classList.add('hidden');
+            showMobileList(false);
+            renderEmailList();
+            updateMobileFolderState();
+        }
+
+        function playNotificationSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } catch (e) {}
+        }
+
+        let modalReturnFocus = null;
+        function openAccessibleModal(id) {
+            modalReturnFocus = document.activeElement;
+            const modal = document.getElementById(id);
+            modal.classList.remove('hidden');
+            const first = modal.querySelector('button:not([disabled]), input, select, [tabindex="0"]');
+            if (first) first.focus();
+        }
+        function closeAccessibleModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            if (modalReturnFocus && modalReturnFocus.isConnected) modalReturnFocus.focus();
+        }
+        document.addEventListener('keydown', (event) => {
+            const modal = ['alert-modal','attachment-modal','file-picker-modal','step-summary','step-setup']
+                .map(id => document.getElementById(id)).find(el => el && !el.classList.contains('hidden'));
+            if (!modal) return;
+            if (event.key === 'Escape' && ['alert-modal','attachment-modal','file-picker-modal'].includes(modal.id)) {
+                event.preventDefault(); closeAccessibleModal(modal.id); return;
+            }
+            if (event.key !== 'Tab') return;
+            const focusables = [...modal.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href],[tabindex="0"]')]
+                .filter(el => el.getClientRects().length);
+            if (!focusables.length) return;
+            const first=focusables[0], last=focusables[focusables.length-1];
+            if (event.shiftKey && document.activeElement === first) {event.preventDefault();last.focus();}
+            else if (!event.shiftKey && document.activeElement === last) {event.preventDefault();first.focus();}
+        });
+        function showMobileReading() { document.getElementById('step-simulation').classList.add('mobile-reading'); }
+        function showMobileList(restoreFocus=true) {
+            document.getElementById('step-simulation').classList.remove('mobile-reading');
+            if (restoreFocus && window.innerWidth < 768) {
+                const selected = document.querySelector('#email-list .mail-item');
+                if (selected) selected.focus();
+            }
+        }
+        function updateMobileFolderState() {
+            document.querySelectorAll('#mobile-folders [data-folder]').forEach(btn => {
+                const active = btn.dataset.folder === currentFolder;
+                btn.setAttribute('aria-current',active?'page':'false');
+                btn.className = 'shrink-0 rounded-lg px-3 py-2 text-sm font-semibold min-h-11 ' + (active?'bg-blue-600 text-white':'bg-slate-700 text-slate-100');
+            });
+        }
+        document.addEventListener('DOMContentLoaded',updateMobileFolderState);
+
+        function showAlert(title, message) {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-message').innerText = message;
+            openAccessibleModal('alert-modal');
+        }
+
+        function closeAlert() {
+            closeAccessibleModal('alert-modal');
+        }
+
+        function openAttachmentModal(title, contentHtml) {
+            document.getElementById('attachment-modal-title').innerText = title;
+            document.getElementById('attachment-modal-content').innerHTML = contentHtml;
+            openAccessibleModal('attachment-modal');
+        }
+
+        function showEmailAttachment(id) {
+            const email = emails.find(e => e.id === id);
+            if (email && email.hasAttachment) openAttachmentModal(email.attachmentName, email.attachmentContent);
+        }
+        function closeAttachmentModal() {
+            closeAccessibleModal('attachment-modal');
+        }
+
+        function openFilePicker() {
+            openAccessibleModal('file-picker-modal');
+            populatePeselPreviewRows();
+        }
+
+        function closeFilePicker() {
+            closeAccessibleModal('file-picker-modal');
+        }
+
+        function showPeselPreview(show) {
+            const box = document.getElementById('pesel-preview-box');
+            if (box) {
+                if (show) box.classList.remove('hidden');
+                else box.classList.add('hidden');
+            }
+        }
+
+        function populatePeselPreviewRows() {
+            const tbody = document.getElementById('preview-pesel-rows');
+            if (!tbody) return;
+            const sampleData = [
+                {lp: 1, name: "Kacper Kowalski", pesel: "12051408921", phone: "+48 501-200-300"},
+                {lp: 2, name: "Zuzanna Nowak", pesel: "12082204412", phone: "+48 502-300-400"},
+                {lp: 3, name: "Jan Wiśniewski", pesel: "11030509918", phone: "+48 503-400-500"},
+                {lp: 4, name: "Lena Wójcik", pesel: "12111003325", phone: "+48 504-500-600"},
+                {lp: 5, name: "Aleksander Kamiński", pesel: "11011208833", phone: "+48 505-600-700"},
+                {lp: 6, name: "Julia Lewandowska", pesel: "12090401144", phone: "+48 506-700-800"},
+                {lp: 7, name: "Filip Zieliński", pesel: "11071802255", phone: "+48 507-800-900"},
+                {lp: 8, name: "Maja Szymańska", pesel: "12042506677", phone: "+48 508-900-100"},
+                {lp: 9, name: "Antoni Dąbrowski", pesel: "11022804488", phone: "+48 509-100-200"},
+                {lp: 10, name: "Hanna Kozłowska", pesel: "12120105599", phone: "+48 510-200-300"}
+            ];
+            tbody.innerHTML = sampleData.map(r => `
+                <tr class="hover:bg-blue-50">
+                    <td class="border border-slate-200 p-1 text-center">${r.lp}</td>
+                    <td class="border border-slate-200 p-1 font-medium">${r.name}</td>
+                    <td class="border border-slate-200 p-1 text-blue-800 font-mono">${r.pesel}</td>
+                    <td class="border border-slate-200 p-1 text-slate-600">${r.phone}</td>
+                </tr>
+            `).join('');
+        }
+
+        function updateAttachmentIndicator() {
+            const indicator = document.getElementById('attached-file-indicator');
+            if (!indicator) return;
+            indicator.replaceChildren();
+            if (!attachedFileForReply) {
+                indicator.classList.add('hidden');
+                indicator.classList.remove('flex');
+                return;
+            }
+            indicator.classList.remove('hidden');
+            indicator.classList.add('flex', 'items-center', 'justify-between', 'gap-2');
+            const label = document.createElement('span');
+            label.className = 'min-w-0 break-all';
+            label.textContent = `📎 ${attachedFileForReply} (Dołączony)`;
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'shrink-0 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500';
+            removeButton.textContent = '✕ Usuń';
+            removeButton.setAttribute('aria-label', `Usuń załącznik ${attachedFileForReply}`);
+            removeButton.addEventListener('click', removeAttachedFile);
+            indicator.append(label, removeButton);
+        }
+
+        function attachFile(fileName) {
+            attachedFileForReply = fileName;
+            closeFilePicker();
+            updateAttachmentIndicator();
+            showAlert('Załącznik dodany', `Plik "${fileName}" został pomyślnie dołączony do wiadomości.`);
+        }
+
+        function removeAttachedFile() {
+            attachedFileForReply = null;
+            updateAttachmentIndicator();
+        }
+
+        function setReplyMode(mode) {
+            replyMode = mode;
+            const btnAll = document.getElementById('btn-mode-all');
+            const btnSender = document.getElementById('btn-mode-sender');
+            const infoText = document.getElementById('reply-recipients-info');
+            if (btnAll && btnSender) {
+                if (mode === 'reply_all') {
+                    btnAll.className = "px-3 py-1 bg-blue-600 text-white font-semibold rounded-lg text-xs transition shadow-sm";
+                    btnSender.className = "px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition";
+                    if (infoText) infoText.innerText = `Odbiorcy: Dyrektor (${escapeHtml(userData.dirEmail)}), Sekretariat (${escapeHtml(userData.secEmail)}), Pokój Nauczycielski`;
+                } else {
+                    btnSender.className = "px-3 py-1 bg-blue-600 text-white font-semibold rounded-lg text-xs transition shadow-sm";
+                    btnAll.className = "px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition";
+                    if (infoText) infoText.innerText = `Odbiorca: Tylko Dyrektor (${userData.dirEmail})`;
+                }
+            }
+        }
+
+        // All phishing links are inert: the preview is a fictional training address.
+        const simulatedPhishingUrl = 'https://panel-pge-zwrot.example/odbierz-nadplate';
+        function logPhishingEvent(action, detail = "") {
+            phishingEvents.push({action, detail, time: new Date().toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})});
+        }
+        function previewPhishingUrl() {
+            logPhishingEvent('preview');
+            showAlert('🔎 Podgląd adresu odnośnika', 'Adres docelowy (symulowany): ' + simulatedPhishingUrl + '\n\nDomena panel-pge-zwrot.example nie jest domeną PGE. Adres .example jest przeznaczony do przykładów i nie otwiera prawdziwej strony. Sam podgląd nie jest kliknięciem niebezpiecznego linku.');
+        }
+        function showPhishingSenderDetails() {
+            logPhishingEvent('sender');
+            showAlert('🔎 Szczegóły nadawcy', 'Nazwa wyświetlana: PGE-eBOK\nRzeczywisty adres nadawcy: dta3@accessoalp-pg1297.cloud\nDomena nadawcy: accessoalp-pg1297.cloud\n\nNazwa wyświetlana nie potwierdza tożsamości. W symulatorze nie są dostępne prawdziwe nagłówki SPF/DKIM/DMARC.');
+        }
+        function recordMessageSecurityEvent(email, action) {
+            messageSecurityEvents.push({
+                emailId: email.id,
+                subject: email.subject,
+                sender: email.senderName,
+                type: email.type,
+                action,
+                time: new Date().toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})
+            });
+        }
+        function togglePhishingSuspicious(emailId) {
+            const email = emails.find(e => e.id === emailId);
+            if (!email || email.folder !== 'inbox') return;
+            // A reported incident remains reported, even if the user changes the flag.
+            email.suspiciousFlagged = !email.suspiciousFlagged;
+            recordMessageSecurityEvent(email, email.suspiciousFlagged ? 'flag' : 'unflag');
+            if (email.type === 'phishing_pge') {
+                phishingFlagged = email.suspiciousFlagged;
+                logPhishingEvent(email.suspiciousFlagged ? 'flag' : 'unflag');
+            }
+            selectEmail(emailId);
+            showAlert(email.suspiciousFlagged ? '⚑ Oznaczono jako podejrzaną' : 'Oznaczenie wycofane',
+                email.suspiciousFlagged ? 'Wiadomość została oznaczona jako podejrzana. Możesz wycofać tę decyzję.' : 'Usunięto oznaczenie podejrzanej wiadomości. Wcześniejsze zgłoszenie do IT, jeśli nastąpiło, pozostaje zapisane.');
+            checkSimulationCompletion();
+        }
+        function reportPhishingIncident(emailId) {
+            const email = emails.find(e => e.id === emailId);
+            if (!email || email.folder !== 'inbox') return;
+            if (email.incidentReported) return;
+            email.incidentReported = true;
+            if (!email.suspiciousFlagged) {
+                email.suspiciousFlagged = true;
+                recordMessageSecurityEvent(email, 'flag_auto');
+            }
+            recordMessageSecurityEvent(email, 'report');
+            if (email.type === 'phishing_pge') {
+                phishingReported = true;
+                phishingFlagged = true;
+                logPhishingEvent('report');
+                email.handled = true;
+            }
+            selectEmail(emailId);
+            showAlert('🛡️ Zgłoszenie zapisane', 'W ramach symulacji zgłoszono tę wiadomość zespołowi IT. Żadne rzeczywiste zgłoszenie nie zostało wysłane.');
+            checkSimulationCompletion();
+        }
+        function preparePhishingLinkHints() {
+            const links = document.querySelectorAll('#email-active-view a');
+            const destinations = {
+                'ZATWIERDŹ W PANELU KLIENTA': 'https://panel-pge-zwrot.example/odbierz-nadplate',
+                'Polityka prywatności': 'https://panel-pge-zwrot.example/polityka-prywatnosci',
+                'Rezygnacja': 'https://panel-pge-zwrot.example/rezygnacja'
+            };
+            links.forEach((link, index) => {
+                const label = link.textContent.trim();
+                if (!Object.prototype.hasOwnProperty.call(destinations, label)) return;
+                const destination = destinations[label];
+                const hintId = 'phishing-link-hint-' + index;
+                link.setAttribute('aria-describedby', hintId);
+                link.removeAttribute('title');
+                link.classList.add('phishing-training-link');
+                // Wszystkie adresy są fikcyjne (.example). Nie wykonujemy nawigacji poza symulator.
+                link.setAttribute('href', '#');
+                link.onclick = function(event) {
+                    event.preventDefault();
+                    clickedPhishingLink(label);
+                    return false;
+                };
+                const registerPreview = () => {
+                    if (!link.dataset.previewLogged) {
+                        logPhishingEvent('preview');
+                        link.dataset.previewLogged = 'true';
+                    }
+                };
+                link.addEventListener('mouseenter', registerPreview);
+                link.addEventListener('focus', registerPreview);
+                const hint = document.createElement('span');
+                hint.id = hintId;
+                hint.className = 'phishing-link-hint';
+                hint.setAttribute('role', 'tooltip');
+                const title = document.createElement('strong');
+                title.textContent = 'Adres docelowy: ' + label;
+                const address = document.createElement('span');
+                address.textContent = destination;
+                hint.append(title, address);
+                const wrapper = document.createElement('span');
+                wrapper.className = 'phishing-link-wrap';
+                link.parentNode.insertBefore(wrapper, link);
+                wrapper.append(link, hint);
+            });
+        }
+        function clickedPhishingLink(linkLabel = "ZATWIERDŹ W PANELU KLIENTA") {
+            clickedPhishing = true;
+            logPhishingEvent('click', linkLabel);
+            showAlert("⚠️ Zidentyfikowano Zagrożenie (Phishing)", "Kliknąłeś w odnośnik w fałszywym e-mailu PGE! W realnych warunkach mogłoby to prowadzić do przejęcia konta. Zawsze sprawdzaj adresy URL oraz rzeczywistą domenę nadawcy.");
+            checkSimulationCompletion();
+        }
+
+        function startSimulation(e) {
+            e.preventDefault();
+            userData.facilityType = document.getElementById('facility-type').value;
+            userData.name = document.getElementById('user-name').value;
+            userData.email = document.getElementById('user-email').value;
+            userData.dirName = document.getElementById('dir-name').value;
+            userData.dirEmail = document.getElementById('dir-email').value;
+            userData.secName = document.getElementById('sec-name').value;
+            userData.secEmail = document.getElementById('sec-email').value;
+
+            initEmails(userData.facilityType);
+
+            document.getElementById('profile-display').innerText = `${userData.name} (${userData.email})`;
+            document.getElementById('step-setup').classList.add('hidden');
+            document.getElementById('step-simulation').classList.remove('hidden');
+            renderEmailList();
+            playNotificationSound();
+        }
+
+        function initEmails(facilityType) {
+            clickedPhishing = false;
+            phishingEvents = [];
+            messageSecurityEvents = [];
+            phishingFlagged = false;
+            phishingReported = false;
+            attachedFileForReply = null;
+            replyMode = 'reply_all';
+            sentMessages = [];
+            activeEmailId = null;
+
+            const now = new Date();
+            const basePastTime = new Date(now.getTime() - 5 * 3600000);
+            
+            const formatTime = (dateObj) => {
+                return dateObj.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+            };
+
+            const getStaggeredTime = (index) => {
+                const t = new Date(basePastTime.getTime() + index * 17 * 60000);
+                return formatTime(t);
+            };
+
+            const currentTimeStr = formatTime(now);
+
+            if (facilityType === 'ppp') {
+                emails = [
+                    {
+                        id: 1,
+                        senderName: userData.secName,
+                        senderEmail: userData.secEmail,
+                        subject: "Szczegółowy harmonogram gabinetów diagnostycznych i przydział sal",
+                        date: getStaggeredTime(0),
+                        read: false,
+                        visible: true,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "grafik_gabinetow_diag_szczegolowy.pdf",
+                        attachmentContent: `
+                            <div class="space-y-4">
+                                <div class="border-b border-slate-200 pb-3">
+                                    <h4 class="font-bold text-slate-900 text-sm">PORADNIA PSYCHOLOGICZNO-PEDAGOGICZNA W REGIONIE</h4>
+                                    <p class="text-xs text-slate-500">Wydział Diagnostyczno-Terapeutyczny • Wewnętrzny harmonogram pracy • wersja robocza</p>
+                                </div>
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-xs leading-relaxed">
+                                    <b>Zasady korzystania z gabinetów diagnostycznych:</b> Klucze elektroniczne do gabinetów 1 oraz 2 pobiera się każdorazowo w sekretariacie za pokwitowaniem. Przypominamy o bezwzględnym przestrzeganiu 15-minutowych przerw wietrzenia pomieszczeń między kolejnymi badaniami psychologicznymi (WISC-V, Stanford-Binet 5).
+                                </div>
+                                <table class="w-full text-left border-collapse border border-slate-200 text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-100">
+                                            <th class="border border-slate-200 p-2">Dzień tygodnia</th>
+                                            <th class="border border-slate-200 p-2">Gabinet 1 (Diagnoza IQ / WISC-V)</th>
+                                            <th class="border border-slate-200 p-2">Gabinet 2 (Terapia Integracji Sensorycznej)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">Poniedziałek</td><td class="border border-slate-200 p-2">${escapeHtml(userData.name)} (08:00 - 13:00)</td><td class="border border-slate-200 p-2">Zespół Terapeutyczny (mgr K. Lis)</td></tr>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">Wtorek</td><td class="border border-slate-200 p-2">Przerwa Techniczna / Kalibracja sprzętu</td><td class="border border-slate-200 p-2">Diagnoza Autyzm ASD (dr P. Borek)</td></tr>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">Środa</td><td class="border border-slate-200 p-2">${escapeHtml(userData.name)} (09:00 - 14:00)</td><td class="border border-slate-200 p-2">Terapia Pedagogiczna (mgr A. Żuk)</td></tr>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">Czwartek</td><td class="border border-slate-200 p-2">Konsultacje Indywidualne dla Rodziców</td><td class="border border-slate-200 p-2">Grupa Wsparcia Emocjonalnego</td></tr>
+                                    </tbody>
+                                </table>
+                            <section class="mt-4 rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed"><h5 class="font-bold text-slate-800 mb-2">Zasady organizacyjne</h5><p>Zmiany rezerwacji: sekretariat do godz. 14:00 dnia poprzedniego. Po zakończeniu badania należy zabezpieczyć materiały diagnostyczne i wylogować się ze stanowiska. W harmonogramie nie zamieszcza się nazwisk ani rozpoznań dzieci.</p></section>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: userData.secName, fromEmail: userData.secEmail, toEmail: userData.email, text: `Dzień dobry,<br><br>Przesyłam aktualny przydział gabinetów diagnostycznych na najbliższy tydzień. W środę w gabinecie nr 1 zaplanowano badania poznawcze, a w gabinecie nr 2 konsultacje logopedyczne. Proszę sprawdzić godziny, zgłosić ewentualne kolizje do sekretariatu do 14:00 i nie wpisywać danych dzieci do ogólnodostępnego kalendarza.<br><br>W załączniku znajdują się godziny, osoby odpowiedzialne i zasady przekazywania gabinetów.<br><br>Pozdrawiam,<br>${escapeHtml(userData.secName)}`, time: getStaggeredTime(0) }],
+                        unlocks: [2]
+                    },
+                    {
+                        id: 2,
+                        senderName: "Pani Jolanta Maj (Mama Kacpra)",
+                        senderEmail: "jola.maj.rodzic@gmail.com",
+                        subject: "Zapytanie dotyczące dokumentacji na nadchodzące badanie psychologiczne",
+                        date: getStaggeredTime(1),
+                        read: false,
+                        visible: true,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Jolanta Maj", fromEmail: "jola.maj.rodzic@gmail.com", toEmail: userData.email, text: `Dzień dobry,<br><br>Kacper ma wyznaczony termin diagnozy psychologicznej w środę o 9:00. Czy powinnam przynieść zeszyty szkolne, wcześniejsze opinie i informację od wychowawcy? Czy dokumenty można przekazać na miejscu, zamiast wysyłać skany e-mailem?<br><br>Pozdrawiam,<br>Jolanta Maj`, time: getStaggeredTime(1) }],
+                        unlocks: [3]
+                    },
+                    {
+                        id: 3,
+                        senderName: "Marta Nowak (Mama Zuzi)",
+                        senderEmail: "marta.nowak.rodzic@wp.pl",
+                        subject: "Pytanie ws. dostarczenia opinii z poradni i dokumentacji",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "parent_document",
+                        thread: [{ sender: "Marta Nowak", fromEmail: "marta.nowak.rodzic@wp.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Chciałabym przekazać dokumentację dotyczącą Zuzi przed konsultacją. Czy wystarczy kopia poprzedniej opinii, czy potrzebny jest oryginał do wglądu? Proszę też wskazać bezpieczny sposób dostarczenia dokumentów — nie chciałabym przesyłać ich na zwykły adres e-mail.<br><br>Dziękuję,<br>Marta Nowak`, time: currentTimeStr }],
+                        unlocks: [4]
+                    },
+                    {
+                        id: 4,
+                        senderName: "Prof. Tomasz Barański",
+                        senderEmail: "t.baranski@uniwersytet.edu.pl",
+                        subject: "Ustalenie terminu konsultacji ws. nowych standardów diagnozy specyficznych trudności",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Tomasz Barański", fromEmail: "t.baranski@uniwersytet.edu.pl", toEmail: userData.email, text: `Szanowni Państwo,<br><br>Proponuję krótkie spotkanie zespołu diagnostów w czwartek o 10:00. Chciałbym omówić sposób dokumentowania obserwacji, współpracę psychologa i pedagoga oraz przekazywanie zaleceń rodzicom. Proszę o potwierdzenie udziału i przesłanie pytań bez danych pozwalających zidentyfikować dzieci.<br><br>Z poważaniem,<br>Tomasz Barański`, time: currentTimeStr }],
+                        unlocks: [5]
+                    },
+                    {
+                        id: 5,
+                        senderName: "Magdalena Lis (Kierownik Zespołu Diagnostów)",
+                        senderEmail: "m.lis@poradnia.edu.pl",
+                        subject: "Wstępny kosztorys zakupu nowych testów psychologicznych WISC-V",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "kosztorys_testow_2026_szczegolowy.xlsx",
+                        attachmentContent: `
+                            <div class="space-y-4">
+                                <div class="border-b border-slate-200 pb-3">
+                                    <h4 class="font-bold text-slate-900 text-sm">KOSZTORYS ZAKUPU LICENCJONOWANYCH POMOCY DIAGNOSTYCZNYCH</h4>
+                                    <p class="text-xs text-slate-500">Budżet celowy na doposażenie poradni w roku 2026 • Zatwierdzenie Finansowe</p>
+                                </div>
+                                <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200 text-xs leading-relaxed">
+                                    <b>Informacja księgowa:</b> Wartości mają charakter szacunkowy. Zakup wymaga potwierdzenia dostępności środków oraz zgodności z zasadami licencyjnymi.
+                                </div>
+                                <table class="w-full text-left border-collapse border border-slate-200 text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-100">
+                                            <th class="border border-slate-200 p-2">Nazwa testu / pakietu diagnostycznego</th>
+                                            <th class="border border-slate-200 p-2 text-center">Ilość szt.</th>
+                                            <th class="border border-slate-200 p-2">Cena Netto</th>
+                                            <th class="border border-slate-200 p-2">Wartość Razem</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="border border-slate-200 p-2 font-medium">Skala Inteligencji WISC-V (Zestaw cyfrowo-papierowy)</td>
+                                            <td class="border border-slate-200 p-2 text-center">2</td>
+                                            <td class="border border-slate-200 p-2">4 500,00 PLN</td>
+                                            <td class="border border-slate-200 p-2 font-bold">9 000,00 PLN</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="border border-slate-200 p-2 font-medium">Bateria Testów IDS-2 (Rozwój i Inteligencja Dziecka)</td>
+                                            <td class="border border-slate-200 p-2 text-center">1</td>
+                                            <td class="border border-slate-200 p-2">6 200,00 PLN</td>
+                                            <td class="border border-slate-200 p-2 font-bold">6 200,00 PLN</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="border border-slate-200 p-2 font-medium">Test Bender-Gestalt II (Diagnoza motoryczna i percepcji)</td>
+                                            <td class="border border-slate-200 p-2 text-center">3</td>
+                                            <td class="border border-slate-200 p-2">1 200,00 PLN</td>
+                                            <td class="border border-slate-200 p-2 font-bold">3 600,00 PLN</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            <section class="mt-4 rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed"><h5 class="font-bold text-slate-800 mb-2">Kontrola zamówienia</h5><p>Weryfikacja przed zakupem: zgodność liczby kompletów z zapotrzebowaniem zespołu, koszty materiałów zużywalnych, aktualność licencji, dostępność środków. Dokument jest wersją roboczą — bez podpisu osoby zatwierdzającej.</p></section>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: "Magdalena Lis", fromEmail: "m.lis@poradnia.edu.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Przesyłam robocze zestawienie potrzeb zespołu diagnostycznego na kolejny okres. W załączniku są liczby zestawów, szacunkowe koszty i uwagi o dostępności materiałów. Proszę o sprawdzenie pozycji przed przekazaniem dokumentu do dyrekcji; zakup wymaga jeszcze weryfikacji budżetu i warunków licencyjnych.<br><br>Pozdrawiam,<br>Magdalena Lis`, time: currentTimeStr }],
+                        unlocks: [6]
+                    },
+                    {
+                        id: 6,
+                        senderName: "Wydawnictwo TestEdu",
+                        senderEmail: "zamowienia@testedu.pl",
+                        subject: "Nowy katalog pomocy terapeutycznych i multimedialnych na rok 2026",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "katalog_pomocy_testedu_2026.pdf",
+                        attachmentContent: `
+                            <div class="space-y-4">
+                                <div class="border-b border-slate-200 pb-3">
+                                    <h4 class="font-bold text-slate-900 text-sm">KATALOG OFERTOWY TESTEDU • EDYCJA WIOSNA 2026</h4>
+                                    <p class="text-xs text-slate-500">Specjalistyczne pakiety interaktywne do terapii logopedycznej i integracji sensorycznej</p>
+                                </div>
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-xs leading-relaxed">
+                                    <b>Oferta specjalna dla placówek publicznych:</b> Przy zamówieniu pakietu o wartości powyżej 5 000 PLN, licencja wielostanowiskowa na oprogramowanie logopedyczne gratis.
+                                </div>
+                                <table class="w-full text-left border-collapse border border-slate-200 text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-100">
+                                            <th class="border border-slate-200 p-2">Nazwa pakietu / zestawu</th>
+                                            <th class="border border-slate-200 p-2">Przeznaczenie</th>
+                                            <th class="border border-slate-200 p-2">Cena katalogowa</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="border border-slate-200 p-2 font-medium">Logopedia Pro 3D - Multimedia</td><td class="border border-slate-200 p-2">Korekcja wad wymowy</td><td class="border border-slate-200 p-2">2 400,00 PLN</td></tr>
+                                        <tr><td class="border border-slate-200 p-2 font-medium">Zestaw Integracji Sensorycznej SI-Max</td><td class="border border-slate-200 p-2">Terapia zaburzeń integracji</td><td class="border border-slate-200 p-2">4 800,00 PLN</td></tr>
+                                    </tbody>
+                                </table>
+                            <section class="mt-4 rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed"><h5 class="font-bold text-slate-800 mb-2">Warunki oferty</h5><p>Ceny mają charakter orientacyjny. Przed zakupem należy potwierdzić licencję na korzystanie z materiałów, dostępność wsparcia technicznego oraz możliwość wykorzystania w pracy zespołowej.</p></section>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: "Zespół TestEdu", fromEmail: "zamowienia@testedu.pl", toEmail: userData.email, text: `Szanowni Państwo,<br><br>Przesyłamy katalog pomocy do terapii logopedycznej, pedagogicznej i zajęć wspierających rozwój. Przy każdej pozycji podaliśmy przeznaczenie, zakres pakietu i orientacyjną cenę. Katalog ma charakter informacyjny i nie stanowi zamówienia.<br><br>Pozdrawiamy,<br>Zespół TestEdu`, time: currentTimeStr }],
+                        unlocks: [7]
+                    },
+                    {
+                        id: 7,
+                        senderName: userData.dirName,
+                        senderEmail: userData.dirEmail,
+                        subject: "Pilne zestawienie pacjentów do sprawozdania dotacyjnego",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "dangerous_rodo",
+                        thread: [{ sender: userData.dirName, fromEmail: userData.dirEmail, toEmail: userData.email, text: `Dzień dobry,<br><br>Fundacja współpracująca z poradnią oczekuje dziś zestawienia dzieci objętych terapią. Proszę pilnie przygotować arkusz z imionami, nazwiskami, numerami PESEL i telefonami opiekunów. Aby wszyscy mogli sprawdzić dane, proszę użyć opcji <b>„Odpowiedz wszystkim”</b> i dołączyć plik bez hasła. Termin jest bardzo krótki, więc nie czekajmy na dodatkowe uzgodnienia.<br><br>${escapeHtml(userData.dirName)}<br>Dyrektor poradni`, time: currentTimeStr }],
+                        unlocks: [8]
+                    },
+                    {
+                        id: 8,
+                        senderName: "Tomasz Zieliński (Administrator IT)",
+                        senderEmail: "t.zielinski@poradnia.edu.pl",
+                        subject: "Zaplanowana przerwa techniczna w działaniu serwera bazodanowego",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Tomasz Zieliński", fromEmail: "t.zielinski@poradnia.edu.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>W czwartek od 15:00 do 16:30 planujemy aktualizację systemu obsługującego rejestrację wizyt i dokumentację poradni. W tym czasie nie będzie możliwości zapisywania zmian. Proszę zakończyć pracę przed 14:50, wylogować się i nie zapisywać danych pacjentów na prywatnych nośnikach.<br><br>Po zakończeniu prac prześlę potwierdzenie.<br>Tomasz Zieliński, administrator IT`, time: currentTimeStr }],
+                        unlocks: [9]
+                    },
+                    {
+                        id: 9,
+                        senderName: "Kuratorium Oświaty w Regionie",
+                        senderEmail: "edukacja@kuratorium.gov.pl",
+                        subject: "Komunikat ws. wdrożenia nowych druków opinii i orzeczeń",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Wydział Oświaty", fromEmail: "edukacja@kuratorium.gov.pl", toEmail: userData.email, text: `Szanowni Państwo,<br><br>Przekazujemy informację organizacyjną dotyczącą przeglądu wzorów dokumentów stosowanych w poradniach. Prosimy zweryfikować aktualne formularze i procedurę ich zatwierdzania w oparciu o obowiązujące przepisy oraz komunikaty publikowane w oficjalnych kanałach. Nie należy przesyłać dokumentacji dzieci w odpowiedzi na tę wiadomość.<br><br>Wydział Oświaty`, time: currentTimeStr }],
+                        unlocks: [10]
+                    },
+                    {
+                        id: 10,
+                        senderName: "PPP w Rejonie",
+                        senderEmail: "kontakt@ppp-rejon.edu.pl",
+                        subject: "Zaproszenie na międzyporadnianą sieć współpracy psychologów",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "PPP Rejon", fromEmail: "kontakt@ppp-rejon.edu.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Zapraszamy na spotkanie sieci współpracy poradni w przyszły wtorek o 13:00. Tematy: organizacja diagnozy, konsultacje dla nauczycieli oraz przykłady dobrych praktyk w kontakcie z rodzicami. Przykłady przypadków prosimy przygotować w formie zanonimizowanej.<br><br>Zespół PPP Rejon`, time: currentTimeStr }],
+                        unlocks: [11]
+                    },
+                    {
+                        id: 11,
+                        senderName: "Fundacja Pomocy Dzieciom",
+                        senderEmail: "biuro@fundacja.pl",
+                        subject: "Zaproszenie na specjalistyczne warsztaty terapii behawioralnej",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Fundacja Pomocy Dzieciom", fromEmail: "biuro@fundacja.pl", toEmail: userData.email, text: `Szanowni Państwo,<br><br>Organizujemy warsztat poświęcony planowaniu wsparcia zachowania dzieci i współpracy z rodziną. Uczestnicy otrzymają materiały do pracy z zespołem specjalistów. Zapisy przyjmujemy przez sekretariat fundacji; prosimy nie przesyłać danych podopiecznych.<br><br>Fundacja Pomocy Dzieciom`, time: currentTimeStr }],
+                        unlocks: [12]
+                    },
+                    {
+                        id: 12,
+                        senderName: "PGE-eBOK",
+                        senderEmail: "dta3@accessoalp-pg1297.cloud",
+                        subject: "Informacje dotyczące Twojej umowy - Zwrot nadpłaty",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "phishing_pge",
+                        thread: [{ 
+                            sender: "PGE-eBOK", 
+                            fromEmail: "dta3@accessoalp-pg1297.cloud", 
+                            toEmail: userData.email, 
+                            text: `
+                                <div style="background-color: #f8fafc; padding: 24px; font-family: 'Inter', sans-serif; border-radius: 12px; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0;">
+                                    <div style="text-align: center; margin-bottom: 24px;">
+                                        <h1 style="color: #003366; font-size: 32px; font-weight: 800; letter-spacing: 2px; margin: 0;">P G E</h1>
+                                    </div>
+                                    <div style="background: white; padding: 24px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
+                                        <p style="font-weight: 700; margin-bottom: 16px;">Dzień dobry,</p>
+                                        <div style="border-left: 4px solid #003366; padding-left: 12px; margin-bottom: 20px; color: #475569; font-size: 13px; line-height: 1.6;">
+                                            W wyniku przeprowadzonej weryfikacji Państwa umowy stwierdzono, że została ona przypisana do niewłaściwej grupy taryfowej, nieodpowiadającej rzeczywistemu poziomowi zużycia energii. W konsekwencji stawki jednostkowe zastosowane na ostatnich fakturach nie były zgodne z właściwymi warunkami rozliczenia. Po skorygowaniu parametrów rozliczeniowych oraz ponownym przeliczeniu należności ustalono kwotę nadpłaty wynikającą z zastosowania nieprawidłowych stawek.
+                                        </div>
+                                        <div style="display: flex; justify-content: space-around; text-align: center; margin-bottom: 24px; font-size: 11px; font-weight: 600; color: #003366;">
+                                            <div>
+                                                <div style="background: #003366; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">✓</div>
+                                                ROZLICZENIE
+                                            </div>
+                                            <div>
+                                                <div style="background: #003366; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">✓</div>
+                                                NADPŁATA
+                                            </div>
+                                            <div>
+                                                <div style="background: #f59e0b; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">➔</div>
+                                                ZWROT
+                                            </div>
+                                        </div>
+                                        <div style="background: #f0f6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; text-align: center; margin-bottom: 20px;">
+                                            <div style="font-size: 11px; color: #1e40af; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">NADPŁATA DO ZWROTU</div>
+                                            <div style="font-size: 26px; font-weight: 800; color: #003366; margin-bottom: 4px;">398,79 PLN</div>
+                                            <div style="font-size: 11px; color: #64748b;">Termin: <b>3 dni robocze</b></div>
+                                        </div>
+                                        <div style="text-align: center;">
+                                            <a href="#" onclick="clickedPhishingLink(); return false;" style="background-color: #001f3f; color: white; padding: 12px 24px; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-block; font-size: 13px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">ZATWIERDŹ W PANELU KLIENTA</a>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center; font-size: 10px; color: #94a3b8; line-height: 1.4;">
+                                        Sp. z o.o. | ul. Energetyczna 1, 00-850 Warszawa<br>
+                                        NIP 527-26-15-348 | REGON 146285432 | KRS 0000384721<br>
+                                        <a href="#" style="color: #64748b; text-decoration: underline;">Polityka prywatności</a> | <a href="#" style="color: #64748b; text-decoration: underline;">Rezygnacja</a>
+                                    </div>
+                                </div>
+                            `, 
+                            time: currentTimeStr 
+                        }],
+                        unlocks: []
+                    }
+                ];
+            } else if (facilityType === 'directors') {
+                emails = [
+                    {
+                        id: 1,
+                        senderName: userData.secName,
+                        senderEmail: userData.secEmail,
+                        subject: "Pilna korespondencja z Urzędu Miasta - zatwierdzenie rezerwy celowej",
+                        date: getStaggeredTime(0),
+                        read: false,
+                        visible: true,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "pismo_um_wyplata_subwencja.pdf",
+                        attachmentContent: `
+                            <div class="space-y-4">
+                                <div class="border-b border-slate-200 pb-3">
+                                    <h4 class="font-bold text-slate-900 text-sm">URZĄD MIASTA • WYDZIAŁ EDUKACJI I FINANSÓW</h4>
+                                    <p class="text-xs text-slate-500">Pismo przewodnie ws. przyznania rezerwy celowej na wydatki bieżące i remontowe</p>
+                                </div>
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-xs leading-relaxed">
+                                    <b>Dyspozycja budżetowa:</b> Przyznana kwota 25 000 PLN musi zostać rozliczona fakturą VAT do końca bieżącego kwartału kalendarzowego. Wymagana akceptacja Dyrektora Placówki.
+                                </div>
+                                <table class="w-full text-left border-collapse border border-slate-200 text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-100">
+                                            <th class="border border-slate-200 p-2">Paragraf wydatków</th>
+                                            <th class="border border-slate-200 p-2">Przeznaczenie środków</th>
+                                            <th class="border border-slate-200 p-2">Kwota przyznana</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">§ 4210</td><td class="border border-slate-200 p-2">Zakup materiałów i wyposażenia sal</td><td class="border border-slate-200 p-2">10 000,00 PLN</td></tr>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">§ 4300</td><td class="border border-slate-200 p-2">Usługi remontowo-konserwacyjne</td><td class="border border-slate-200 p-2">15 000,00 PLN</td></tr>
+                                    </tbody>
+                                </table>
+                            <section class="mt-4 rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed"><h5 class="font-bold text-slate-800 mb-2">Obieg dokumentu</h5><p>Dokument do weryfikacji w sekretariacie i księgowości. Przed zatwierdzeniem wydatków należy sprawdzić numer pisma, zgodność kwot z planem finansowym i termin rozliczenia u organu prowadzącego.</p></section>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: userData.secName, fromEmail: userData.secEmail, toEmail: userData.email, text: `Dzień dobry,<br><br>Do sekretariatu wpłynęło pismo wydziału edukacji w sprawie dodatkowych środków na wyposażenie i drobne prace remontowe. W załączniku przekazuję zestawienie kwot i warunków rozliczenia. Proszę o weryfikację dokumentu z główną księgową oraz informację, czy przygotować projekt odpowiedzi do organu prowadzącego.<br><br>${escapeHtml(userData.secName)}`, time: getStaggeredTime(0) }],
+                        unlocks: [2]
+                    },
+                    {
+                        id: 2,
+                        senderName: "Janina Kowalczyk (Wizytator Kuratorium)",
+                        senderEmail: "j.kowalczyk@kuratorium.edu.pl",
+                        subject: "Harmonogram planowanych nadzorów pedagogicznych w placówce",
+                        date: getStaggeredTime(1),
+                        read: false,
+                        visible: true,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Janina Kowalczyk", fromEmail: "j.kowalczyk@kuratorium.edu.pl", toEmail: userData.email, text: `Szanowni Państwo,<br><br>Przesyłam informację o planowanym spotkaniu dotyczącym realizacji zadań nadzoru pedagogicznego. Proszę przygotować wykaz dokumentów organizacyjnych i wskazać osobę do kontaktu. Szczegóły terminu należy potwierdzić oficjalnym kanałem kuratorium.<br><br>Janina Kowalczyk`, time: getStaggeredTime(1) }],
+                        unlocks: [3]
+                    },
+                    {
+                        id: 3,
+                        senderName: "Marek Nowicki (Przewodniczący ZNP)",
+                        senderEmail: "zzn.przewodniczacy@interia.pl",
+                        subject: "Wniosek o spotkanie w sprawie zmian w regulaminie pracy",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Marek Nowicki", fromEmail: "zzn.przewodniczacy@interia.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>W imieniu organizacji związkowej proszę o ustalenie terminu konsultacji proponowanych zmian regulaminu pracy, w szczególności zasad zastępstw i dyżurów. Proponujemy spotkanie w przyszłym tygodniu; proszę o przesłanie projektu zmian z odpowiednim wyprzedzeniem.<br><br>Marek Nowicki`, time: currentTimeStr }],
+                        unlocks: [4]
+                    },
+                    {
+                        id: 4,
+                        senderName: "Piotr Wiśniewski (Kierownik Gospodarczy)",
+                        senderEmail: "p.wisniewski@szkola.edu.pl",
+                        subject: "Pilne zgłoszenie awarii węzła cieplnego i instalacji",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Piotr Wiśniewski", fromEmail: "p.wisniewski@szkola.edu.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>W pomieszczeniu technicznym stwierdziliśmy spadek ciśnienia instalacji centralnego ogrzewania. Zgłoszenie przekazałem serwisowi i zabezpieczyłem dostęp do węzła. Proszę o decyzję, czy ograniczyć użytkowanie części pomieszczeń do czasu kontroli. Nie podejmujemy samodzielnych napraw.<br><br>Piotr Wiśniewski`, time: currentTimeStr }],
+                        unlocks: [5]
+                    },
+                    {
+                        id: 5,
+                        senderName: "Hanna Borowska (Główna Księgowa)",
+                        senderEmail: "h.borowska@ksiegowosc.pl",
+                        subject: "Zestawienie i roczne rozliczenie dotacji oświatowej",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "rozliczenie_dotacji_roczne_2026.xlsx",
+                        attachmentContent: `
+                            <div class="space-y-4">
+                                <div class="border-b border-slate-200 pb-3">
+                                    <h4 class="font-bold text-slate-900 text-sm">ZESTAWIENIE WYDATKÓW BUDŻETOWYCH • DOTACJA OŚWIATOWA</h4>
+                                    <p class="text-xs text-slate-500">Rozliczenie cząstkowe subwencji oraz wydatków bieżących za III kwartał</p>
+                                </div>
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-xs leading-relaxed">
+                                    <b>Podsumowanie finansowe:</b> Wykonanie planu finansowego na poziomie 78%. Wszystkie wydatki celowe zostały udokumentowane prawidłowymi fakturami.
+                                </div>
+                                <table class="w-full text-left border-collapse border border-slate-200 text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-100">
+                                            <th class="border border-slate-200 p-2">Kategoria wydatku</th>
+                                            <th class="border border-slate-200 p-2">Plan roczny</th>
+                                            <th class="border border-slate-200 p-2">Wykonanie</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">Wynagrodzenia osobowe</td><td class="border border-slate-200 p-2">1 200 000,00 PLN</td><td class="border border-slate-200 p-2">900 000,00 PLN</td></tr>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">Utrzymanie obiektów i media</td><td class="border border-slate-200 p-2">180 000,00 PLN</td><td class="border border-slate-200 p-2">140 000,00 PLN</td></tr>
+                                    </tbody>
+                                </table>
+                            <section class="mt-4 rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed"><h5 class="font-bold text-slate-800 mb-2">Lista kontrolna księgowości</h5><p>Do uzgodnienia: zgodność wydatków z fakturami, klasyfikacja budżetowa, daty poniesienia kosztów, pozycje nierozliczone. Arkusz ma charakter roboczy i nie zastępuje sprawozdania finansowego.</p></section>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: "Hanna Borowska", fromEmail: "h.borowska@ksiegowosc.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Przesyłam robocze rozliczenie środków z podziałem na kategorie wydatków. Proszę o sprawdzenie zgodności kwot z ewidencją księgową i dokumentami źródłowymi. Arkusz zawiera pozycje wymagające wyjaśnienia; nie należy traktować go jako zatwierdzonego sprawozdania.<br><br>Hanna Borowska, główna księgowa`, time: currentTimeStr }],
+                        unlocks: [6]
+                    },
+                    {
+                        id: 6,
+                        senderName: "CleanMaster Serwis",
+                        senderEmail: "biuro@cleanmaster.pl",
+                        subject: "Specjalna oferta na profesjonalne czyszczenie posadzek",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "oferta_specjalna_posadzki_szkoła.pdf",
+                        attachmentContent: `
+                            <div class="space-y-4">
+                                <div class="border-b border-slate-200 pb-3">
+                                    <h4 class="font-bold text-slate-900 text-sm">OFERTA SEZONOWA • CLEANMASTER POLSKA</h4>
+                                    <p class="text-xs text-slate-500">Kompleksowa polimeryzacja i czyszczenie posadzek w placówkach oświatowych</p>
+                                </div>
+                                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs">
+                                    <b>Rabat instytucjonalny:</b> 20% zniżki na usługi wykonane w okresie dni wolnych od zajęć dydaktycznych.
+                                </div>
+                            <section class="mt-4 rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed"><h5 class="font-bold text-slate-800 mb-2">Zakres i warunki realizacji</h5><p>Prace po zakończeniu zajęć; konieczne uzgodnienie dostępu do pomieszczeń, zabezpieczenie ciągów komunikacyjnych, odbiór usługi oraz weryfikacja stosowanych środków czystości.</p></section>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: "CleanMaster", fromEmail: "biuro@cleanmaster.pl", toEmail: userData.email, text: `Szanowni Państwo,<br><br>Przesyłamy orientacyjną ofertę czyszczenia i zabezpieczenia posadzek w ciągach komunikacyjnych placówki. W załączniku znajdują się warianty usługi, zakres prac i warunki realizacji poza godzinami zajęć. Ostateczna wycena wymaga oględzin obiektu.<br><br>CleanMaster Serwis`, time: currentTimeStr }],
+                        unlocks: [7]
+                    },
+                    {
+                        id: 7,
+                        senderName: userData.dirName,
+                        senderEmail: userData.dirEmail,
+                        subject: "Pilna weryfikacja danych kadrowych placówki",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "dangerous_rodo",
+                        thread: [{ sender: userData.dirName, fromEmail: userData.dirEmail, toEmail: userData.email, text: `Dzień dobry,<br><br>Na potrzeby pilnego zestawienia dla podmiotu zewnętrznego proszę zebrać dane uczniów i pracowników: imiona, nazwiska, numery PESEL i telefony. Najszybciej będzie wysłać arkusz bez szyfrowania, korzystając z <b>„Odpowiedz wszystkim”</b>, żeby sekretariat i pozostali adresaci mieli od razu kopię. Proszę zrobić to jeszcze dziś.<br><br>${escapeHtml(userData.dirName)}`, time: currentTimeStr }],
+                        unlocks: [8]
+                    },
+                    {
+                        id: 8,
+                        senderName: "Stowarzyszenie Dyrektorów",
+                        senderEmail: "kontakt@dyrektorzy.pl",
+                        subject: "Zaproszenie na ogólnopolską konferencję kadr kierowniczych",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Stowarzyszenie Dyrektorów", fromEmail: "kontakt@dyrektorzy.pl", toEmail: userData.email, text: `Szanowni Państwo,<br><br>Zapraszamy na konferencję dla kadry kierowniczej poświęconą organizacji pracy placówki, nadzorowi pedagogicznemu i bezpieczeństwu informacji. W programie przewidziano dyskusję z praktykami i sesję pytań. Szczegóły programu oraz zasady rejestracji udostępniamy na stronie organizatora.<br><br>Stowarzyszenie Dyrektorów`, time: currentTimeStr }],
+                        unlocks: [9]
+                    },
+                    {
+                        id: 9,
+                        senderName: "Inspektor IOD",
+                        senderEmail: "iod@inspektor.edu.pl",
+                        subject: "Kwartalny raport z przeglądu bezpieczeństwa informacji RODO",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Inspektor Ochrony Danych", fromEmail: "iod@inspektor.edu.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Przesyłam podsumowanie kwartalnego przeglądu organizacji ochrony danych. Proszę o potwierdzenie terminu spotkania w sprawie upoważnień, retencji dokumentacji i procedury obsługi incydentów. Szczegółowy raport będzie udostępniony w wewnętrznym repozytorium, nie przez otwarty załącznik e-mail.<br><br>Inspektor ochrony danych`, time: currentTimeStr }],
+                        unlocks: [10]
+                    },
+                    {
+                        id: 10,
+                        senderName: "Rada Rodziców",
+                        senderEmail: "rada.rodzicow@gmail.com",
+                        subject: "Inicjatywa doposażenia placówki w sprzęt interaktywny",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Rada Rodziców", fromEmail: "rada.rodzicow@gmail.com", toEmail: userData.email, text: `Szanowni Państwo,<br><br>Rada Rodziców rozważa dofinansowanie mobilnego monitora interaktywnego. Prosimy o informację, czy taki zakup odpowiada potrzebom szkoły, oraz o wskazanie wymagań technicznych. Decyzję o wydatku podejmiemy po zapoznaniu się z kosztorysem.<br><br>Prezydium Rady Rodziców`, time: currentTimeStr }],
+                        unlocks: [11]
+                    },
+                    {
+                        id: 11,
+                        senderName: "Gminny Ośrodek Kultury",
+                        senderEmail: "biuro@kultura.pl",
+                        subject: "Wspólny projekt edukacji kulturalnej młodzieży",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "GOK", fromEmail: "biuro@kultura.pl", toEmail: userData.email, text: `Szanowni Państwo,<br><br>Proponujemy wspólne warsztaty teatralne dla uczniów klas starszych, zakończone pokazem w domu kultury. Prosimy o wskazanie koordynatora i orientacyjnej liczby uczestników. Dane osobowe uczniów będziemy zbierać dopiero po uzgodnieniu zasad organizacji wydarzenia.<br><br>Gminny Ośrodek Kultury`, time: currentTimeStr }],
+                        unlocks: [12]
+                    },
+                    {
+                        id: 12,
+                        senderName: "PGE-eBOK",
+                        senderEmail: "dta3@accessoalp-pg1297.cloud",
+                        subject: "Informacje dotyczące Twojej umowy - Zwrot nadpłaty",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "phishing_pge",
+                        thread: [{ 
+                            sender: "PGE-eBOK", 
+                            fromEmail: "dta3@accessoalp-pg1297.cloud", 
+                            toEmail: userData.email, 
+                            text: `
+                                <div style="background-color: #f8fafc; padding: 24px; font-family: 'Inter', sans-serif; border-radius: 12px; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0;">
+                                    <div style="text-align: center; margin-bottom: 24px;">
+                                        <h1 style="color: #003366; font-size: 32px; font-weight: 800; letter-spacing: 2px; margin: 0;">P G E</h1>
+                                    </div>
+                                    <div style="background: white; padding: 24px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
+                                        <p style="font-weight: 700; margin-bottom: 16px;">Dzień dobry,</p>
+                                        <div style="border-left: 4px solid #003366; padding-left: 12px; margin-bottom: 20px; color: #475569; font-size: 13px; line-height: 1.6;">
+                                            W wyniku przeprowadzonej weryfikacji Państwa umowy stwierdzono, że została ona przypisana do niewłaściwej grupy taryfowej, nieodpowiadającej rzeczywistemu poziomowi zużycia energii. W konsekwencji stawki jednostkowe zastosowane na ostatnich fakturach nie były zgodne z właściwymi warunkami rozliczenia. Po skorygowaniu parametrów rozliczeniowych oraz ponownym przeliczeniu należności ustalono kwotę nadpłaty wynikającą z zastosowania nieprawidłowych stawek.
+                                        </div>
+                                        <div style="display: flex; justify-content: space-around; text-align: center; margin-bottom: 24px; font-size: 11px; font-weight: 600; color: #003366;">
+                                            <div>
+                                                <div style="background: #003366; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">✓</div>
+                                                ROZLICZENIE
+                                            </div>
+                                            <div>
+                                                <div style="background: #003366; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">✓</div>
+                                                NADPŁATA
+                                            </div>
+                                            <div>
+                                                <div style="background: #f59e0b; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">➔</div>
+                                                ZWROT
+                                            </div>
+                                        </div>
+                                        <div style="background: #f0f6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; text-align: center; margin-bottom: 20px;">
+                                            <div style="font-size: 11px; color: #1e40af; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">NADPŁATA DO ZWROTU</div>
+                                            <div style="font-size: 26px; font-weight: 800; color: #003366; margin-bottom: 4px;">398,79 PLN</div>
+                                            <div style="font-size: 11px; color: #64748b;">Termin: <b>3 dni robocze</b></div>
+                                        </div>
+                                        <div style="text-align: center;">
+                                            <a href="#" onclick="clickedPhishingLink(); return false;" style="background-color: #001f3f; color: white; padding: 12px 24px; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-block; font-size: 13px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">ZATWIERDŹ W PANELU KLIENTA</a>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center; font-size: 10px; color: #94a3b8; line-height: 1.4;">
+                                        Sp. z o.o. | ul. Energetyczna 1, 00-850 Warszawa<br>
+                                        NIP 527-26-15-348 | REGON 146285432 | KRS 0000384721<br>
+                                        <a href="#" style="color: #64748b; text-decoration: underline;">Polityka prywatności</a> | <a href="#" style="color: #64748b; text-decoration: underline;">Rezygnacja</a>
+                                    </div>
+                                </div>
+                            `, 
+                            time: currentTimeStr 
+                        }],
+                        unlocks: []
+                    }
+                ];
+            } else {
+                emails = [
+                    {
+                        id: 1,
+                        senderName: userData.secName,
+                        senderEmail: userData.secEmail,
+                        subject: "Szczegółowy plan lekcji na jutro oraz harmonogram dyżurów korytarzowych",
+                        date: getStaggeredTime(0),
+                        read: false,
+                        visible: true,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "harmonogram_dyzurow_i_zastepstw.pdf",
+                        attachmentContent: `
+                            <div class="space-y-4">
+                                <div class="border-b border-slate-200 pb-3">
+                                    <h4 class="font-bold text-slate-900 text-sm">SZKOLNY HARMONOGRAM DYŻURÓW NAUCZYCIELSKICH</h4>
+                                    <p class="text-xs text-slate-500">Obowiązuje od poniedziałku do odwołania • Rok szkolny 2026/2027</p>
+                                </div>
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-xs leading-relaxed">
+                                    <b>Ważne:</b> Dyżur na parterze przy wejściu głównym pełnią nauczyciele zgodnie z załączoną listą od godziny 7:45. Nauczyciel pełniący dyżur zobowiązany jest do pilnowania porządku i bezpieczeństwa uczniów podczas przerw międzylekcyjnych.
+                                </div>
+                                <table class="w-full text-left border-collapse border border-slate-200 text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-100">
+                                            <th class="border border-slate-200 p-2">Sektor / Piętro</th>
+                                            <th class="border border-slate-200 p-2">Przerwa (09:40 - 09:50)</th>
+                                            <th class="border border-slate-200 p-2">Przerwa (11:25 - 11:45)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">Parter - Wejście Główne</td><td class="border border-slate-200 p-2">${escapeHtml(userData.name)}</td><td class="border border-slate-200 p-2">Jan Kowalski</td></tr>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">I Piętro - Skrzydło A</td><td class="border border-slate-200 p-2">Maria Wiśniewska</td><td class="border border-slate-200 p-2">${escapeHtml(userData.name)}</td></tr>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">II Piętro - Pracownie Naukowe</td><td class="border border-slate-200 p-2">Piotr Zieliński</td><td class="border border-slate-200 p-2">Anna Wójcik</td></tr>
+                                    </tbody>
+                                </table>
+                            <section class="mt-4 rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed"><h5 class="font-bold text-slate-800 mb-2">Uzgodnienia organizacyjne</h5><p>Nauczyciel zgłasza kolizje dyżurów w sekretariacie. Zastępstwa są potwierdzane w wewnętrznym systemie szkoły; nie należy udostępniać publicznie list z danymi pracowników.</p></section>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: userData.secName, fromEmail: userData.secEmail, toEmail: userData.email, text: `Dzień dobry,<br><br>Przesyłam aktualizację zastępstw i dyżurów na najbliższy tydzień. Zmiana dotyczy dyżuru przy wejściu głównym oraz zastępstwa na drugiej lekcji we wtorek. Proszę sprawdzić przydział w załączniku i zgłosić kolizje w sekretariacie do końca dnia.<br><br>${escapeHtml(userData.secName)}`, time: getStaggeredTime(0) }],
+                        unlocks: [2]
+                    },
+                    {
+                        id: 2,
+                        senderName: "Anna Kowalska (Mama Jasia)",
+                        senderEmail: "a.kowalska.rodzic@gmail.com",
+                        subject: "Zgłoszenie planowanej nieobecności Jasia w przyszłym tygodniu",
+                        date: getStaggeredTime(1),
+                        read: false,
+                        visible: true,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Anna Kowalska", fromEmail: "a.kowalska.rodzic@gmail.com", toEmail: userData.email, text: `Dzień dobry,<br><br>Jaś Kowalski z klasy 3b będzie nieobecny w przyszły poniedziałek i wtorek z powodów rodzinnych. Czy wystarczy zgłoszenie w dzienniku elektronicznym, czy powinnam przekazać wychowawcy dodatkową informację?<br><br>Pozdrawiam,<br>Anna Kowalska`, time: getStaggeredTime(1) }],
+                        unlocks: [3]
+                    },
+                    {
+                        id: 3,
+                        senderName: "Marta Nowak (Mama Zuzi)",
+                        senderEmail: "marta.nowak.rodzic@wp.pl",
+                        subject: "Pytanie ws. orzeczenia psychologiczno-pedagogicznego",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "parent_document",
+                        thread: [{ sender: "Marta Nowak", fromEmail: "marta.nowak.rodzic@wp.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Otrzymaliśmy orzeczenie dotyczące Zuzi. Chciałabym ustalić, komu i w jaki sposób przekazać dokument, żeby szkoła mogła zaplanować odpowiednie wsparcie. Czy mam przynieść go do sekretariatu, czy jest do tego bezpieczny kanał elektroniczny?<br><br>Pozdrawiam,<br>Marta Nowak`, time: currentTimeStr }],
+                        unlocks: [4]
+                    },
+                    {
+                        id: 4,
+                        senderName: "Katarzyna Wójcik (Nauczyciel Współorganizujący)",
+                        senderEmail: "k.wojcik@szkola.edu.pl",
+                        subject: "Organizacja wspólnego wyjścia edukacyjnego do kina z klasą",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Katarzyna Wójcik", fromEmail: "k.wojcik@szkola.edu.pl", toEmail: userData.email, text: `Cześć,<br><br>Planujemy wspólne wyjście klas 6a i 6b na seans związany z omawianą lekturą. Czy możesz sprawdzić, czy termin w piątek nie koliduje z zaplanowanym sprawdzianem? Po uzgodnieniu daty przygotuję informację dla rodziców i zgody zgodnie z procedurą szkoły.<br><br>Katarzyna`, time: currentTimeStr }],
+                        unlocks: [5]
+                    },
+                    {
+                        id: 5,
+                        senderName: "Magdalena Lis (Rada Rodziców)",
+                        senderEmail: "m.lis.rodzice@interia.pl",
+                        subject: "Szczegółowy preliminarz i budżet na zbliżające się Mikołajki",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "budzet_mikolajki_szkolne_2026.xlsx",
+                        attachmentContent: `
+                            <div class="space-y-4">
+                                <div class="border-b border-slate-200 pb-3">
+                                    <h4 class="font-bold text-slate-900 text-sm">PRELIMINARZ WYDATKÓW MIKOŁAJKOWYCH • RADA RODZICÓW</h4>
+                                    <p class="text-xs text-slate-500">Zestawienie paczek, słodyczy oraz atrakcji animacyjnych w świetlicy szkolnej</p>
+                                </div>
+                                <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200 text-xs leading-relaxed">
+                                    <b>Zatwierdzenie budżetu:</b> Środki zostały zebrane w 100% przez trójki klasowe. Każde dziecko otrzyma paczkę mikołajkową o wartości 45 zł.
+                                </div>
+                                <table class="w-full text-left border-collapse border border-slate-200 text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-100">
+                                            <th class="border border-slate-200 p-2">Pozycja wydatku</th>
+                                            <th class="border border-slate-200 p-2 text-center">Ilość szt.</th>
+                                            <th class="border border-slate-200 p-2">Wartość Razem</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">Paczki słodyczy i zabawek</td><td class="border border-slate-200 p-2 text-center">120</td><td class="border border-slate-200 p-2">5 400,00 PLN</td></tr>
+                                        <tr><td class="border border-slate-200 p-2 font-semibold">Wynajem animatora i teatrzyku</td><td class="border border-slate-200 p-2 text-center">1</td><td class="border border-slate-200 p-2">1 200,00 PLN</td></tr>
+                                    </tbody>
+                                </table>
+                            <section class="mt-4 rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed"><h5 class="font-bold text-slate-800 mb-2">Rozliczenie wydarzenia</h5><p>Po wydarzeniu należy porównać wydatki z preliminarzem, zachować dowody zakupów i udostępnić rodzicom zbiorcze rozliczenie bez ujawniania indywidualnych wpłat.</p></section>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: "Magdalena Lis", fromEmail: "m.lis.rodzice@interia.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Przesyłam projekt budżetu klasowych Mikołajek. W arkuszu znajdują się szacunkowe wydatki, wpłaty zadeklarowane przez rodziców i kwota rezerwy. Proszę o sprawdzenie, czy proponowane zakupy są możliwe do zorganizowania w szkole. Nie dołączam listy uczniów ani informacji o wpłatach poszczególnych rodzin.<br><br>Magdalena Lis, Rada Rodziców`, time: currentTimeStr }],
+                        unlocks: [6]
+                    },
+                    {
+                        id: 6,
+                        senderName: "Wydawnictwo NowaEra",
+                        senderEmail: "kontakt@nowaera-szkolenia.pl",
+                        subject: "Nowe pakiety dydaktyczne i darmowe materiały PDF dla nauczycieli",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: true,
+                        attachmentName: "katalog_nowaera_2026_scenariusze.pdf",
+                        attachmentContent: `
+                            <div class="space-y-4">
+                                <div class="border-b border-slate-200 pb-3">
+                                    <h4 class="font-bold text-slate-900 text-sm">KATALOG MATERIAŁÓW DYDAKTYCZNYCH • NOWA ERA</h4>
+                                    <p class="text-xs text-slate-500">Darmowe scenariusze lekcji, karty pracy i testy diagnostyczne zgodne z podstawą programową</p>
+                                </div>
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-xs">
+                                    <b>Promocja dla szkół:</b> Bezpłatny dostęp do platformy e-learningowej dla wszystkich uczniów przy zamówieniu podręczników na rok szkolny 2026/2027.
+                                </div>
+                            <section class="mt-4 rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed"><h5 class="font-bold text-slate-800 mb-2">Wykorzystanie materiałów</h5><p>Przykładowe materiały do planowania lekcji; przed kopiowaniem, modyfikacją lub publikacją należy sprawdzić warunki licencji wskazane przez wydawcę. Nie należy przesyłać prac uczniów na zewnętrzne serwisy bez podstawy i uzgodnienia.</p></section>
+                            </div>
+                        `,
+                        type: "normal",
+                        thread: [{ sender: "NowaEra Szkolenia", fromEmail: "kontakt@nowaera-szkolenia.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Udostępniamy przykładowe karty pracy i scenariusze lekcji dla klas 4–8. Załączony katalog opisuje zakres materiałów oraz warunki korzystania z nich w placówce. Prosimy o weryfikację oferty przed zamówieniem płatnych pakietów.<br><br>Zespół wydawnictwa`, time: currentTimeStr }],
+                        unlocks: [7]
+                    },
+                    {
+                        id: 7,
+                        senderName: userData.dirName,
+                        senderEmail: userData.dirEmail,
+                        subject: "Pilne zestawienie uczestników do projektu sponsorskiego",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "dangerous_rodo",
+                        thread: [{ sender: userData.dirName, fromEmail: userData.dirEmail, toEmail: userData.email, text: `Dzień dobry,<br><br>Partner projektu edukacyjnego poprosił o pilne zestawienie uczestników. Proszę przygotować arkusz zawierający imiona, nazwiska, numery PESEL i telefony rodziców. Aby przyspieszyć pracę, wyślij go bez hasła przez <b>„Odpowiedz wszystkim”</b>, tak żeby wszyscy adresaci od razu zobaczyli dane.<br><br>${escapeHtml(userData.dirName)}`, time: currentTimeStr }],
+                        unlocks: [8]
+                    },
+                    {
+                        id: 8,
+                        senderName: "Tomasz Zieliński (Konserwator)",
+                        senderEmail: "t.zielinski@szkola.edu.pl",
+                        subject: "Zgłoszenie awarii projektora multimedialnego w sali 204",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Tomasz Zieliński", fromEmail: "t.zielinski@szkola.edu.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Projektor w sali 204 wyłącza się po kilku minutach pracy. Zgłosiłem usterkę do obsługi technicznej. Do czasu diagnozy proszę nie uruchamiać urządzenia i skorzystać z monitora mobilnego z biblioteki, jeśli będzie dostępny.<br><br>Tomasz Zieliński`, time: currentTimeStr }],
+                        unlocks: [9]
+                    },
+                    {
+                        id: 9,
+                        senderName: "Centrum Szkoleń Oświatowych",
+                        senderEmail: "biuro@szkolenia.pl",
+                        subject: "Zaproszenie na ogólnopolski webinar: RODO w codziennej pracy szkoły",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Centrum Szkoleń", fromEmail: "biuro@szkolenia.pl", toEmail: userData.email, text: `Szanowni Państwo,<br><br>Zapraszamy na webinar poświęcony bezpiecznemu korzystaniu z dziennika elektronicznego, udostępnianiu informacji rodzicom i reagowaniu na podejrzane wiadomości. Udział jest dobrowolny. Przed rejestracją prosimy sprawdzić organizatora i zasady przetwarzania danych.<br><br>Centrum Szkoleń Oświatowych`, time: currentTimeStr }],
+                        unlocks: [10]
+                    },
+                    {
+                        id: 10,
+                        senderName: "Marek Ząbek (Rodzic)",
+                        senderEmail: "m.zabek@onet.pl",
+                        subject: "Oficjalne usprawiedliwienie nieobecności ucznia na zajęciach",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Marek Ząbek", fromEmail: "m.zabek@onet.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Proszę o usprawiedliwienie nieobecności mojego syna na zajęciach w ubiegły czwartek i piątek. Czy powinienem przesłać tę informację także przez dziennik elektroniczny? Nie chcę wysyłać szczegółowych informacji medycznych e-mailem.<br><br>Marek Ząbek`, time: currentTimeStr }],
+                        unlocks: [11]
+                    },
+                    {
+                        id: 11,
+                        senderName: "Biblioteka Szkolna",
+                        senderEmail: "biblioteka@szkola.edu.pl",
+                        subject: "Przypomnienie o zbliżającym się terminie zwrotu książek",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "normal",
+                        thread: [{ sender: "Zespół Biblioteczny", fromEmail: "biblioteka@szkola.edu.pl", toEmail: userData.email, text: `Dzień dobry,<br><br>Przypominamy o terminie zwrotu lektur wypożyczonych przez klasy 6–8. Prosimy wychowawców o przekazanie ogólnej informacji uczniom. Szczegóły wypożyczeń są dostępne w systemie bibliotecznym, a nie w zbiorczej wiadomości e-mail.<br><br>Biblioteka szkolna`, time: currentTimeStr }],
+                        unlocks: [12]
+                    },
+                    {
+                        id: 12,
+                        senderName: "PGE-eBOK",
+                        senderEmail: "dta3@accessoalp-pg1297.cloud",
+                        subject: "Informacje dotyczące Twojej umowy - Zwrot nadpłaty",
+                        date: currentTimeStr,
+                        read: false,
+                        visible: false,
+                        folder: 'inbox',
+                        hasAttachment: false,
+                        type: "phishing_pge",
+                        thread: [{ 
+                            sender: "PGE-eBOK", 
+                            fromEmail: "dta3@accessoalp-pg1297.cloud", 
+                            toEmail: userData.email, 
+                            text: `
+                                <div style="background-color: #f8fafc; padding: 24px; font-family: 'Inter', sans-serif; border-radius: 12px; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0;">
+                                    <div style="text-align: center; margin-bottom: 24px;">
+                                        <h1 style="color: #003366; font-size: 32px; font-weight: 800; letter-spacing: 2px; margin: 0;">P G E</h1>
+                                    </div>
+                                    <div style="background: white; padding: 24px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
+                                        <p style="font-weight: 700; margin-bottom: 16px;">Dzień dobry,</p>
+                                        <div style="border-left: 4px solid #003366; padding-left: 12px; margin-bottom: 20px; color: #475569; font-size: 13px; line-height: 1.6;">
+                                            W wyniku przeprowadzonej weryfikacji Państwa umowy stwierdzono, że została ona przypisana do niewłaściwej grupy taryfowej, nieodpowiadającej rzeczywistemu poziomowi zużycia energii. W konsekwencji stawki jednostkowe zastosowane na ostatnich fakturach nie były zgodne z właściwymi warunkami rozliczenia. Po skorygowaniu parametrów rozliczeniowych oraz ponownym przeliczeniu należności ustalono kwotę nadpłaty wynikającą z zastosowania nieprawidłowych stawek.
+                                        </div>
+                                        <div style="display: flex; justify-content: space-around; text-align: center; margin-bottom: 24px; font-size: 11px; font-weight: 600; color: #003366;">
+                                            <div>
+                                                <div style="background: #003366; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">✓</div>
+                                                ROZLICZENIE
+                                            </div>
+                                            <div>
+                                                <div style="background: #003366; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">✓</div>
+                                                NADPŁATA
+                                            </div>
+                                            <div>
+                                                <div style="background: #f59e0b; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto;">➔</div>
+                                                ZWROT
+                                            </div>
+                                        </div>
+                                        <div style="background: #f0f6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; text-align: center; margin-bottom: 20px;">
+                                            <div style="font-size: 11px; color: #1e40af; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">NADPŁATA DO ZWROTU</div>
+                                            <div style="font-size: 26px; font-weight: 800; color: #003366; margin-bottom: 4px;">398,79 PLN</div>
+                                            <div style="font-size: 11px; color: #64748b;">Termin: <b>3 dni robocze</b></div>
+                                        </div>
+                                        <div style="text-align: center;">
+                                            <a href="#" onclick="clickedPhishingLink(); return false;" style="background-color: #001f3f; color: white; padding: 12px 24px; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-block; font-size: 13px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">ZATWIERDŹ W PANELU KLIENTA</a>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center; font-size: 10px; color: #94a3b8; line-height: 1.4;">
+                                        Sp. z o.o. | ul. Energetyczna 1, 00-850 Warszawa<br>
+                                        NIP 527-26-15-348 | REGON 146285432 | KRS 0000384721<br>
+                                        <a href="#" style="color: #64748b; text-decoration: underline;">Polityka prywatności</a> | <a href="#" style="color: #64748b; text-decoration: underline;">Rezygnacja</a>
+                                    </div>
+                                </div>
+                            `, 
+                            time: currentTimeStr 
+                        }],
+                        unlocks: []
+                    }
+                ];
+            }
+        }
+
+        function renderEmailList() {
+            const listEl = document.getElementById('email-list');
+            if (!listEl) return;
+
+            let visibleEmails = [];
+            if (currentFolder === 'sent') {
+                visibleEmails = sentMessages.map(m => ({
+                    id: m.id,
+                    senderName: `Do: ${m.recipient}`,
+                    senderEmail: '',
+                    subject: m.subject,
+                    date: m.date,
+                    read: true,
+                    folder: 'sent',
+                    hasAttachment: m.text.includes('Załącznik:'),
+                    thread: [{ sender: m.senderName, fromEmail: userData.email, toEmail: m.recipient, text: m.text, time: m.date }],
+                    isSentItem: true
+                }));
+            } else {
+                visibleEmails = emails.filter(e => e.visible && e.folder === currentFolder);
+            }
+
+            const unreadCount = emails.filter(e => e.visible && e.folder === 'inbox' && !e.read).length;
+
+            const unreadBadge = document.getElementById('unread-badge');
+            if (unreadBadge) {
+                unreadBadge.innerText = unreadCount;
+                unreadBadge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+            }
+            const sidebarBadge = document.getElementById('sidebar-unread-count');
+            if (sidebarBadge) {
+                sidebarBadge.innerText = unreadCount;
+                sidebarBadge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+            }
+
+            if (visibleEmails.length === 0) {
+                listEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">Brak wiadomości w tym folderze.</div>`;
+                return;
+            }
+
+            listEl.innerHTML = visibleEmails.map(email => {
+                const isUnread = currentFolder === 'inbox' && !email.read;
+                const isThread = !email.isSentItem && email.thread.length > 1;
+                const latestMessage = email.thread[email.thread.length - 1];
+                const latestSender = email.senderName;
+                // Statusy są niezależne: cofnięcie flagi nie usuwa wcześniejszego zgłoszenia do IT.
+                const statusBadges = email.isSentItem ? '' : [
+                    email.suspiciousFlagged ? '<span class="inline-flex items-center rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900" title="Wiadomość oznaczona jako podejrzana">⚑ Podejrzana</span>' : '',
+                    email.incidentReported ? '<span class="inline-flex items-center rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-900" title="Zgłoszenie do IT zapisane w symulacji">🛡 Zgłoszono do IT</span>' : ''
+                ].filter(Boolean).join('');
+                return `
+                    <button type="button" role="listitem" aria-label="Otwórz wiadomość: ${escapeHtml(email.senderName)}, ${escapeHtml(email.subject)}" onclick="${email.isSentItem ? `selectSentMessage(${email.id})` : `selectEmail(${email.id})`}" class="mail-item p-3.5 cursor-pointer transition border-b border-slate-100 hover:bg-slate-100 ${activeEmailId === email.id ? 'bg-blue-100/70 border-l-4 border-l-blue-600' : ''} ${isUnread ? 'bg-blue-50/90 font-bold border-l-4 border-l-blue-500' : 'bg-white'}">
+                        <div class="flex justify-between items-baseline mb-1">
+                            <span class="text-xs truncate max-w-[170px] ${isUnread ? 'text-blue-950 font-black' : 'text-slate-800 font-semibold'}">${escapeHtml(latestSender)}</span>
+                            <span class="text-[10px] ${isUnread ? 'text-blue-800 font-bold' : 'text-slate-400'}">${escapeHtml(email.date)}</span>
+                        </div>
+                        <div class="text-xs truncate mb-1 ${isUnread ? 'text-blue-900 font-extrabold' : 'text-slate-700'}">${isThread ? '<span class="inline-block mr-1 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-800">↳ Wątek · ' + email.thread.length + '</span>' : ''}${escapeHtml(email.subject)}</div>
+                        ${statusBadges ? `<div class="flex flex-wrap gap-1 mb-1" aria-label="Status wiadomości">${statusBadges}</div>` : ''}
+                        <div class="flex items-center justify-between text-[10px] text-slate-500">
+                            <span class="truncate max-w-[190px]">${escapeHtml(email.thread[email.thread.length - 1].text.replace(/<[^>]*>?/gm, ''))}</span>
+                            ${email.hasAttachment ? '<span class="text-blue-600 font-bold ml-1">📎</span>' : ''}
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectSentMessage(msgId) {
+            const m = sentMessages.find(item => item.id === msgId);
+            if (!m) return;
+            activeEmailId = msgId;
+            showMobileReading();
+            renderEmailList();
+
+            document.getElementById('no-email-selected').classList.add('hidden');
+            const viewContainer = document.getElementById('email-active-view');
+            viewContainer.classList.remove('hidden');
+
+            viewContainer.innerHTML = `
+                <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
+                    <div>
+                        <h2 class="font-bold text-base text-slate-900 mb-1">${escapeHtml(m.subject)}</h2>
+                        <div class="flex items-center space-x-2 text-xs text-slate-500">
+                            <span>Wysłane do: <strong class="text-slate-800">${escapeHtml(m.recipient)}</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-4 flex-grow">
+                    <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm mb-4">
+                        <div class="flex justify-between items-start border-b border-slate-100 pb-3 mb-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-9 h-9 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
+                                    ${escapeHtml(userData.name.charAt(0))}
+                                </div>
+                                <div>
+                                    <div class="font-bold text-xs text-slate-900">${escapeHtml(userData.name)} <span class="text-slate-400 font-normal">&lt;${escapeHtml(userData.email)}&gt;</span></div>
+                                    <div class="text-[10px] text-slate-400">Do: ${escapeHtml(m.recipient)}</div>
+                                </div>
+                            </div>
+                            <span class="text-[11px] text-slate-400">${escapeHtml(m.date)}</span>
+                        </div>
+                        <div class="text-xs text-slate-700 leading-relaxed">
+                            ${m.text}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectEmail(emailId) {
+            const email = emails.find(e => e.id === emailId);
+            if (!email) return;
+
+            email.read = true;
+            activeEmailId = emailId;
+            showMobileReading();
+            renderEmailList();
+
+            document.getElementById('no-email-selected').classList.add('hidden');
+            const viewContainer = document.getElementById('email-active-view');
+            viewContainer.classList.remove('hidden');
+
+            let actionButtonsHtml = '';
+            if (email.folder === 'inbox') {
+                actionButtonsHtml += `<button onclick="moveToFolder(${email.id}, 'spam')" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-sm">⚠️ Zgłoś jako Spam / Phishing</button>`;
+                actionButtonsHtml += `<button onclick="moveToFolder(${email.id}, 'trash')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition">🗑️ Usuń</button>`;
+            } else if (email.folder === 'spam' || email.folder === 'trash') {
+                actionButtonsHtml += `<button onclick="moveToFolder(${email.id}, 'inbox')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-sm">📥 Przywróć do Odebranych</button>`;
+            }
+
+            if (email.folder === 'inbox') {
+                actionButtonsHtml += `<button type="button" onclick="togglePhishingSuspicious(${email.id})" aria-pressed="${!!email.suspiciousFlagged}" class="${email.suspiciousFlagged ? 'bg-amber-200 hover:bg-amber-300' : 'bg-amber-100 hover:bg-amber-200'} text-amber-900 text-xs font-semibold px-3 py-1.5 rounded-lg transition">⚑ ${email.suspiciousFlagged ? 'Cofnij oznaczenie podejrzanej' : 'Oznacz jako podejrzaną'}</button>`;
+                actionButtonsHtml += `<button type="button" onclick="reportPhishingIncident(${email.id})" ${email.incidentReported ? 'disabled' : ''} class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition disabled:opacity-60">🛡️ ${email.incidentReported ? 'Zgłoszono do IT ✓' : 'Zgłoś incydent do IT'}</button>`;
+            }
+
+            let threadHtml = email.thread.map((msg, idx) => `
+                <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm mb-4">
+                    <div class="flex justify-between items-start border-b border-slate-100 pb-3 mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xs">
+                                ${escapeHtml(msg.sender.charAt(0))}
+                            </div>
+                            <div>
+                                <div class="font-bold text-xs text-slate-900">${escapeHtml(msg.sender)} <span class="text-slate-400 font-normal">&lt;${escapeHtml(msg.fromEmail)}&gt;</span></div>
+                                <div class="text-[10px] text-slate-400">Do: ${escapeHtml(msg.toEmail)}</div>
+                            </div>
+                        </div>
+                        <span class="text-[11px] text-slate-400">${escapeHtml(msg.time)}</span>
+                    </div>
+                    <div class="text-xs text-slate-700 leading-relaxed mb-3">
+                        ${msg.text}
+                    </div>
+                    ${email.hasAttachment && idx === 0 ? `
+                        <div class="mt-3 pt-3 border-t border-slate-100 flex items-center">
+                            <button onclick="showEmailAttachment(${email.id})" class="bg-slate-100 hover:bg-blue-50 text-blue-700 border border-slate-200 hover:border-blue-300 px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-2">
+                                <span>📎</span>
+                                <span>Załącznik: ${escapeHtml(email.attachmentName)} (Kliknij, aby otworzyć podgląd)</span>
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            let replyBoxHtml = '';
+            if (email.folder === 'inbox') {
+                if (email.type === 'dangerous_rodo') {
+                    replyBoxHtml = `
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-lg mt-6">
+                            <h4 class="font-bold text-xs text-slate-900 mb-3 flex items-center space-x-2">
+                                <span>✍️</span>
+                                <span>Odpowiedź na wiadomość Dyrektora</span>
+                            </h4>
+                            <div class="flex items-center space-x-3 mb-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <div class="flex space-x-1">
+                                    <button type="button" id="btn-mode-all" onclick="setReplyMode('reply_all')" class="px-3 py-1 bg-blue-600 text-white font-semibold rounded-lg text-xs transition shadow-sm">Odpowiedz wszystkim</button>
+                                    <button type="button" id="btn-mode-sender" onclick="setReplyMode('reply_sender')" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition">Odpowiedz nadawcy</button>
+                                </div>
+                                <button type="button" onclick="openFilePicker()" class="p-1.5 bg-slate-200 hover:bg-blue-100 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-semibold transition flex items-center space-x-1" title="Dołącz plik z dysku">
+                                    <span>📎</span>
+                                    <span>Dodaj załącznik z listą PESEL</span>
+                                </button>
+                            </div>
+                            <div id="attached-file-indicator" class="hidden text-xs text-blue-700 font-semibold mb-3 bg-blue-50 p-2 rounded-lg border border-blue-200"></div>
+                            <div class="text-[10px] text-slate-500 mb-2 font-medium" id="reply-recipients-info">Odbiorcy: Dyrektor (${escapeHtml(userData.dirEmail)}), Sekretariat (${escapeHtml(userData.secEmail)}), Pokój Nauczycielski</div>
+                            <textarea id="reply-textarea" rows="3" class="w-full p-3 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none mb-3" placeholder="Wpisz treść odpowiedzi..."></textarea>
+                            <div class="flex justify-end">
+                                <button onclick="sendReply(${email.id})" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-5 rounded-xl text-xs transition shadow">Wyślij odpowiedź</button>
+                            </div>
+                        </div>
+                    `;
+                } else if (email.type === 'parent_document') {
+                    replyBoxHtml = `
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-lg mt-6">
+                            <h4 class="font-bold text-xs text-slate-900 mb-3">✍️ Odpowiedz rodzicowi</h4>
+                            <textarea id="reply-textarea" rows="3" class="w-full p-3 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none mb-3" placeholder="Wpisz odpowiedź, np. Tak, proszę przynieść oryginał w czwartek przed zajęciami..."></textarea>
+                            <div class="flex justify-end">
+                                <button onclick="sendReply(${email.id})" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-5 rounded-xl text-xs transition shadow">Wyślij odpowiedź</button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    replyBoxHtml = `
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-lg mt-6">
+                            <h4 class="font-bold text-xs text-slate-900 mb-3">✍️ Nowa wiadomość / Odpowiedź</h4>
+                            <textarea id="reply-textarea" rows="3" class="w-full p-3 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none mb-3" placeholder="Wpisz treść odpowiedzi..."></textarea>
+                            <div class="flex justify-end">
+                                <button onclick="sendReply(${email.id})" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-5 rounded-xl text-xs transition shadow">Wyślij odpowiedź</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            viewContainer.innerHTML = `
+                <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
+                    <div>
+                        <h2 class="font-bold text-base text-slate-900 mb-1">${escapeHtml(email.subject)}</h2>
+                        <div class="flex items-center space-x-2 text-xs text-slate-500">
+                            <span>Od: <strong class="text-slate-800">${escapeHtml(email.senderName)}</strong></span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        ${actionButtonsHtml}
+                    </div>
+                </div>
+                <div class="space-y-4 flex-grow">
+                    ${threadHtml}
+                    ${replyBoxHtml}
+                </div>
+            `;
+            updateAttachmentIndicator();
+            if (email.type === 'phishing_pge') preparePhishingLinkHints();
+        }
+
+        function sendReply(emailId) {
+            const email = emails.find(e => e.id === emailId);
+            const textarea = document.getElementById('reply-textarea');
+            if (!email || !textarea) return;
+
+            const replyText = textarea.value.trim();
+            if (!replyText && !attachedFileForReply) {
+                showAlert("Pusta wiadomość", "Wpisz treść odpowiedzi lub dołącz plik przed wysłaniem.");
+                return;
+            }
+
+            const nowStr = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+
+            if (email.type === 'dangerous_rodo') {
+                email.handled = true;
+                email.rodoReplyAll = (replyMode === 'reply_all');
+                email.rodoHasAttachment = (attachedFileForReply === 'lista_uczniów_pesel.xlsx');
+                email.rodoAssessment = assessRodo(replyText, email.rodoReplyAll, attachedFileForReply);
+                email.rodoReplyText = replyText;
+            }
+
+            let fullReplyHtml = safeMessageText(replyText);
+            if (attachedFileForReply) {
+                fullReplyHtml += `<br><br>📎 <b>Załącznik:</b> ${escapeHtml(attachedFileForReply)}`;
+            }
+
+            const recipients = email.type === 'dangerous_rodo' && replyMode === 'reply_all'
+                ? `${userData.dirEmail}, ${userData.secEmail}, Pokój Nauczycielski`
+                : email.senderEmail;
+            email.thread.push({
+                sender: userData.name,
+                fromEmail: userData.email,
+                toEmail: recipients,
+                text: fullReplyHtml,
+                time: nowStr
+            });
+
+            sentMessages.push({
+                id: Date.now(),
+                senderName: userData.name,
+                recipient: email.type === 'dangerous_rodo' && replyMode === 'reply_all'
+                    ? `${email.senderName}, Sekretariat, Pokój Nauczycielski` : email.senderName,
+                subject: "Re: " + email.subject,
+                date: nowStr,
+                text: fullReplyHtml
+            });
+
+            if (email.type === 'parent_document') {
+                setTimeout(() => {
+                    email.thread.push({
+                        sender: email.senderName,
+                        fromEmail: email.senderEmail,
+                        toEmail: userData.email,
+                        text: `Dziękuję bardzo za informację. Przyniosę dokument w czwartek przed zajęciami.<br><br>${email.senderName}`,
+                        time: new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+                    });
+                    // Nowa odpowiedź pozostaje częścią tego samego wątku, ale jest
+                    // ponownie widoczna jako nieprzeczytana pozycja w Odebranych.
+                    email.read = false;
+                    email.date = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                    email.lastReplyReceivedAt = Date.now();
+                    playNotificationSound();
+                    renderEmailList();
+                    if (activeEmailId === emailId && currentFolder === 'inbox') {
+                        // Odśwież widok wątku, zachowując status nowej wiadomości.
+                        selectEmail(emailId);
+                        email.read = false;
+                        renderEmailList();
+                    }
+                }, 1500);
+            }
+
+            attachedFileForReply = null;
+            replyMode = 'reply_all';
+            showAlert("Wysłano", "Twoja odpowiedź została pomyślnie wysłana i zapisana w folderze Wysłane.");
+            
+            unlockNextEmail(emailId);
+            checkSimulationCompletion();
+            selectEmail(emailId);
+        }
+
+        function unlockNextEmail(currentId) {
+            const currentEmail = emails.find(e => e.id === currentId);
+            if (!currentEmail || !currentEmail.unlocks || currentEmail.unlocks.length === 0) return;
+
+            const nextId = currentEmail.unlocks[0];
+            const nextEmail = emails.find(e => e.id === nextId);
+            if (nextEmail && !nextEmail.visible) {
+                nextEmail.visible = true;
+                nextEmail.date = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                playNotificationSound();
+            }
+            renderEmailList();
+        }
+
+        function moveToFolder(emailId, targetFolder) {
+            const email = emails.find(e => e.id === emailId);
+            if (!email) return;
+
+            const wasInInbox = email.folder === 'inbox';
+            email.folder = targetFolder;
+            if (targetFolder !== 'inbox' || wasInInbox) {
+                recordMessageSecurityEvent(email, targetFolder === 'spam' ? 'spam' : targetFolder === 'trash' ? 'trash' : 'restore');
+            }
+            
+            if (email.type === 'phishing_pge') {
+                logPhishingEvent(targetFolder === 'spam' ? 'spam' : targetFolder === 'trash' ? 'trash' : 'restore');
+                if (targetFolder === 'spam') email.handled = true;
+                else email.handled = false;
+            }
+
+            if (targetFolder === 'spam') {
+                showAlert("Przeniesiono do Spamu", "Wiadomość została przeniesiona do folderu Spam / Phishing.");
+            } else if (targetFolder === 'trash') {
+                showAlert("Przeniesiono do Kosza", "Wiadomość została przeniesiona do Kosza.");
+            } else {
+                showAlert("Przywrócono", "Wiadomość została przeniesiona z powrotem do skrzynki odbiorczej.");
+            }
+
+            if (wasInInbox && (targetFolder === 'spam' || targetFolder === 'trash')) {
+                unlockNextEmail(emailId);
+            }
+
+            switchFolder(currentFolder);
+            checkSimulationCompletion();
+        }
+
+        function checkSimulationCompletion() {
+            const rodoEmail = emails.find(e => e.type === 'dangerous_rodo');
+            const pgeEmail = emails.find(e => e.type === 'phishing_pge');
+
+            const rodoHandled = rodoEmail && (rodoEmail.handled || rodoEmail.thread.some(m => m.sender === userData.name));
+            const pgeHandled = pgeEmail && ((pgeEmail.handled || pgeEmail.folder === 'spam' || pgeEmail.folder === 'trash') || clickedPhishing || phishingReported);
+
+            const finishBtn = document.getElementById('finish-simulation-btn');
+            if (finishBtn) {
+                if (rodoHandled && pgeHandled) {
+                    finishBtn.disabled = false;
+                    finishBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition shadow animate-pulse";
+                    finishBtn.innerText = "Zakończ i podsumuj ✓";
+                    finishBtn.title = "Wszystkie kluczowe zadania zostały ukończone. Możesz przejść do podsumowania!";
+                } else {
+                    finishBtn.disabled = true;
+                    finishBtn.className = "bg-slate-700 text-slate-400 cursor-not-allowed px-4 py-1.5 rounded-lg text-xs font-semibold transition";
+                    finishBtn.innerText = "Zakończ i podsumuj (Zablokowane)";
+                    finishBtn.title = "Ukończ zadanie RODO i obsłuż wiadomość phishingową.";
+                }
+            }
+        }
+
+        function finishSimulationManually() {
+            const btn = document.getElementById('finish-simulation-btn');
+            if (!btn || btn.disabled) return;
+            const rodoEmail = emails.find(e => e.type === 'dangerous_rodo');
+            const pgeEmail = emails.find(e => e.type === 'phishing_pge');
+
+            let rodoResultHtml = "";
+            if (rodoEmail && rodoEmail.handled) {
+                const assessment = rodoEmail.rodoAssessment || {level:'unclear', reason:'Brak danych do oceny.'};
+                const classes = assessment.level === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                    : assessment.level === 'danger' ? 'bg-rose-50 border-rose-200 text-rose-900'
+                    : 'bg-amber-50 border-amber-200 text-amber-900';
+                const heading = assessment.level === 'success' ? '✅ Prawidłowa decyzja'
+                    : assessment.level === 'danger' ? '❌ Naruszenie bezpieczeństwa danych'
+                    : assessment.level === 'unclear' ? '⚠️ Decyzja niejednoznaczna' : '⚠️ Wymaga poprawy';
+                const recipientNote = rodoEmail.rodoReplyAll ? 'Wybrano odpowiedź do wszystkich.' : 'Wybrano odpowiedź tylko do nadawcy.';
+                rodoResultHtml = `<div class="p-3.5 border rounded-xl text-sm leading-relaxed ${classes}"><b>${heading} (Zadanie z Dyrektorem):</b> ${escapeHtml(assessment.reason)} ${recipientNote} ${rodoEmail.rodoHasAttachment ? 'Dołączono niezabezpieczoną listę PESEL.' : 'Nie dołączono listy PESEL.'}<br><br><b>Dobra praktyka:</b> zweryfikuj cel, podstawę i uprawnienia odbiorców. Nie przesyłaj listy PESEL zwykłym e-mailem bez odpowiednich zabezpieczeń. Automatyczna ocena treści ma charakter pomocniczy.</div>`;
+                // Pełna odpowiedź jest pokazywana ZAWSZE, nie tylko w przypadkach niejasnych.
+                // escapeHtml chroni raport przed wstrzyknięciem znaczników przez uczestnika.
+                const writtenReply = rodoEmail.rodoReplyText || '';
+                const reviewNote = assessment.requiresReview
+                    ? '<p class="mt-2 font-semibold text-amber-900">⚠️ Ocena treści wymaga weryfikacji prowadzącego; punkty za treść nie zostały automatycznie przyznane.</p>'
+                    : '<p class="mt-2 text-slate-600">Automatyczna analiza jest pomocnicza. Prowadzący może zweryfikować ocenę w kontekście zadania.</p>';
+                rodoResultHtml += `<section class="rounded-xl border border-slate-300 bg-white p-4 space-y-2" aria-labelledby="rodo-reply-review-title"><h4 id="rodo-reply-review-title" class="text-base font-bold text-slate-900">Treść odpowiedzi uczestnika — do weryfikacji przez prowadzącego</h4><div class="rounded-lg bg-slate-50 border border-slate-200 p-3 text-sm text-slate-800 whitespace-pre-wrap break-words">${escapeHtml(writtenReply) || '<em>(Brak treści — wysłano wyłącznie załącznik)</em>'}</div>${reviewNote}<p class="text-sm text-slate-600">Odbiorcy: ${rodoEmail.rodoReplyAll ? 'wszyscy adresaci' : 'tylko nadawca'}. ${rodoEmail.rodoHasAttachment ? 'Dołączono listę PESEL.' : 'Nie dołączono listy PESEL.'}</p></section>`;
+            } else {
+                rodoResultHtml = `<div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm leading-relaxed text-slate-700"><b>ℹ️ Zadanie z Dyrektorem:</b> Nie udzielono odpowiedzi na wiadomość o sprawozdaniu.</div>`;
+            }
+
+            let pgeResultHtml = "";
+            if (pgeEmail) {
+                const clicked = phishingEvents.some(event => event.action === 'click');
+                const safelyHandled = phishingReported || pgeEmail.folder === 'spam';
+                const names = {click:'Kliknięcie podejrzanego linku', preview:'Podgląd adresu URL', sender:'Sprawdzenie nadawcy', flag:'Oznaczenie jako podejrzana', unflag:'Wycofanie oznaczenia podejrzanej', report:'Zgłoszenie incydentu do IT', spam:'Przeniesienie do spamu', trash:'Przeniesienie do kosza', restore:'Przywrócenie do odebranych'};
+                const history = phishingEvents.length ? phishingEvents.map(e => `${names[e.action] || e.action}${e.detail ? ' — ' + e.detail : ''} (${e.time})`).join(' → ') : 'Brak zarejestrowanych działań';
+                let heading, description, classes;
+                if (clicked) {
+                    heading = '❌ Ryzykowny incydent (Phishing PGE)';
+                    description = 'Kliknięto podejrzany odnośnik ' + phishingEvents.filter(e => e.action === 'click').length + ' raz(y). ' + (safelyHandled ? 'Późniejsze zgłoszenie lub odizolowanie wiadomości nie cofa kliknięcia.' : 'Nie odnotowano jeszcze skutecznego zgłoszenia lub odizolowania wiadomości.');
+                    classes = 'bg-rose-50 border-rose-200 text-rose-900';
+                } else if (safelyHandled) {
+                    heading = '✅ Prawidłowa reakcja (Phishing PGE)';
+                    description = 'Zgłoszono do IT lub przeniesiono wiadomość do spamu bez klikania odnośnika.' + (phishingReported ? ' Zarejestrowano zgłoszenie incydentu do IT.' : '');
+                    classes = 'bg-emerald-50 border-emerald-200 text-emerald-900';
+                } else {
+                    heading = '⚠️ Zadanie phishingowe niedokończone';
+                    description = pgeEmail.suspiciousFlagged ? 'Wiadomość oznaczono jako podejrzaną, lecz nie zgłoszono ani nie odizolowano.' : 'Nie zgłoszono ani nie odizolowano wiadomości.';
+                    classes = 'bg-amber-50 border-amber-200 text-amber-900';
+                }
+                pgeResultHtml = `<div class="p-3.5 border rounded-xl text-sm leading-relaxed ${classes}"><b>${heading}:</b> ${escapeHtml(description)}<br><br><b>Historia działań:</b> ${escapeHtml(history)}<br><br><b>Wskazówka:</b> W wiadomości PGE sprawdzaj adresy wszystkich odnośników (również w stopce) bez ich otwierania. Porównuj domenę z nadawcą i zgłaszaj podejrzaną korespondencję właściwym kanałem. Podejrzany link może prowadzić do wyłudzenia danych.</div>`;
+            }
+
+            const summaryContainer = document.getElementById('summary-results');
+            // General activity audit: preserve chronological actions, including withdrawn flags.
+            // Normal messages are not automatically "safe" by sender alone; this is a training heuristic.
+            const securityActionLabels = {
+                flag: 'Oznaczono jako podejrzaną', unflag: 'Wycofano oznaczenie',
+                flag_auto: 'Automatycznie oznaczono po zgłoszeniu',
+                report: 'Zgłoszono do IT', spam: 'Przeniesiono do spamu',
+                trash: 'Przeniesiono do kosza', restore: 'Przywrócono do odebranych'
+            };
+            const trackedIds = [...new Set(messageSecurityEvents.map(e => e.emailId))];
+            let otherActionsHtml = '';
+            if (trackedIds.length) {
+                const rows = trackedIds.map(id => {
+                    const email = emails.find(e => e.id === id);
+                    if (!email) return '';
+                    const events = messageSecurityEvents.filter(e => e.emailId === id);
+                    const isPge = email.type === 'phishing_pge';
+                    const hasEscalation = events.some(e => e.action === 'report' || e.action === 'spam');
+                    const hadFlag = events.some(e => e.action === 'flag' || e.action === 'flag_auto');
+                    const falsePositive = !isPge && (hasEscalation || email.suspiciousFlagged);
+                    const classification = isPge
+                        ? 'Scenariusz phishingowy — szczegółowa ocena powyżej.'
+                        : falsePositive
+                            ? 'Potencjalnie nieuzasadnione oznaczenie lub zgłoszenie zwykłej wiadomości. Zweryfikuj przesłanki; sama treść scenariusza nie potwierdza phishingu.'
+                            : hadFlag
+                                ? 'Oznaczenie wycofano; w historii pozostaje pierwotna decyzja.'
+                                : 'Zarejestrowano działanie na wiadomości.';
+                    const history = events.map(e => (securityActionLabels[e.action] || e.action) + ' (' + e.time + ')').join(' → ');
+                    return `<div class="p-3 border rounded-lg ${falsePositive ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}"><b>${escapeHtml(email.senderName)} — ${escapeHtml(email.subject)}</b><div class="mt-1">${escapeHtml(classification)}</div><div class="mt-1 text-slate-600"><b>Historia:</b> ${escapeHtml(history)}</div></div>`;
+                }).join('');
+                otherActionsHtml = `<div class="mt-3 space-y-2"><h3 class="font-bold text-base">Działania dotyczące wszystkich wiadomości</h3><p class="text-sm text-slate-600">Historia obejmuje również cofnięte oznaczenia. Zgłoszenie zwykłej wiadomości nie musi oznaczać błędu — ocena zależy od kontekstu.</p>${rows}</div>`;
+            } else {
+                otherActionsHtml = '<div class="mt-3 p-3 bg-slate-50 border rounded-lg text-sm">Nie zarejestrowano oznaczeń, zgłoszeń ani przeniesień wiadomości.</div>';
+            }
+            // Etap 5: przejrzysta punktacja z uzasadnieniem i bez karania za sam podgląd URL.
+            // Jest to dydaktyczna heurystyka, a nie certyfikowana ocena kompetencji.
+            const competencies = [];
+            const mistakes = [];
+            const addMistake = (title, explanation) => mistakes.push({title, explanation});
+            const rodoAssessment = rodoEmail?.rodoAssessment;
+            let rodoPoints = 0;
+            let rodoCriteriaHtml = '';
+            if (rodoEmail?.handled) {
+                const assessment = rodoAssessment || assessRodo(rodoEmail.rodoReplyText || '', rodoEmail.rodoReplyAll, rodoEmail.rodoHasAttachment ? 'lista_uczniów_pesel.xlsx' : null);
+                // Zadanie RODO stanowi 40% wyniku całego szkolenia.
+                rodoPoints = Math.round((assessment.score || 0) * 0.4);
+                rodoCriteriaHtml = `<div class="mt-3 rounded-xl border border-slate-200 p-3 bg-white"><h4 class="font-bold text-base mb-2">Szczegółowa ocena zadania RODO (${assessment.score}/100 pkt)</h4><div class="space-y-2">${(assessment.criteria || []).map(c => `<div class="flex justify-between gap-3"><span>${escapeHtml(c.name)}: ${escapeHtml(c.explanation)}</span><b class="shrink-0 tabular-nums">${c.points}/${c.max}</b></div>`).join('')}</div>${assessment.requiresReview ? '<p class="mt-3 text-amber-800 font-medium">⚠️ Treść odpowiedzi jest niejednoznaczna. Wynik części tekstowej ma charakter orientacyjny i powinien zostać zweryfikowany przez prowadzącego. Nie zadawano dodatkowych pytań w trakcie pisania wiadomości.</p>' : ''}</div>`;
+                if (rodoEmail.rodoHasAttachment) addMistake('Niezabezpieczony załącznik z danymi', 'Nie dołączaj wykazu danych osobowych do zwykłego e-maila. Zweryfikuj cel, podstawę, uprawnienia i kanał przekazania.');
+                if (rodoEmail.rodoReplyAll) addMistake('Użycie „Odpowiedz wszystkim” przy danych osobowych', 'Ogranicz krąg odbiorców do osób uprawnionych. W tym zadaniu wystarcza odpowiedź do nadawcy.');
+                if (assessment.signals?.unsafe) addMistake('Deklaracja ryzykownego przekazania danych', 'Treść sugeruje zamiar przesłania danych; samo wspomnienie szyfrowania lub ryzyka nie jest odmową.');
+                if (!assessment.signals?.unsafe && !assessment.signals?.refusal && !assessment.signals?.risk && !assessment.requiresReview) addMistake('Brak jednoznacznego rozpoznania ryzyka', 'Wskaż, dlaczego przekazanie danych w żądanej formie jest nieodpowiednie.');
+                if (!assessment.signals?.alternative && !assessment.requiresReview) addMistake('Brak bezpiecznej alternatywy', 'Zaproponuj weryfikację podstawy i uprawnień oraz właściwy, zabezpieczony kanał.');
+            } else {
+                addMistake('Brak odpowiedzi na zadanie ochrony danych', 'Udziel odpowiedzi wyjaśniającej, dlaczego nie należy przekazywać danych w niechroniony sposób.');
+            }
+            competencies.push({name:'Ochrona danych i RODO', points:rodoPoints, max:40, explanation:'Cztery jawne kryteria: odbiorcy (20), załącznik (30), rozpoznanie ryzyka (25), bezpieczna alternatywa (25); wynik przeliczany na 40 pkt całego szkolenia.'});
+
+            // Pięć niezależnych kryteriów po 8 punktów. Spam nie zastępuje zgłoszenia do IT.
+            const riskyClicks = phishingEvents.filter(e => e.action === 'click');
+            const phishingChecks = [
+                {name:'Sprawdzenie rzeczywistego nadawcy', earned:phishingEvents.some(e => e.action === 'sender'), max:8},
+                {name:'Bezpieczny podgląd adresu URL', earned:phishingEvents.some(e => e.action === 'preview'), max:8},
+                {name:'Oznaczenie jako podejrzanej', earned:phishingEvents.some(e => e.action === 'flag' || e.action === 'report'), max:8},
+                {name:'Zgłoszenie do IT', earned:phishingEvents.some(e => e.action === 'report'), max:8},
+                {name:'Niekliknięcie podejrzanego linku', earned:riskyClicks.length === 0, max:8}
+            ];
+            const phishingPoints = pgeEmail ? phishingChecks.reduce((sum, c) => sum + (c.earned ? c.max : 0), 0) : 0;
+            const phishingCriteriaHtml = pgeEmail ? `<div class="mt-3 rounded-xl border border-slate-200 p-3 bg-white"><h4 class="font-bold text-base mb-2">Szczegółowa ocena phishingu (${phishingPoints}/40 pkt)</h4><div class="space-y-2">${phishingChecks.map(c => `<div class="flex justify-between gap-3"><span>${escapeHtml(c.name)}</span><b class="shrink-0 tabular-nums">${c.earned ? c.max : 0}/${c.max}</b></div>`).join('')}</div><p class="mt-3 text-slate-600">Przeniesienie do spamu jest właściwym działaniem porządkowym, ale nie zastępuje sprawdzenia nadawcy, adresu URL ani zgłoszenia do IT. Punkty za brak kliknięcia przysługują wyłącznie wtedy, gdy nie kliknięto żadnego podejrzanego odnośnika.</p></div>` : '';
+            if (pgeEmail) {
+                if (riskyClicks.length) addMistake('Kliknięcie podejrzanego odnośnika', 'Kliknięto ' + riskyClicks.length + ' odnośnik(ów). Późniejsze zgłoszenie lub przeniesienie do spamu nie usuwa ryzyka.');
+                if (!phishingChecks[0].earned) addMistake('Nie sprawdzono nadawcy', 'Sprawdź rzeczywisty adres nadawcy, a nie tylko jego nazwę.');
+                if (!phishingChecks[1].earned) addMistake('Nie sprawdzono adresu odnośnika', 'Sprawdź adres docelowy bez otwierania strony.');
+                if (!phishingChecks[2].earned) addMistake('Nie oznaczono phishingu jako podejrzanego', 'Oznacz podejrzaną wiadomość; zgłoszenie do IT również potwierdza rozpoznanie zagrożenia.');
+                if (!phishingChecks[3].earned) addMistake('Brak zgłoszenia phishingu do IT', 'W tym scenariuszu należy zgłosić incydent do IT. Przeniesienie do spamu nie zastępuje zgłoszenia.');
+            }
+            competencies.push({name:'Rozpoznawanie phishingu', points:phishingPoints, max:40, explanation:'Pięć niezależnych kryteriów po 8 pkt: nadawca, podgląd URL, oznaczenie, zgłoszenie IT i brak kliknięcia. Przeniesienie do spamu nie jest osobno punktowane.'});
+
+            // Ocena higieny działań: tylko zdarzenia zapisane w bieżącej symulacji.
+            const ordinaryEmails = emails.filter(e => e.type !== 'phishing_pge' && e.type !== 'dangerous_rodo');
+            const ordinaryIds = new Set(ordinaryEmails.map(e => e.id));
+            const ordinaryEvents = messageSecurityEvents.filter(e => ordinaryIds.has(e.emailId));
+            const escalatedOrdinary = new Set(ordinaryEvents.filter(e => e.action === 'report' || e.action === 'spam').map(e => e.emailId));
+            const stillFlaggedOrdinary = ordinaryEmails.filter(e => e.suspiciousFlagged && !escalatedOrdinary.has(e.id));
+            const reviewCount = escalatedOrdinary.size + stillFlaggedOrdinary.length;
+            // Zwykłe wiadomości nie mają jednoznacznej etykiety "bezpieczne".
+            // Zgłoszenia wymagają kontekstu i nie są automatycznie karane.
+            const hygienePoints = 20;
+            if (reviewCount) addMistake('Działania do omówienia z prowadzącym (' + reviewCount + ')', 'Oznaczenia i zgłoszenia zwykłych wiadomości wymagają oceny kontekstu. Nie odjęto punktów automatycznie.');
+            competencies.push({name:'Higiena obsługi korespondencji (wynik pomocniczy)', points:hygienePoints, max:20, explanation:'20 punktów przyznawanych wstępnie. Brak automatycznej kary za zgłoszenia zwykłych wiadomości; ta kompetencja wymaga oceny prowadzącego i nie jest w pełni weryfikowana przez symulator.'});
+
+            const total = competencies.reduce((sum, c) => sum + c.points, 0);
+            const level = total >= 85 && phishingPoints >= 32 && !riskyClicks.length ? 'Bardzo dobry wynik' : total >= 65 ? 'Dobry wynik — są obszary do poprawy' : total >= 40 ? 'Wynik wymagający doskonalenia' : 'Wynik wymagający ponownego przećwiczenia';
+            const bars = competencies.map(c => {
+                const percent = Math.round(c.points / c.max * 100);
+                return `<div class="rounded-xl border border-slate-200 p-3 bg-white"><div class="flex items-center justify-between gap-3"><b>${escapeHtml(c.name)}</b><b class="tabular-nums">${c.points}/${c.max} pkt</b></div><div role="progressbar" aria-label="${escapeHtml(c.name)}" aria-valuemin="0" aria-valuemax="${c.max}" aria-valuenow="${c.points}" class="mt-2 h-2.5 rounded-full bg-slate-200 overflow-hidden"><div class="h-full rounded-full ${percent >= 75 ? 'bg-emerald-600' : percent >= 40 ? 'bg-amber-500' : 'bg-rose-600'}" style="width:${percent}%"></div></div><p class="mt-2 text-slate-600">${escapeHtml(c.explanation)}</p></div>`;
+            }).join('');
+            const mistakesHtml = mistakes.length ? `<ol class="list-decimal pl-5 space-y-3">${mistakes.map(m => `<li><b>${escapeHtml(m.title)}</b><p class="mt-1 text-slate-600">${escapeHtml(m.explanation)}</p></li>`).join('')}</ol>` : '<p>Nie wykryto błędów według reguł automatycznej oceny.</p>';
+            const trainingReportHtml = `<section class="mb-5 space-y-4 text-sm" aria-labelledby="training-report-title"><div class="rounded-xl bg-slate-900 text-white p-5"><h3 id="training-report-title" class="font-bold text-base">Wynik szkolenia</h3><div class="text-3xl font-extrabold mt-2 tabular-nums" aria-label="Wynik ${total} na 100 punktów">${total}<span class="text-base font-medium text-slate-300"> / 100 pkt</span></div><p class="mt-2">${escapeHtml(level)}</p></div><h4 class="font-bold text-base">Punktacja według kompetencji</h4>${bars}${rodoCriteriaHtml}${phishingCriteriaHtml}<h4 class="font-bold text-base">Błędy i wyjaśnienia (${mistakes.length})</h4><div class="rounded-xl border border-slate-200 bg-slate-50 p-4">${mistakesHtml}</div><p class="text-sm text-slate-600">Wynik jest wstępną informacją zwrotną w symulacji, a nie formalnym certyfikatem. Pełna treść odpowiedzi RODO jest zawsze dostępna wyżej do oceny przez prowadzącego. Ocena odpowiedzi RODO jest oparta na regułach tekstowych i może wymagać interpretacji prowadzącego. W innych wiadomościach zgłoszenie do IT może być uzasadnione mimo braku jednoznacznych oznak phishingu.</p></section>`;
+
+            summaryContainer.innerHTML = `<section class="space-y-3 text-sm"><h3 class="text-base font-bold">Analiza podjętych decyzji</h3>${rodoResultHtml}${pgeResultHtml}${otherActionsHtml}</section>` + trainingReportHtml;
+
+            document.getElementById('step-simulation').classList.add('hidden');
+            document.getElementById('step-summary').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
