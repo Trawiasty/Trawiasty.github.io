@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+
+<html lang="pl"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><title>HasłoLab v56 — symulator odporności haseł</title>
+<style>
+:root{color-scheme:dark;--bg:#070d1c;--panel:#111b31;--card:#0b1427;--line:#253450;--txt:#e9efff;--muted:#9eacc8;--accent:#756aff;--green:#19d2a0;--amber:#ffb648;--red:#ff647c}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 85% 0%,#20234d 0,transparent 38%),var(--bg);color:var(--txt);font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}button,input,select{font:inherit}input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none!important}button{cursor:pointer}.app{height:100dvh;min-height:0;max-width:1600px;margin:auto;padding:18px 22px;display:flex;flex-direction:column;gap:14px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{display:flex;align-items:center;gap:12px}.logo{display:grid;place-items:center;background:linear-gradient(135deg,#7063ff,#27a9ff);border-radius:13px;width:42px;height:42px;font-size:23px}.brand strong{font-size:21px;letter-spacing:-.6px}.brand small{display:block;color:var(--muted);font-size:11px}.pill{border:1px solid #2e4663;background:#14233b;color:#a4d8ff;border-radius:30px;padding:7px 12px;font-size:12px}.main{display:grid;grid-template-columns:minmax(320px,0.92fr) minmax(440px,1.4fr);gap:14px;flex:1;min-height:0}.left,.right{min-height:0;display:flex;flex-direction:column;gap:14px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:17px;min-height:0}.panel h2{font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:9px}.sub{font-size:12px;color:var(--muted);margin:-6px 0 12px}.inputrow{display:flex;gap:8px}.password{background:var(--card);border:1px solid #33435d;border-radius:10px;padding:12px;color:var(--txt);width:100%;min-width:0;outline:0}.password:focus{border-color:#8b80ff;box-shadow:0 0 0 2px #756aff35}.btn{border:0;border-radius:10px;background:#675cf4;color:white;padding:11px 14px;font-weight:650;white-space:nowrap}.btn:hover{background:#8177ff}.btn.secondary{background:#223451}.btn.secondary:hover{background:#314967}.btn:disabled{opacity:.5;cursor:not-allowed}.label{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:12px;margin:12px 0 7px}.meter{height:9px;background:#243047;border-radius:10px;overflow:hidden}.meter>div{height:100%;width:0;transition:width .2s;background:var(--red)}.status{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:9px}.status strong{font-size:13px}.status span{font-size:12px;color:var(--muted)}.dictionary{display:flex;flex-direction:column;gap:9px;flex:1;min-height:0}.file{position:relative;display:flex;gap:9px;align-items:center;justify-content:center;text-align:center;border:1px dashed #53648a;background:#111f38;border-radius:11px;padding:13px;cursor:pointer;color:#dbe4ff;font-weight:600}.file input{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer}.file:focus-within{outline:2px solid #8b80ff}.fileinfo{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.filebuttons{display:flex;gap:8px}.filebuttons button{flex:1}.info{font-size:12px;color:#b6c5e1;background:#0b172b;border:1px solid #223651;border-radius:10px;padding:10px;overflow:auto;flex:1;min-height:65px}.info p{margin:0 0 6px}.info p:last-child{margin:0}.right>.panel:first-child{flex:0 0 auto}.methods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.method{border:1px solid #2b3b59;background:var(--card);padding:12px;border-radius:12px;min-width:0}.method .name{font-size:12px;font-weight:750}.method .desc{font-size:11px;color:var(--muted);min-height:33px;margin-top:3px}.method .result{font-size:14px;font-weight:750;color:#9c99ff;margin-top:9px;overflow-wrap:anywhere}.method .note{font-size:11px;color:var(--muted);margin-top:4px}.visual-stage{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:9px}.stage{padding:8px;border:1px solid #2c3b59;border-radius:9px;background:#09152b;color:#a8b8d6;font-size:11px}.stage b{display:block;font-size:12px;color:#e8eeff}.stage.active{border-color:#8b80ff;background:#26224a}.stage.done{border-color:#14866c}.scanline{display:flex;justify-content:space-between;gap:10px;font:11px ui-monospace,monospace;color:#a9b9d7;margin-bottom:5px}.scanline strong{color:#e6ecff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.scantrack{height:7px;background:#1b2b47;border-radius:8px;overflow:hidden;margin-bottom:9px}.scanfill{width:0;height:100%;background:linear-gradient(90deg,#675cf4,#19d2a0);transition:width .16s}.terminal-panel{flex:1;display:flex;flex-direction:column;min-height:0}.terminal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.terminal-head h2{margin:0}.actions{display:flex;gap:8px}.terminal{flex:1;min-height:110px;background:#030914;border:1px solid #243654;border-radius:12px;display:flex;flex-direction:column;overflow:hidden}.terminal-top{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #263751;padding:9px 12px;color:#8fa5c8;font:11px ui-monospace,Consolas,monospace}.dots{color:#ff5f70;letter-spacing:3px}.terminal-state{color:var(--green)}pre .term-line{display:block;min-height:1.55em}pre .term-info{color:#8fa9ce}pre .term-try{color:#e4bb63}pre .term-success{color:#18dca2;font-weight:700}pre .term-error{color:#ff788d}pre{white-space:pre-wrap;overflow:auto;overflow-wrap:anywhere;margin:0;padding:12px;flex:1;color:#a8bbdc;font:12px/1.65 ui-monospace,Consolas,monospace}.foot{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:#8797b7}.foot span:last-child{text-align:right}.warn{color:var(--amber)}.good{color:var(--green)}.bad{color:var(--red)}@media(max-width:900px){.app{height:auto;min-height:100dvh}.main{grid-template-columns:1fr}.methods{grid-template-columns:1fr}.method .desc{min-height:0}.terminal{height:290px;flex:none}.left,.right{min-height:unset}.dictionary{flex:none}.info{min-height:0}.foot{flex-wrap:wrap}}@media(min-width:901px) and (max-height:760px){.app{padding:10px 16px;gap:8px;min-height:0}.left,.right{gap:8px}.panel{padding:12px}.method{padding:9px}.terminal{min-height:90px}.info{font-size:11px}.file{padding:8px}}@media(max-width:480px){.app{padding:12px}.brand strong{font-size:17px}.pill{font-size:10px}.inputrow{flex-wrap:wrap}.inputrow input{flex:1 1 100%}.inputrow button{flex:1}.terminal-head{flex-wrap:wrap}}
+
+/* v15: responsywność dla telefonów, tabletów i trybu poziomego */
+html{min-width:0;-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{min-width:0;overflow-x:hidden}
+button,input{touch-action:manipulation}
+button:focus-visible,input:focus-visible,.file:focus-within{outline:3px solid #a8a0ff;outline-offset:2px}
+@media (max-width:900px){
+ .app{width:100%;max-width:100%;height:auto;min-height:100dvh;padding:14px;gap:12px}
+ .main{display:flex;flex-direction:column;gap:12px;min-height:auto}
+ .left,.right{width:100%;min-width:0;gap:12px}
+ .panel{padding:15px;min-width:0}
+ .right>.panel:first-child{flex:none}
+ .methods{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .method{padding:10px}
+ .method .desc{min-height:0}
+ .terminal-panel{min-height:410px}
+ .terminal{height:290px;min-height:240px;flex:1}
+ .dictionary{flex:none}
+ .info{flex:none;max-height:170px;overflow:auto}
+ .foot{padding-bottom:env(safe-area-inset-bottom,0px)}
+}
+@media (max-width:640px){
+ .app{padding:10px 10px max(14px,env(safe-area-inset-bottom,0px));gap:10px}
+ .top{align-items:flex-start;gap:7px}
+ .brand{gap:9px;min-width:0}
+ .brand strong{font-size:18px}
+ .brand small{font-size:10px}
+ .logo{width:36px;height:36px;flex-shrink:0}
+ .pill{font-size:10px;padding:5px 8px;line-height:1.3;text-align:center}
+ .top>.pill{max-width:125px}
+ .panel{padding:12px;border-radius:13px}
+ .panel h2{font-size:14px;margin-bottom:9px}
+ .sub{font-size:12px;line-height:1.45;margin-bottom:9px}
+ .inputrow{display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:8px}
+ .inputrow input{grid-column:1;grid-row:1;min-width:0;width:100%;flex:none;font-size:16px}
+ .inputrow #show{grid-column:2;grid-row:1;padding:0;min-width:48px}
+ .inputrow #analyze{grid-column:1/-1;grid-row:2;width:100%}
+ .btn{min-height:44px;padding:10px 12px;white-space:normal}
+ .file{min-height:48px;padding:12px 8px}
+ .filebuttons{display:grid;grid-template-columns:1fr 1fr}
+ .filebuttons .btn{font-size:12px}
+ .methods{display:grid;grid-template-columns:1fr;gap:7px}
+ .method{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;align-items:center;padding:10px 12px}
+ .method .name{grid-column:1;font-size:13px}
+ .method .desc{grid-column:1;font-size:11px;margin-top:1px}
+ .method .result{grid-column:2;grid-row:1;align-self:center;text-align:right;font-size:13px;margin:0;max-width:45vw}
+ .method .note{grid-column:1/-1;font-size:11px;margin-top:4px}
+ .visual-stage{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+ .stage{padding:7px 5px;font-size:10px;overflow-wrap:anywhere}
+ .stage b{font-size:10px}
+ .terminal-panel{min-height:390px}
+ .terminal-head{align-items:center;flex-wrap:wrap;gap:8px}
+ .terminal-head h2{font-size:14px}
+ .actions{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+ .actions button{width:100%;min-width:0}
+ .terminal{height:280px;min-height:230px}
+ .terminal-top{padding:8px;font-size:10px}
+ pre{font-size:11px;line-height:1.55;padding:10px}
+ .scanline{font-size:10px;flex-wrap:wrap}
+ .scanline strong{max-width:100%}
+ .info{max-height:150px}
+ .foot{display:block;text-align:center;font-size:10px}
+ .foot span{display:block;text-align:center!important}
+}
+@media(max-width:360px){.top>.pill{display:none}.stage{font-size:9px}.method .result{max-width:40vw}}
+@media(max-height:520px) and (orientation:landscape) and (max-width:900px){
+ .app{height:auto;min-height:100dvh}.terminal{height:210px;min-height:180px}.terminal-panel{min-height:320px}
+}
+
+/* v15: czytelny status i stabilniejszy układ mobilny */
+@media(max-width:520px){.terminal-head .actions{width:100%}.terminal-head .actions button{flex:1;min-height:44px}.scanline{flex-wrap:wrap}.scanline strong{max-width:100%;overflow-wrap:anywhere}.terminal-panel{min-height:400px}.terminal-top{font-size:10px}}
+
+/* v16: moduł edukacyjny */
+.training-panel{margin-top:12px}.training-presets{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}.training-presets .btn{font-size:12px;padding:8px 10px;min-height:38px}.training-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}.training-inputs label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:6px}.training-inputs input{width:100%;min-width:0;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--txt);padding:11px;font:inherit}.training-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.comparison{display:grid;grid-template-columns:1fr 1fr;gap:10px}.comparison .compare-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0;overflow-wrap:anywhere}.compare-card h3{font-size:14px;margin:0 0 8px}.compare-card p{font-size:12px;line-height:1.5;margin:5px 0;color:var(--mut)}.compare-card strong{color:var(--txt)}.comparison .compare-explain{grid-column:1/-1;font-size:13px;line-height:1.5;background:rgba(112,110,240,.09);padding:12px;border-radius:9px}.training-foot{font-size:12px;color:var(--mut);line-height:1.55;margin-top:10px}@media(max-width:600px){.training-inputs,.comparison{grid-template-columns:1fr}.training-actions .btn{flex:1}.training-presets .btn{flex:1 1 42%}}
+
+/* v17: interaktywne ćwiczenie */
+.exercise-panel{margin-top:12px}.exercise-steps{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.exercise-step{flex:1;min-width:85px;border:1px solid var(--line);border-radius:9px;padding:9px;text-align:center;font-size:12px;color:var(--mut)}.exercise-step.active{border-color:#8882ff;background:rgba(112,110,240,.15);color:var(--txt)}.exercise-input{display:flex;gap:8px;align-items:stretch}.exercise-input input{min-width:0;flex:1;background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:12px;font:inherit}.exercise-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.exercise-actions button{flex:1;min-width:125px}.exercise-feedback{border:1px solid var(--line);background:var(--card);padding:12px;border-radius:10px;font-size:13px;line-height:1.6;margin-top:12px;overflow-wrap:anywhere}.exercise-feedback strong{color:var(--txt)}.exercise-caption{font-size:12px;color:var(--mut);line-height:1.5}.exercise-panel .sub{line-height:1.55}@media(max-width:600px){.exercise-input{flex-direction:column}.exercise-input .btn{width:100%}.exercise-step{min-width:60px;font-size:11px}.exercise-actions button{min-width:0;flex:1 1 45%}}
+/* v26: sterowanie limitem czasu */
+.time-mode{margin:10px 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:var(--card)}
+.time-toggle{display:flex;gap:11px;align-items:center;cursor:pointer;font-size:13px}
+.time-toggle input{width:21px;height:21px;flex-shrink:0;accent-color:var(--accent)}
+.time-toggle span{display:flex;flex-direction:column;gap:3px}.time-toggle small{font-size:11px;color:var(--muted);line-height:1.4}
+.time-warning{margin:9px 0 0;color:var(--amber);font-size:12px;line-height:1.5}
+
+/* v26: raport z ćwiczenia */
+.exercise-report{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--card)}.exercise-report[hidden]{display:none!important}.exercise-report h3{margin:0 0 9px;font-size:15px}.exercise-report p{font-size:13px;line-height:1.6;color:var(--mut);margin:6px 0}.exercise-report strong{color:var(--txt)}.report-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.report-actions button{flex:1;min-width:130px}.report-check{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--mut);line-height:1.5;margin-top:10px}.report-check input{margin-top:3px;accent-color:var(--accent)}@media(max-width:600px){.report-actions button{flex:1 1 100%}}
+
+/* v26: tryb prowadzącego */
+.presenter-panel{margin-top:12px}.presenter-toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0}.presenter-counter{color:var(--muted);font-size:12px}.presenter-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:17px}.presenter-card h3{font-size:18px;margin:0 0 9px}.presenter-question{font-size:15px;line-height:1.6;margin:9px 0}.presenter-answer{background:#10273a;border-left:3px solid var(--green);padding:12px;border-radius:8px;margin-top:12px;line-height:1.6;font-size:13px}.presenter-answer[hidden]{display:none}.presenter-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.presenter-actions .btn{min-height:43px}.presenter-progress{height:6px;border-radius:9px;background:#26334f;overflow:hidden;margin:10px 0}.presenter-progress>div{height:100%;background:var(--accent);transition:width .2s}.presenter-meta{color:var(--muted);font-size:12px}.presenter-tips{margin-top:9px;color:var(--muted);font-size:12px;line-height:1.5}@media(max-width:640px){.presenter-card{padding:12px}.presenter-card h3{font-size:16px}.presenter-actions{display:grid;grid-template-columns:1fr 1fr}.presenter-actions .btn{min-width:0;font-size:12px}.presenter-question{font-size:14px}}
+
+/* v26: stały panel etapów ponad szczegółami; licznik tylko przy aktywnym etapie */
+.console-stages{flex:none;padding:10px 12px 7px;display:grid;gap:7px;border-bottom:1px solid #263751;background:#061123}
+.console-stage{border:1px solid #273852;border-radius:9px;padding:7px 10px;color:#91a3bf;font:12px/1.5 ui-monospace,Consolas,monospace}
+.console-stage-heading{display:flex;gap:9px;align-items:center;min-width:0}
+.console-stage-heading strong{flex:1;font-size:12px;letter-spacing:.3px}
+.console-stage-icon{font-size:14px;width:15px;text-align:center}
+.console-stage-status{font-size:11px;text-align:right}
+.console-stage.active{background:#282342;border-color:#8274fa;color:#f4cb74}
+.console-stage.done{border-color:#176b5a;color:#37d6a6}
+.console-stage.found{border-color:#18b887;background:#092a29;color:#42efbb}
+.console-stage.stopped{border-color:#946b30;color:#ffcb7a}
+.console-stage-live{margin:6px 0 0 24px;color:#f5d28b;font-size:12px;overflow-wrap:anywhere;word-break:break-word;font-variant-numeric:tabular-nums}
+.console-details-title{padding:8px 13px 0;font:10px ui-monospace,Consolas,monospace;letter-spacing:1px;color:#7289ad}
+.terminal pre{min-height:90px;overflow:auto}
+@media(max-width:900px){.terminal{height:auto;min-height:340px;max-height:none}.terminal pre{height:220px;flex:none}.console-stages{padding:9px}.console-stage{padding:7px 8px}}
+
+/* v26: trzy widoki tej samej aplikacji */
+.mode-switch{display:flex;align-items:center;gap:5px;background:#0b1529;border:1px solid #304363;padding:5px;border-radius:13px;flex-wrap:wrap}
+.mode-switch button{border:1px solid transparent;background:transparent;color:#b7c6e1;border-radius:9px;padding:9px 12px;font-weight:700;font-size:12px;min-height:40px}
+.mode-switch button[aria-pressed="true"]{background:#5148c7;color:#fff;border-color:#9c95ff}
+.mode-intro{border:1px solid #2e4465;border-radius:12px;background:#0b1830;padding:10px 14px;color:#b7c9e7;font-size:12px;line-height:1.5}
+.mode-intro strong{color:#f0f4ff}
+body.mode-simple .dictionary,body.mode-simple .training-panel,body.mode-simple .exercise-panel,body.mode-simple .presenter-panel{display:none!important}
+body.mode-full .presenter-panel{display:none!important}
+body.mode-simple .method .desc,body.mode-simple .method .note{display:none}
+body.mode-simple .terminal .console-details-title,body.mode-simple .terminal #log{display:none}
+body.mode-simple .terminal{min-height:220px}
+body.mode-simple .time-mode{display:none}
+body.mode-simple .terminal-panel{min-height:310px}
+body.mode-simple .main{grid-template-columns:minmax(280px,.85fr) minmax(420px,1.4fr)}
+body.mode-simple .left{justify-content:flex-start}
+body.mode-simple .right>.panel:first-child{flex:0 0 auto}
+body.mode-presenter .presenter-panel{border-color:#665bc5}
+body.mode-presenter .presenter-tips{background:#24213d;border-left:3px solid #9d90ff;padding:12px;border-radius:7px}
+@media(max-width:900px){body.mode-simple .main{grid-template-columns:1fr}.mode-switch{width:100%;justify-content:center}.mode-switch button{flex:1;min-width:0;padding:8px 5px}.top{flex-wrap:wrap}.mode-intro{padding:9px 11px}}
+@media(max-width:420px){.mode-switch button{font-size:11px}.mode-switch{gap:2px}}
+
+/* v26 — widok prosty: czytelna, zwarta ścieżka mobilna */
+body.mode-simple .mode-intro{display:none}
+body.mode-simple .main{gap:12px}
+body.mode-simple .left,body.mode-simple .right{gap:12px}
+body.mode-simple .left>.panel:first-child,body.mode-simple .right>.panel{padding:15px}
+body.mode-simple .right>.panel:first-child .terminal-head .pill{display:none}
+body.mode-simple .terminal-panel>.terminal-head h2{font-size:16px}
+body.mode-simple .terminal-panel .visual-stage{display:none!important} /* etapy są już w konsoli */
+body.mode-simple .console-stages{gap:6px;padding:9px}
+body.mode-simple .console-stage{padding:9px 11px}
+body.mode-simple .console-stage-heading strong{font-size:13px}
+body.mode-simple .console-stage-live{font-size:13px;line-height:1.55}
+body.mode-simple .terminal{height:auto;min-height:0}
+body.mode-simple .terminal-top{min-height:38px}
+body.mode-simple .terminal .console-details-title,body.mode-simple .terminal #log{display:none!important}
+body.mode-simple .methods{gap:7px}
+body.mode-simple .method{padding:9px 11px}
+body.mode-simple .method .result{font-size:clamp(13px,3.7vw,17px)}
+body.mode-simple .scanline{gap:8px}
+body.mode-simple #candidate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+@media(max-width:900px){
+ body.mode-simple .top{gap:8px;padding:10px 12px}
+ body.mode-simple .brand small{display:none}
+ body.mode-simple .main{display:flex;flex-direction:column;padding:10px;gap:10px}
+ body.mode-simple .left,body.mode-simple .right{display:contents}
+ body.mode-simple .left>.panel:first-child{order:1}
+ body.mode-simple .right>.panel:first-child{order:3}
+ body.mode-simple .right>.terminal-panel{order:2}
+ body.mode-simple .main>.left>.panel:first-child,body.mode-simple .main>.right>.panel{width:100%;margin:0}
+ body.mode-simple .right>.terminal-panel>.terminal-head{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+ body.mode-simple .right>.terminal-panel .actions{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:8px}
+ body.mode-simple .right>.terminal-panel .actions button{min-height:46px;min-width:0}
+ body.mode-simple .inputrow{display:grid;grid-template-columns:minmax(0,1fr) 46px;gap:8px}
+ body.mode-simple .inputrow #pwd{grid-column:1;min-width:0;min-height:46px;font-size:16px}
+ body.mode-simple .inputrow #show{grid-column:2;min-height:46px;padding:0}
+ body.mode-simple .inputrow #analyze{grid-column:1/-1;min-height:44px}
+ body.mode-simple .left>.panel:first-child h2{margin-bottom:5px}
+ body.mode-simple .left>.panel:first-child .sub{margin-bottom:10px;font-size:12px}
+ body.mode-simple .right>.panel:first-child h2{font-size:15px}
+ body.mode-simple .scanline{font-size:12px}
+ body.mode-simple .console-stages{padding:8px}
+ body.mode-simple .terminal-top{font-size:11px}
+}
+@media(max-width:380px){body.mode-simple .terminal-top .dots{display:none}body.mode-simple .mode-switch button{font-size:10px}}
+
+
+/* v29 — menu sekcji: jeden ekran roboczy zamiast wszystkich paneli naraz */
+.workspace-nav{display:none;gap:8px;overflow-x:auto;scrollbar-width:thin;padding:3px 1px 9px;flex:0 0 auto}
+.workspace-nav button{white-space:nowrap;border:1px solid var(--line);border-radius:12px;background:#0b1427;color:var(--muted);padding:11px 15px;font-weight:650;min-height:44px}
+.workspace-nav button[aria-pressed="true"]{color:#fff;border-color:#8174ff;background:#29234c;box-shadow:inset 0 0 0 1px #6656b5}
+body.mode-full .workspace-nav,body.mode-presenter .workspace-nav{display:flex}
+body.mode-full .main,body.mode-presenter .main{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-content:start;overflow-y:auto;gap:14px}
+body.mode-full .main>.left,body.mode-full .main>.right,body.mode-presenter .main>.left,body.mode-presenter .main>.right{display:contents}
+body.mode-full .main [data-workspace],body.mode-presenter .main [data-workspace]{display:none!important}
+body.mode-full .main [data-workspace].workspace-active,body.mode-presenter .main [data-workspace].workspace-active{display:block!important;min-width:0}
+body.mode-full .main [data-workspace="dictionary"].workspace-active,body.mode-presenter .main [data-workspace="dictionary"].workspace-active,
+body.mode-full .main [data-workspace="compare"].workspace-active,body.mode-presenter .main [data-workspace="compare"].workspace-active,
+body.mode-full .main [data-workspace="exercise"].workspace-active,body.mode-presenter .main [data-workspace="exercise"].workspace-active,
+body.mode-presenter .main [data-workspace="scenario"].workspace-active{grid-column:1/-1}
+body.mode-full .main [data-workspace="lab"].workspace-active:first-child,body.mode-presenter .main [data-workspace="lab"].workspace-active:first-child{grid-column:1}
+body.mode-full .main .terminal-panel.workspace-active,body.mode-presenter .main .terminal-panel.workspace-active{grid-column:1/-1}
+body.mode-full .main .right>.panel:first-child.workspace-active,body.mode-presenter .main .right>.panel:first-child.workspace-active{grid-column:2}
+body.mode-full .main .presenter-panel,body.mode-simple .workspace-nav{display:none!important}
+@media(max-width:900px){
+ body.mode-full .main,body.mode-presenter .main{display:flex;flex-direction:column;overflow-y:visible}
+ body.mode-full .main [data-workspace].workspace-active,body.mode-presenter .main [data-workspace].workspace-active{width:100%;flex:0 0 auto}
+ .workspace-nav{margin:0 8px;padding-bottom:7px}
+ .workspace-nav button{padding:10px 13px}
+}
+
+/* v51 — podstawowe poprawki dostępności i czytelności */
+:where(button,input,select,textarea,summary,[tabindex]):focus-visible{outline:3px solid #ffd56e!important;outline-offset:3px!important}
+button:disabled{cursor:not-allowed;opacity:.67}
+.simple-home,.simple-card,.simple-step,.panel{overflow-wrap:anywhere}
+.simple-home .simple-step{min-width:0}
+.simple-home .simple-step p{max-width:100%}
+@media(max-width:520px){.simple-entry{flex-wrap:wrap}.simple-entry input{flex-basis:calc(100% - 108px)}.simple-entry button{min-width:84px}.simple-home button{min-height:44px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+/* v51: controls aligned beneath start button, measured CPU forecast only. */
+body.mode-simple .simple-demo-actions{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+body.mode-simple .simple-demo-actions #simpleRun{width:100%;margin:0}
+body.mode-simple .simple-demo-controls{display:grid;grid-template-columns:auto minmax(145px,1fr) minmax(175px,1fr);align-items:center;gap:9px;min-width:0}
+body.mode-simple .simple-demo-controls #simpleStop{margin:0;white-space:nowrap}
+body.mode-simple .simple-limit-toggle{display:flex;align-items:center;gap:7px;font-size:12px;line-height:1.35;cursor:pointer;min-width:0}
+body.mode-simple .simple-limit-toggle input{width:17px;height:17px;flex-shrink:0;accent-color:#7162f7}
+body.mode-simple .simple-limit-toggle input:disabled{cursor:not-allowed}
+body.mode-simple .simple-cpu-forecast{display:flex;flex-direction:column;gap:2px;padding:6px 10px;border:1px solid #394b6c;border-radius:9px;min-width:0;font-size:11px;color:#b8c8df}
+body.mode-simple .simple-cpu-forecast strong{font-size:14px;color:#e9f2ff;overflow-wrap:anywhere}
+@media(max-width:650px){body.mode-simple .simple-demo-controls{grid-template-columns:auto minmax(0,1fr)}body.mode-simple .simple-cpu-forecast{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between;gap:12px}}
+@media(max-width:400px){body.mode-simple .simple-demo-controls{grid-template-columns:1fr}body.mode-simple .simple-cpu-forecast{grid-column:auto}}
+
+/* v51: quiz na projektorze, przyjazny klawiaturze i ekranom mobilnym */
+.quiz-panel{max-width:1100px;width:100%;margin:0 auto}.quiz-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.quiz-settings{display:flex;flex-wrap:wrap;align-items:end;gap:14px;margin:18px 0;padding:14px;border:1px solid #354566;border-radius:12px;background:#101b32}.quiz-settings fieldset{display:flex;flex-wrap:wrap;gap:12px;border:0;padding:0;margin:0}.quiz-settings legend{font-weight:700;margin-bottom:8px}.quiz-settings label{display:inline-flex;align-items:center;gap:6px}.quiz-settings input[type=text],#quizTeamNames input{max-width:170px;min-width:0;background:#0b1427;color:#fff;border:1px solid #53658c;border-radius:7px;padding:9px}#quizTeamNames{display:flex;flex-wrap:wrap;gap:10px}#quizTeamNames[hidden],.quiz-scoreboard[hidden],.quiz-board[hidden],.quiz-welcome[hidden],.quiz-feedback[hidden],.quiz-score[hidden]{display:none!important}.quiz-settings-actions{display:flex;gap:8px;flex-wrap:wrap}.quiz-scoreboard{display:grid;grid-template-columns:minmax(120px,1fr) minmax(180px,2fr) minmax(120px,1fr);gap:12px;margin:16px 0}.quiz-score{background:#0d172a;border:2px solid #344767;border-radius:12px;padding:12px;text-align:center;display:flex;flex-direction:column;gap:4px}.quiz-score.active{border-color:#8575ff;background:#25224b}.quiz-score strong{font-size:clamp(28px,4vw,46px);color:#fff}.quiz-round{text-align:center;display:flex;flex-direction:column;justify-content:center;gap:9px}.quiz-progress{height:9px;border-radius:20px;background:#263452;overflow:hidden}.quiz-progress>div{height:100%;width:0;background:#7465ff;transition:width .2s}.quiz-board{background:#0c1529;border:1px solid #384a6b;border-radius:15px;padding:clamp(14px,3vw,28px)}.quiz-category{color:#a7baff;font-weight:700;letter-spacing:.04em}.quiz-board h3{font-size:clamp(20px,2.4vw,30px);line-height:1.35;margin:8px 0 20px}.quiz-answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.quiz-option{font:inherit;font-weight:650;min-height:70px;text-align:left;padding:15px;border:2px solid #3b5076;border-radius:12px;color:#f1f5ff;background:#1b2a48;cursor:pointer;overflow-wrap:anywhere}.quiz-option:hover:not(:disabled){border-color:#948aff;background:#2a3263}.quiz-option.correct{border-color:#52d6a6;background:#124b42}.quiz-option.wrong{border-color:#fa9292;background:#53283b}.quiz-option:disabled{cursor:default;opacity:1}.quiz-feedback{margin-top:16px;padding:15px;border-radius:10px;border:1px solid #526a91;background:#172846;line-height:1.6}.quiz-feedback p{margin:6px 0 0}.quiz-controls{display:flex;justify-content:flex-end;margin-top:14px}.quiz-welcome{padding:15px;background:#13213b;border-radius:12px;line-height:1.65}.quiz-extra{margin-top:18px;border-top:1px solid #354566;padding-top:14px}.quiz-option:focus-visible,.quiz-settings input:focus-visible{outline:3px solid #ffcc66;outline-offset:3px}@media(max-width:680px){.quiz-answers{grid-template-columns:1fr}.quiz-scoreboard{grid-template-columns:1fr 1fr}.quiz-round{grid-column:1/-1;grid-row:1}.quiz-scoreboard:has(#quizScoreB[hidden]){grid-template-columns:1fr}.quiz-settings{align-items:stretch}.quiz-settings-actions{width:100%}.quiz-heading{flex-direction:column}}@media(prefers-reduced-motion:reduce){.quiz-progress>div{transition:none}}
+
+/* v51: objaśnienia do quizu — dodatkowe treści dopiero po odpowiedzi */
+.quiz-more{margin-top:12px;padding:12px 14px;border:1px solid #52658d;border-radius:12px;background:#0c1730;color:#e9f0ff}
+.quiz-more summary{cursor:pointer;font-weight:700;color:#c8c3ff;line-height:1.5}
+.quiz-more summary:focus-visible{outline:3px solid #9a90ff;outline-offset:4px;border-radius:4px}
+.quiz-more section{margin-top:14px;padding-top:10px;border-top:1px solid #344462}
+.quiz-more h4{margin:0 0 5px;font-size:1rem;color:#fff}
+.quiz-more p{margin:0;line-height:1.65;color:#dce6fa}
+</style><style> .predictability-explanation{margin-top:10px;padding:10px 12px;border:1px solid #3a4667;border-radius:10px;background:rgba(45,57,87,.26);font-size:12px;line-height:1.55}.predictability-explanation p{margin:5px 0}.predictability-explanation small{color:#aab7d3;display:block} </style><style>.time-model-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}.time-model-card{background:rgba(55,68,100,.2);border:1px solid #384562;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}.time-model-card strong{font-size:13px;color:#d9e4ff}.time-model-card b{font-size:16px;color:#7de3ba;overflow-wrap:anywhere}.time-model-card small,.time-model-disclaimer{font-size:12px;line-height:1.55;color:#b7c3df}.time-model-disclaimer{margin-top:10px}@media(max-width:850px){.time-model-grid{grid-template-columns:1fr}} </style><style>
+.audit-report{margin-top:12px}.audit-report .audit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.audit-report .audit-card{background:#0b172c;border:1px solid #3a4a69;border-radius:12px;padding:13px;min-width:0}.audit-report h3{margin:0 0 8px;font-size:14px}.audit-report p,.audit-report li{font-size:12px;line-height:1.55;color:#c1cce1}.audit-report ul{padding-left:18px;margin:7px 0}.audit-report .audit-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.audit-report .audit-actions button{flex:1;min-width:120px}.audit-report .audit-note{font-size:12px;color:#aab9d5}.audit-report .audit-fact{color:#7de3ba}.audit-report .audit-model{color:#f2ca83}@media(max-width:650px){.audit-report .audit-grid{grid-template-columns:1fr}}
+</style><style>
+/* v51 — uporządkowany widok podstawowy: hasło → demonstracja → wyniki → dodatkowe informacje */
+body.mode-simple .main{display:flex!important;flex-direction:column!important;align-items:stretch;overflow-y:auto;gap:12px}
+body.mode-simple .main>.left,body.mode-simple .main>.right{display:contents!important}
+body.mode-simple .main>.left>.panel:first-child{order:1!important;width:100%;flex:none}
+body.mode-simple .main>.right>.terminal-panel{order:2!important;width:100%;flex:none}
+body.mode-simple .main>.right>.panel:first-child{order:3!important;width:100%;flex:none}
+body.mode-simple #auditReportPanel{order:4!important;width:100%;flex:none}
+body.mode-simple #timeModelsPanel,body.mode-simple .dictionary,body.mode-simple .training-panel,body.mode-simple .exercise-panel,body.mode-simple .presenter-panel{display:none!important}
+body.mode-simple .main .panel{min-width:0}
+body.mode-simple #auditReportPanel .audit-grid{grid-template-columns:1fr}
+body.mode-simple #auditReportPanel .audit-actions{display:none}
+body.mode-simple .right>.panel:first-child h2{font-size:16px}
+body.mode-simple .right>.panel:first-child .methods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media(max-width:700px){body.mode-simple .right>.panel:first-child .methods{grid-template-columns:1fr}body.mode-simple .main{padding:10px;gap:10px}}
+.time-model-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.presenter-security-note{border:1px solid #415274;border-radius:12px;background:#111e35;padding:12px 14px;margin:12px 0;color:#d7e2fa;font-size:13px;line-height:1.55}
+.presenter-security-note summary{cursor:pointer;font-weight:700}
+.presenter-security-note p{margin:10px 0 0;color:#bdcbe4}
+@media(max-width:850px){.time-model-grid{grid-template-columns:1fr}}
+
+/* v51: odrębny, uporządkowany widok dla początkujących */
+.simple-home{display:none;max-width:760px;width:100%;margin:0 auto;padding:18px 16px 36px;box-sizing:border-box}
+body.mode-simple .simple-home{display:grid;gap:16px}
+body.mode-simple main.main{display:none!important}
+.simple-card{background:#15213a;border:1px solid #34445f;border-radius:17px;padding:22px;min-width:0}
+.simple-card h2{margin:0 0 12px;font-size:clamp(19px,3vw,23px)}
+.simple-card p{line-height:1.65;color:#d4def0}
+.simple-home label{display:block;margin-bottom:9px;font-weight:650}
+.simple-entry{display:flex;gap:9px;align-items:stretch}
+.simple-entry input{flex:1;min-width:0;border:1px solid #8296bb;border-radius:10px;background:#091427;color:#fff;font-size:17px;padding:12px;min-height:48px}
+.simple-home button{min-height:46px;cursor:pointer}
+.simple-home button:focus-visible,.simple-home input:focus-visible{outline:3px solid #ffd56e;outline-offset:3px}
+.simple-home .simple-primary{margin-top:12px;width:100%}
+.simple-hint{font-size:13px;margin:8px 0 0}
+.simple-result{border-left:5px solid #f4c567;padding:10px 14px;background:#101c32;border-radius:8px;margin:10px 0}
+.simple-result strong{font-size:20px;display:block;line-height:1.4}
+.simple-extra{margin-top:12px}
+.simple-extra summary{cursor:pointer;font-weight:650;padding:8px 0}
+.simple-demo-status{margin-top:12px;padding:12px;border-radius:10px;background:#0c182c;line-height:1.5}
+.simple-card[hidden],.simple-home [hidden]{display:none!important}
+@media(max-width:520px){.simple-home{padding:10px 10px 24px}.simple-card{padding:16px}.simple-entry input{font-size:16px}.simple-entry button{padding:8px 12px}}
+
+/* v51: prowadzenie użytkownika przez rzeczywisty pokaz */
+.simple-lead{line-height:1.65}.simple-guide{display:grid;gap:10px;margin:16px 0}.simple-step{display:flex;align-items:flex-start;gap:13px;padding:13px;border:1px solid #33445f;border-radius:12px;background:#0b182d}.simple-step-number{display:grid;place-items:center;flex:0 0 31px;height:31px;border-radius:50%;background:#263954;color:#e9f1ff;font-weight:800}.simple-step strong{display:block;font-size:16px}.simple-step p{margin:5px 0 7px;color:#c4d1e7;line-height:1.5}.simple-step-state{font-size:13px;color:#a9bad6}.simple-step.is-active{border-color:#9b96ff;background:#192344}.simple-step.is-active .simple-step-state{color:#f6d483;font-weight:700}.simple-step.is-done{border-color:#3c806c}.simple-step.is-done .simple-step-state{color:#87e5c1}.simple-demo-actions{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0}.simple-demo-status{font-weight:650}.simple-live{padding:15px;border:1px solid #394b6c;border-radius:12px;margin:12px 0;background:#0a1426}.simple-live-label{font-size:13px;color:#b9c9e2}.simple-live-candidate{font-size:clamp(18px,4vw,25px);font-weight:750;overflow-wrap:anywhere;margin:8px 0;color:#f8e7ae}.simple-live-count{font-size:14px;color:#d2def0}.simple-live-bar{height:8px;border-radius:8px;background:#283650;margin:12px 0;overflow:hidden}.simple-live-bar>div{height:100%;width:0%;background:#9b96ff;transition:width .25s}.simple-live small{line-height:1.5;color:#b8c8df}.simple-demo-conclusion{border:1px solid #3c806c;border-radius:12px;padding:14px;margin-top:12px;line-height:1.6;background:#0e2630}.simple-demo-conclusion[hidden],.simple-live[hidden]{display:none!important}@media(max-width:520px){.simple-demo-actions button{width:100%}}
+</style><style>
+/* v51: dostępność i objaśnienia w trybach zaawansowanych */
+.help-inline{font-size:13px;line-height:1.65;color:#d7e2f5;border-left:3px solid #938bff;padding:9px 12px;background:#17233e;border-radius:7px;margin:0 0 14px}
+.term{font-weight:450;color:#b6c7e2;font-size:11px}
+.glossary{margin:12px 0;padding:12px 14px;border:1px solid #506185;border-radius:12px;background:#0b1930}
+.glossary summary{font-weight:750;cursor:pointer;padding:5px 0;line-height:1.5}
+.glossary dt{font-weight:750;margin-top:12px;color:#e9f0ff}
+.glossary dd{margin:3px 0 9px;line-height:1.6;color:#d0dcef;font-size:13px}
+.presenter-view-tools{border:1px solid #4b5b85;background:#17203a;border-radius:12px;padding:12px;margin:12px 0}
+.presenter-view-tools p{margin:8px 0 0;font-size:12px;line-height:1.55;color:#d2def1}
+.workspace-nav button:focus-visible,.mode-switch button:focus-visible,summary:focus-visible{outline:3px solid #ffd56e;outline-offset:3px}
+.workspace-nav button{font-size:13px;line-height:1.35}
+@media(max-width:640px){.workspace-nav{flex-wrap:wrap;overflow-x:visible}.workspace-nav button{flex:1 1 42%;white-space:normal}.help-inline{font-size:13px}.term{display:block}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style><style>
+/* v51: stabilny układ dokumentowy — bez nakładania kart i wewnętrznego przewijania strony. */
+body.mode-full .app,body.mode-presenter .app{height:auto!important;min-height:100dvh!important;overflow:visible!important}
+body.mode-full .main,body.mode-presenter .main{
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ overflow:visible!important;min-height:0!important;flex:0 0 auto!important;
+ gap:16px!important;width:100%;
+}
+body.mode-full .main>.left,body.mode-full .main>.right,
+body.mode-presenter .main>.left,body.mode-presenter .main>.right{display:contents!important}
+body.mode-full .main [data-workspace].workspace-active,
+body.mode-presenter .main [data-workspace].workspace-active{
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ height:auto!important;min-height:0!important;flex:none!important;
+ position:relative!important;inset:auto!important;grid-column:auto!important;
+ margin:0!important;overflow:visible!important;
+}
+body.mode-full .main .terminal-panel.workspace-active,
+body.mode-presenter .main .terminal-panel.workspace-active{
+ display:flex!important;flex-direction:column!important;
+}
+body.mode-full .terminal,body.mode-presenter .terminal{
+ flex:none!important;height:auto!important;min-height:280px!important;overflow:hidden!important;
+}
+body.mode-full .terminal pre,body.mode-presenter .terminal pre{
+ flex:none!important;max-height:300px!important;min-height:110px!important;overflow:auto!important;
+}
+body.mode-full .main .panel .methods,body.mode-presenter .main .panel .methods{grid-template-columns:repeat(3,minmax(0,1fr))}
+body.mode-full .main .panel .time-model-grid,body.mode-presenter .main .panel .time-model-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.mode-full .main .panel .audit-grid,body.mode-presenter .main .panel .audit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.mode-full .main .panel .status,body.mode-presenter .main .panel .status{flex-wrap:wrap}
+body.mode-full #predictabilityExplanation,body.mode-presenter #predictabilityExplanation{flex:1 1 100%}
+body.mode-full .foot,body.mode-presenter .foot{padding:10px 0 4px}
+@media(max-width:760px){
+ body.mode-full .main .panel .methods,body.mode-presenter .main .panel .methods,
+ body.mode-full .main .panel .time-model-grid,body.mode-presenter .main .panel .time-model-grid,
+ body.mode-full .main .panel .audit-grid,body.mode-presenter .main .panel .audit-grid{grid-template-columns:1fr!important}
+ body.mode-full .main .panel .terminal-head,body.mode-presenter .main .panel .terminal-head{flex-wrap:wrap}
+ body.mode-full .main .panel .actions,body.mode-presenter .main .panel .actions{width:100%;display:flex;flex-wrap:wrap}
+ body.mode-full .main .panel .actions button,body.mode-presenter .main .panel .actions button{flex:1 1 140px;white-space:normal}
+ body.mode-full .inputrow,body.mode-presenter .inputrow{display:flex;flex-wrap:wrap}
+ body.mode-full .inputrow #pwd,body.mode-presenter .inputrow #pwd{flex:1 1 100%}
+ body.mode-full .inputrow #analyze,body.mode-presenter .inputrow #analyze{flex:1}
+}
+
+/* v51 — zwarty, jednookienkowy widok prosty na komputerze; wynik bezpośrednio pod uruchomieniem. */
+body.mode-simple .app{height:auto;min-height:100dvh;overflow:visible}
+body.mode-simple .simple-home{max-width:1320px;grid-template-columns:minmax(0,1fr) minmax(0,1.45fr);gap:12px;align-items:start;padding:12px 16px 16px}
+body.mode-simple #simpleDemoCard{grid-column:2;grid-row:1 / span 2}
+body.mode-simple #simpleResultCard{grid-column:1;grid-row:2}
+body.mode-simple .simple-home>.simple-card:first-child{grid-column:1;grid-row:1}
+body.mode-simple .simple-card{padding:15px 18px;border-radius:13px}
+body.mode-simple .simple-card h2{font-size:18px;margin:0 0 8px}
+body.mode-simple .simple-card p{margin:7px 0;line-height:1.45;font-size:13px}
+body.mode-simple .simple-entry input{min-height:42px;padding:8px 10px}
+body.mode-simple .simple-home button{min-height:40px}
+body.mode-simple .simple-primary{margin-top:7px}
+body.mode-simple .simple-demo-actions{margin:8px 0 4px}
+body.mode-simple .simple-demo-status{margin:5px 0;padding:8px 11px;font-size:13px}
+body.mode-simple .simple-live{margin:7px 0;padding:10px 12px}
+body.mode-simple .simple-live-candidate{font-size:21px;margin:3px 0}
+body.mode-simple .simple-live-bar{margin:7px 0}
+body.mode-simple .simple-guide{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:8px 0}
+body.mode-simple .simple-step{padding:9px;gap:7px}
+body.mode-simple .simple-step-number{width:23px;height:23px;flex-basis:23px;font-size:12px}
+body.mode-simple .simple-step strong{font-size:12px}
+body.mode-simple .simple-step p{font-size:11px;line-height:1.35;margin:4px 0}
+body.mode-simple .simple-step-state{font-size:11px}
+body.mode-simple .simple-demo-conclusion{margin:6px 0;padding:9px;font-size:13px}
+body.mode-simple .simple-extra{margin-top:5px;font-size:12px}
+body.mode-simple .simple-extra summary{padding:5px 0}
+body.mode-simple .simple-result{margin:6px 0;padding:8px 11px}
+body.mode-simple .simple-result strong{font-size:17px}
+@media(min-width:901px) and (min-height:700px){body.mode-simple .foot{padding:6px 16px}}
+@media(max-width:900px){
+ body.mode-simple .simple-home{display:flex;flex-direction:column;max-width:760px;padding:10px;gap:10px}
+ body.mode-simple .simple-home>.simple-card{width:100%}
+ body.mode-simple .simple-guide{grid-template-columns:1fr}
+ body.mode-simple .simple-step p{font-size:12px}
+}
+@media(max-width:560px){body.mode-simple .simple-demo-actions{display:grid;grid-template-columns:1fr 1fr}body.mode-simple .simple-demo-actions button{width:auto;font-size:12px;padding:8px 5px}}
+
+/* v51 — równa siatka: dwie lewe karty wypełniają wysokość prawej. */
+@media (min-width:901px){
+ body.mode-simple .simple-home{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.45fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr);align-items:stretch!important;gap:12px}
+ body.mode-simple .simple-home>.simple-card:first-child{grid-column:1;grid-row:1}
+ body.mode-simple #simpleResultCard{grid-column:1;grid-row:2}
+ body.mode-simple #simpleDemoCard{grid-column:2;grid-row:1 / span 2;height:100%;align-self:stretch}
+ body.mode-simple .simple-home>.simple-card{min-height:0;box-sizing:border-box}
+ body.mode-simple #simpleResultCard:not([hidden]){display:flex;flex-direction:column;justify-content:flex-start}
+ body.mode-simple .simple-home:has(#simpleResultCard[hidden]){grid-template-rows:auto}
+ body.mode-simple .simple-home:has(#simpleResultCard[hidden]) #simpleDemoCard{grid-row:1}
+}
+.simple-found{border:1px solid #5cbda0;background:#0d302e;border-radius:10px;padding:10px 13px;margin:7px 0;overflow-wrap:anywhere}
+.simple-found-label{display:block;font-size:12px;color:#c7f5e6;margin-bottom:4px}
+.simple-found strong{font-size:clamp(17px,2.5vw,23px);color:#fff;user-select:text}
+.simple-found[hidden]{display:none!important}
+@media(max-width:900px){body.mode-simple .simple-home{align-items:stretch!important}body.mode-simple .simple-home>.simple-card{height:auto}}
+</style><style>
+/* v51: ustawienia czasu i muzyki w grze drużynowej */
+.quiz-team-options{display:flex;align-items:center;flex-wrap:wrap;gap:12px 18px;flex-basis:100%;width:100%;padding:12px;border-radius:10px;border:1px solid #435578;background:#0c172c}
+.quiz-team-options[hidden],.quiz-timer[hidden],.quiz-music-credit[hidden]{display:none!important}
+.quiz-team-options label{display:inline-flex;align-items:center;gap:8px;font-size:13px}
+.quiz-team-options input[type=number]{width:74px;padding:7px;color:#fff;background:#0b1427;border:1px solid #53658c;border-radius:7px}
+.quiz-team-options input[type=range]{width:100px}
+.quiz-timer{display:flex;align-items:center;gap:14px;margin:0 0 15px;color:#dbe8ff}
+.quiz-timer strong{font-size:24px;font-variant-numeric:tabular-nums;min-width:64px}
+.quiz-timer-track{flex:1;height:12px;background:#263452;border-radius:12px;overflow:hidden}
+#quizTimerFill{height:100%;width:100%;background:#63d6af;transition:width .1s linear}
+.quiz-timer.urgent strong{color:#ffb0aa}.quiz-timer.urgent #quizTimerFill{background:#f08d80}
+.quiz-music-credit{font-size:11px;line-height:1.5;color:#b8c7e2;text-align:right;margin:10px 2px 0}
+.quiz-music-credit a{color:#c8c3ff}
+@media(max-width:680px){.quiz-team-options{align-items:flex-start;flex-direction:column}}
+</style><style>.quiz-audio-status{font-size:13px;margin:8px 0;color:#f5cfa2}.quiz-audio-status[hidden],.quiz-audio-status button[hidden]{display:none!important}.quiz-audio-status button{margin-left:8px;padding:5px 10px;border-radius:7px;border:1px solid #92a7d0;background:#23385c;color:white;cursor:pointer}</style><style>.foot{flex-wrap:wrap}.foot .license-footer{width:100%;font-size:11px;line-height:1.5;opacity:.8}.foot .license-footer a{color:inherit;text-decoration:underline;text-underline-offset:2px}</style><style>.cert-source{padding:12px;border:1px solid #385174;background:#0b1b33;border-radius:12px;font-size:12px;line-height:1.55}.cert-source p{margin:0 0 7px}.cert-source p:last-child{margin-bottom:0}.cert-source a{color:#b8c9ff;text-underline-offset:2px}.cert-toggle{display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin:9px 0}.cert-toggle input{margin-top:4px;flex:none}.cert-status{color:#aebddd;overflow-wrap:anywhere}</style></head><body><div class="app"><header class="top"><div class="brand"><div class="logo">⌘</div><div><strong>HasłoLab <span style="color:#9b96ff">v56</span></strong><small>Laboratorium odporności haseł</small></div></div><nav aria-label="Wybierz widok aplikacji" class="mode-switch" role="group"><button aria-pressed="true" data-mode="simple" type="button">✨ Prosty</button><button aria-pressed="false" data-mode="full" type="button">⚙ Pełny</button><button aria-pressed="false" data-mode="presenter" type="button">🎓 Prowadzący</button></nav></header><div aria-live="polite" class="mode-intro" id="modeIntro" role="status"></div><nav aria-label="Sekcje aplikacji" class="workspace-nav" id="workspaceNav"><button aria-pressed="false" data-tab="lab" type="button">🔬 Sprawdzanie hasła</button><button aria-pressed="false" data-tab="dictionary" type="button">📚 Listy haseł</button><button aria-pressed="false" data-tab="compare" type="button">⚖ Porównaj hasła</button><button aria-pressed="false" data-tab="exercise" type="button">🧩 Ćwiczenie krok po kroku</button><button aria-pressed="false" data-tab="scenario" type="button">🎓 Quiz wiedzy</button></nav><section class="simple-home" id="simpleHome" aria-label="Sprawdź przykładowe hasło">
+<div class="simple-card"><h2>1. Sprawdź przykładowe hasło</h2><p>Wymyśl hasło na potrzeby ćwiczenia. <strong>Nie wpisuj hasła, którego naprawdę używasz.</strong></p><label for="simplePwd">Przykładowe hasło</label><div class="simple-entry"><input id="simplePwd" type="password" autocomplete="off" spellcheck="false" placeholder="Wpisz wymyślone hasło"/><button class="btn secondary" id="simpleShow" type="button" aria-pressed="false" aria-label="Pokaż wpisane hasło">Pokaż</button></div><button class="btn simple-primary" id="simpleAnalyze" type="button">Sprawdź hasło</button><p class="simple-hint" id="simpleInputHint" role="status" aria-live="polite" aria-atomic="true">Sprawdzenie odbywa się na tym urządzeniu, bez wysyłania hasła na serwer.</p></div>
+<div class="simple-card" id="simpleResultCard" hidden aria-label="Wynik oceny hasła"><h2>2. Co oznacza wynik?</h2><div class="simple-result" role="status" aria-live="polite"><strong id="simpleRating" tabindex="-1">—</strong><span id="simpleWhy"></span></div><p id="simpleAdvice"></p><details class="simple-extra"><summary>Jak powstała ta ocena?</summary><p>Program szuka prostych wzorców i sprawdza ograniczony zestaw przykładowych haseł. To wskazówka edukacyjna, a nie gwarancja bezpieczeństwa konta.</p></details></div>
+<div class="simple-card" id="simpleDemoCard" hidden aria-label="Pokaz odgadywania hasła"><h2>3. Zobacz, jak program próbuje odgadnąć hasło</h2><p class="simple-lead">Program będzie kolejno próbował trzech sposobów. <strong>To prawdziwe sprawdzanie przykładowego hasła na Twoim urządzeniu</strong>, a nie próba zalogowania się do jakiegokolwiek konta.</p>
+<div class="simple-demo-actions"><button class="btn simple-primary" id="simpleRun" type="button">▶ Rozpocznij pokaz</button><div class="simple-demo-controls"><button class="btn secondary" id="simpleStop" type="button" disabled>■ Zatrzymaj pokaz</button><label class="simple-limit-toggle" for="simpleUnlimited"><input id="simpleUnlimited" type="checkbox"/><span>Bez limitu 60 s</span></label><div class="simple-cpu-forecast" id="simpleCpuForecast" role="status" aria-live="off"><span>Przewidywany czas CPU</span><strong id="simpleCpuForecastValue">Po pomiarze</strong></div></div></div>
+<div class="simple-demo-status" role="status" aria-live="polite" id="simpleDemoStatus" aria-atomic="true">Naciśnij „Rozpocznij pokaz”, aby zobaczyć kolejne kroki.</div>
+<div class="simple-live" id="simpleLive" hidden><div class="simple-live-label">Właśnie sprawdzane hasło</div><div class="simple-live-candidate" id="simpleCandidate" aria-live="off">—</div><div class="simple-live-count" id="simpleCount" aria-live="off">Oczekiwanie na pierwszą próbę</div><div class="simple-live-bar" aria-hidden="true"><div id="simpleLiveFill" aria-hidden="true"></div></div><small>Pokaz może zakończyć się wcześniej, jeśli program znajdzie dopasowanie. Brak dopasowania nie oznacza, że hasło jest bezpieczne.</small></div>
+<div class="simple-demo-conclusion" id="simpleConclusion" hidden role="status" aria-live="polite"></div><div class="simple-found" id="simpleFound" hidden><span class="simple-found-label">Odgadnięte hasło testowe:</span><strong id="simpleFoundValue"></strong></div>
+<div class="simple-guide" aria-label="Trzy sposoby odgadywania">
+<div class="simple-step" id="simpleStepDict"><span class="simple-step-number">1</span><div><strong>Popularne hasła</strong><p>Najpierw sprawdza hasła z przygotowanej listy, np. „123456”.</p><span class="simple-step-state" id="simpleStepDictState">Czeka na uruchomienie</span></div></div>
+<div class="simple-step" id="simpleStepHybrid"><span class="simple-step-number">2</span><div><strong>Typowe zmiany</strong><p>Potem próbuje zmieniać hasła z listy, np. dopisać „123”.</p><span class="simple-step-state" id="simpleStepHybridState">Czeka na uruchomienie</span></div></div>
+<div class="simple-step" id="simpleStepBrute"><span class="simple-step-number">3</span><div><strong>Kombinacje znaków</strong><p>Na końcu sprawdza kolejne układy liter, cyfr i znaków. Ten etap może trwać długo.</p><span class="simple-step-state" id="simpleStepBruteState">Czeka na uruchomienie</span></div></div>
+</div>
+
+<details class="simple-extra"><summary>Dlaczego pokaz nie zawsze kończy się odgadnięciem?</summary><p>Program używa ograniczonej listy popularnych haseł i wybranych zmian. Próbowanie wszystkich kombinacji może zająć bardzo dużo czasu, dlatego pokaz może zatrzymać się po 60 sekundach lub wcześniej po pomiarze wydajności. Nie jest to ocena zabezpieczeń prawdziwego konta.</p></details></div>
+</section><main class="main"><section class="left"><div class="panel" data-workspace="lab"><h2>🔐 Testowane hasło</h2><p class="help-inline">Zacznij tutaj: wpisz <strong>wymyślone</strong> hasło, wybierz „Analizuj”, a następnie odczytaj wyniki w kolejnych panelach. Nie używaj hasła do swojego konta.</p><p class="sub">Wpisz przykładowe hasło. Analiza odbywa się wyłącznie w przeglądarce.</p><div class="inputrow"><input aria-label="Hasło do analizy" autocomplete="off" class="password" id="pwd" placeholder="Wpisz hasło do sprawdzenia" spellcheck="false" type="password"/><button aria-label="Pokaż hasło" aria-pressed="false" class="btn secondary" id="show" title="Pokaż hasło" type="button">👁</button><button class="btn" id="analyze" type="button">Analizuj</button></div><div class="label"><span>Szacunkowa odporność</span><span id="length">0 znaków</span></div><div class="meter"><div id="bar"></div></div><div class="status"><strong id="strength">Wprowadź hasło</strong><div id="predictabilityExplanation" class="predictability-explanation" aria-live="polite"></div><span id="charset">—</span></div></div><div class="panel dictionary" data-workspace="dictionary"><h2>📚 Lista haseł do sprawdzania</h2><p class="sub">Możesz dodać własną listę przykładowych haseł z pliku TXT lub ZIP (do 2 mln różnych wpisów). Plik jest przetwarzany wyłącznie na Twoim urządzeniu.</p><div class="cert-source"><p>🇵🇱 <strong>Polski słownik popularnych haseł — CERT Polska</strong></p><p><a href="https://cert.pl/hasla/" target="_blank" rel="noopener noreferrer">Informacje i pobieranie słownika na cert.pl</a> · <a href="https://cert.pl/uploads/2022/01/hasla/resources/wordlist_pl.zip" target="_blank" rel="noopener noreferrer" download>Pobierz ZIP bezpośrednio</a></p><p>Pobierz plik ZIP z witryny CERT Polska, a następnie wczytaj go poniżej za pomocą przycisku „Wybierz słownik”.</p></div><label class="file">📁 Wybierz słownik (.txt / .zip)<input accept=".txt,.zip,text/plain,application/zip,application/x-zip-compressed" id="file" type="file"/></label><div aria-label="Postęp importu" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="scantrack" id="importtrack" role="progressbar"><div class="scanfill" id="importfill"></div></div><div aria-live="polite" class="fileinfo" id="fileinfo">Nie wczytano słownika. Dostępny jest niewielki zestaw demonstracyjny.</div><div class="filebuttons"><button class="btn secondary" id="clear">Usuń słownik</button><button class="btn secondary" id="example">Wstaw przykład</button></div><div class="diagnostics-panel" id="diagnosticsPanel" style="margin-top:16px;padding:14px;border:1px solid #3b4e70;border-radius:12px;background:#0b1427"><h3 style="margin:0 0 8px">🧪 Diagnostyka i testy automatyczne</h3><p class="sub">Testy uruchamiane lokalnie, na osobnym słowniku testowym. Nie zmieniają Twoich danych ani aktywnego testu. Sprawdzają dopasowania, reguły, TXT, ZIP, anulowanie oraz pomiar SHA-256.</p><button class="btn" id="runDiagnostics" type="button">▶ Uruchom testy</button><button class="btn secondary" id="stopDiagnostics" type="button" disabled>■ Przerwij testy</button><div id="diagnosticsSummary" aria-live="polite" style="margin-top:12px;color:#dbe7ff">Nie uruchomiono testów.</div><div id="diagnosticsResults" style="font-size:13px;line-height:1.65;overflow-wrap:anywhere"></div><p style="font-size:12px;color:#aebcdb">Testy nie zastępują testów na wielu urządzeniach. Wydajność jest mierzona na bieżącym urządzeniu.</p></div><details class="glossary"><summary>📖 Wyjaśnienie pojęć użytych w aplikacji</summary><dl><dt>Lista haseł (słownik)</dt><dd>Zbiór przykładowych ciągów, które program sprawdza jeden po drugim.</dd><dt>Typowe zmiany (metoda hybrydowa)</dt><dd>Program modyfikuje hasła z listy, np. dopisuje cyfry lub zmienia wielkość liter.</dd><dt>Kolejne kombinacje (brute-force)</dt><dd>Program sprawdza ciągi znaków według ustalonej kolejności. Czas zależy od liczby możliwości i szybkości obliczeń.</dd><dt>SHA-256</dt><dd>Funkcja tworząca skrót danych. Tutaj służy do lokalnego pokazu obliczeń; nie oznacza, że tak są chronione hasła w serwisach.</dd><dt>CPU / GPU</dt><dd>CPU to procesor urządzenia, na którym uruchomiono test. GPU to procesor graficzny; w tej aplikacji jego szybkość jest wyłącznie założeniem modelu.</dd><dt>Szacunek</dt><dd>Wynik obliczony z przyjętych założeń, a nie zaobserwowany czas złamania hasła.</dd></dl></details><div class="info"><p><b>Jak działa ocena?</b> Dopasowanie do słownika lub modyfikacji daje wynik „odgadnięte”. Krótkie hasła sprawdzane są przez rzeczywiste obliczanie SHA-256 kandydatów (domyślnie maks. 60 sekund; limit można wyłączyć).</p><p>Hipotetyczny model GPU zakłada <b>100 mld prób/s</b> i losowy alfabet. Rzeczywisty CPU jest mierzony osobno; dla Argon2id bez parametrów nie podajemy czasu.</p><p><b>Ważne:</b> to edukacyjny model offline z szybkim SHA-256, nie symulacja zabezpieczeń serwera (np. Argon2id z solą). Nie wpisuj prawdziwych haseł. Importowany słownik pozostaje lokalnie w tej karcie. Przy dużych słownikach zalecany jest komputer z co najmniej 8 GB RAM.</p></div></div></section><section class="right"><div class="panel" data-workspace="lab"><p class="help-inline">Trzy metody pokazują różne sposoby zgadywania. <strong>Znaleziono</strong> oznacza dopasowanie w sprawdzonym zakresie. <strong>Nie znaleziono</strong> nie jest dowodem bezpieczeństwa hasła.</p><div class="terminal-head"><h2>⚡ Jak program próbuje odgadnąć hasło?</h2><span class="pill">CPU: pomiar na urządzeniu</span></div><div class="methods"><div class="method"><div class="name">1. Popularne hasła <span class="term">(metoda słownikowa)</span></div><div class="desc">Dokładne dopasowanie w słowniku</div><div class="result" id="dictResult">—</div><div class="note" id="dictNote">Oczekiwanie na analizę</div></div><div class="method"><div class="name">2. Typowe zmiany <span class="term">(metoda hybrydowa)</span></div><div class="desc">Wybrane typowe modyfikacje słów</div><div class="result" id="hybridResult">—</div><div class="note" id="hybridNote">Oczekiwanie na analizę</div></div><div class="method"><div class="name">3. Kolejne kombinacje <span class="term">(brute-force)</span></div><div class="desc">Rzeczywiste SHA-256 na CPU · prognoza po uruchomieniu</div><div class="result" id="bruteResult">—</div><div class="note" id="bruteNote">Oczekiwanie na analizę</div></div></div></div><div class="panel" data-workspace="lab" id="timeModelsPanel"><h2>⏱ Co oznaczają wyświetlane czasy?</h2><p class="sub">Dwa różne scenariusze: pomiar CPU w tej przeglądarce oraz hipotetyczny model GPU. Nie są to wyniki tego samego urządzenia.</p><div class="time-model-grid"><div class="time-model-card"><strong>CPU · ta przeglądarka</strong><b id="cpuModelValue">Brak pomiaru</b><small id="cpuModelDetail">Uruchom brute-force, aby zmierzyć szybkość rzeczywistych prób SHA-256.</small></div><div class="time-model-card"><strong>GPU · model hipotetyczny</strong><b id="gpuModelValue">—</b><small id="gpuModelDetail">Przykładowe 100 mld prób/s; nie jest to pomiar GPU ani prognoza dla konkretnego systemu.</small></div></div><p class="time-model-disclaimer">Szacunki dla losowego alfabetu nie opisują dobrze haseł przewidywalnych. Brak trafienia podczas demonstracji nie oznacza bezpieczeństwa.</p></div><div class="panel terminal-panel" data-workspace="lab"><p class="help-inline">To jest pokaz rzeczywistych prób wykonywanych lokalnie. Licznik opisuje wykonane próby, a nie liczbę prób w prawdziwym ataku na konto. Możesz zatrzymać pokaz przyciskiem „Stop”.</p><div class="terminal-head"><h2>▣ Przebieg sprawdzania — szczegóły</h2><div class="actions"><button class="btn" id="run" type="button">▶ Rozpocznij sprawdzanie</button><button class="btn secondary" disabled="" id="stop">■ Stop</button></div></div><div class="time-mode"><label class="time-toggle"><input id="unlimited" type="checkbox"/><span><b>Wyłącz limit 60 sekund</b><small>Tryb rozszerzony — rzeczywiste próby do wyniku lub naciśnięcia Stop.</small></span></label><p class="time-warning" hidden="" id="timeWarning">⚠ Długie obliczenia mogą nagrzewać telefon i zużywać baterię. Przeglądarka może wstrzymać działanie karty w tle. Przycisk Stop pozostaje aktywny.</p></div><div aria-label="Etapy symulacji" class="visual-stage"><div class="stage" id="stage-dict"><b>1 · Słownik</b><span id="stage-dict-info">Oczekuje</span></div><div class="stage" id="stage-hybrid"><b>2 · Modyfikacje</b><span id="stage-hybrid-info">Oczekuje</span></div><div class="stage" id="stage-brute"><b>3 · Brute-force</b><span id="stage-brute-info">Oczekuje</span></div></div><div class="scanline"><span id="scanphase">Gotowość</span><strong id="candidate">—</strong><span id="scanpct">0%</span></div><div aria-label="Postęp symulacji" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="scantrack" id="scantrack" role="progressbar"><div class="scanfill" id="scanfill"></div></div><div class="terminal"><div class="terminal-top"><span><span class="dots">● ● ●</span>   haslolab_simulator v56</span><b class="terminal-state" id="state">GOTOWY</b></div><div aria-label="Etapy ataku" aria-live="off" class="console-stages" id="consoleStages"><div class="console-stage" data-console-stage="SŁOWNIK"><div class="console-stage-heading"><span class="console-stage-icon">○</span><strong>SŁOWNIK</strong><span class="console-stage-status">Oczekuje</span></div><div class="console-stage-live" hidden=""></div></div><div class="console-stage" data-console-stage="MODYFIKACJE"><div class="console-stage-heading"><span class="console-stage-icon">○</span><strong>MODYFIKACJE</strong><span class="console-stage-status">Oczekuje</span></div><div class="console-stage-live" hidden=""></div></div><div class="console-stage" data-console-stage="BRUTE-FORCE"><div class="console-stage-heading"><span class="console-stage-icon">○</span><strong>BRUTE-FORCE</strong><span class="console-stage-status">Oczekuje</span></div><div class="console-stage-live" hidden=""></div></div></div><div class="console-details-title">SZCZEGÓŁY I WYNIKI</div><pre aria-label="Szczegóły symulacji" aria-live="polite" id="log" role="log">[i] Wprowadź hasło i uruchom analizę.
+[i] To demonstracja edukacyjna, lokalny model edukacyjny z rzeczywistymi próbami SHA-256.</pre></div></div><div class="panel audit-report" data-workspace="lab" id="auditReportPanel"><h2>📋 Co naprawdę ustalono, a co jest szacunkiem?</h2><p class="sub">Oddzielamy obserwacje z rzeczywistych prób od modeli i szacunków. Raport nie zawiera testowanego hasła.</p><div class="audit-grid"><section class="audit-card"><h3 class="audit-fact">✓ Potwierdzone obserwacje</h3><div id="auditFacts" aria-live="polite"><p>Nie uruchomiono jeszcze testu.</p></div></section><section class="audit-card"><h3 class="audit-model">≈ Szacunki i ograniczenia</h3><div id="auditEstimates" aria-live="polite"><p>Wyniki modelowe pojawią się po analizie.</p></div></section></div><p class="audit-note" id="auditStatus" role="status">Raport oczekuje na dane.</p><div class="audit-actions"><button class="btn secondary" type="button" id="auditCopy">Kopiuj raport</button><button class="btn secondary" type="button" id="auditDownload">Pobierz TXT</button></div><p class="audit-note">Zakres: demonstracja offline w przeglądarce. Dopasowanie jest dowodem znalezienia ciągu w sprawdzonym zbiorze, a brak trafienia nie jest dowodem bezpieczeństwa konta.</p></div><div class="panel training-panel" data-workspace="compare"><div class="terminal-head"><h2>⚖ Porównaj dwa przykładowe hasła</h2><span class="pill">Bez wysyłania danych</span></div><p class="sub">Wybierz dwa przykładowe hasła lub wpisz własne <b>testowe</b> ciągi. Porównanie pokazuje rozmiar przestrzeni brute-force i typowe słabości, nie obiecuje czasu złamania rzeczywistego konta.</p><div class="training-presets"><button class="btn secondary preset" data-example="123456">123456</button><button class="btn secondary preset" data-example="Haslo123!">Haslo123!</button><button class="btn secondary preset" data-example="Kawa!Rower7">Kawa!Rower7</button><button class="btn secondary preset" data-example="most-lampa-ogród-kot">most-lampa-ogród-kot</button></div><div class="training-inputs"><label>Hasło A<input autocomplete="off" id="compareA" maxlength="120" spellcheck="false" type="text" value="123456"/></label><label>Hasło B<input autocomplete="off" id="compareB" maxlength="120" spellcheck="false" type="text" value="Kawa!Rower7"/></label></div><div class="training-actions"><button class="btn" id="compareBtn" type="button">Porównaj hasła</button><button class="btn secondary" id="useCompare" type="button">Testuj hasło B w laboratorium</button></div><div aria-live="polite" class="comparison" id="comparison"></div><p class="training-foot">💡 Wskazówka: dłuższe, nieprzewidywalne hasło zwykle jest lepsze niż krótkie z zamienioną literą na symbol. Model kombinatoryczny nie uwzględnia popularności fraz ani wycieków danych.</p></div><div class="panel exercise-panel" data-workspace="exercise"><div class="terminal-head"><h2>🧩 Ćwiczenie: ulepsz przykładowe hasło</h2><span class="pill">3 etapy · lokalnie</span></div><p class="sub">Pracuj wyłącznie na <b>wymyślonym haśle testowym</b>. W kolejnych etapach poprawiaj je i obserwuj, jak zmieniają się długość, przewidywalność i modelowa przestrzeń kombinacji.</p><div class="exercise-steps" id="exerciseSteps"><div class="exercise-step active">1 · Punkt wyjścia</div><div class="exercise-step">2 · Ulepszenie</div><div class="exercise-step">3 · Porównanie</div></div><p class="exercise-caption" id="exerciseTask">Etap 1: zacznij od przykładowego, przewidywalnego ciągu i sprawdź jego słabości.</p><div class="exercise-input"><input aria-label="Testowe hasło w ćwiczeniu" autocomplete="off" id="exercisePwd" maxlength="120" spellcheck="false" type="text" value="Haslo123"/><button class="btn secondary" id="exerciseEvaluate" type="button">Oceń zmianę</button></div><div aria-live="polite" class="exercise-feedback" id="exerciseFeedback"></div><div class="exercise-actions"><button class="btn secondary" id="exerciseReset" type="button">↺ Od początku</button><button class="btn" id="exerciseNext" type="button">Następny etap →</button><button class="btn secondary" id="exerciseLab" type="button">Sprawdź w laboratorium</button></div><div class="exercise-report" hidden="" id="exerciseReport"><h3>📋 Podsumowanie ćwiczenia</h3><div aria-live="polite" id="reportContent"></div><label class="report-check"><input id="reportIncludePasswords" type="checkbox"/><span>Dołącz testowe ciągi do kopiowanego lub pobieranego raportu (domyślnie wyłączone — zalecane pozostawienie bez haseł).</span></label><div class="report-actions"><button class="btn secondary" id="reportCopy" type="button">Kopiuj podsumowanie</button><button class="btn secondary" id="reportDownload" type="button">Pobierz TXT</button></div><p id="reportMessage" role="status"></p></div><p class="exercise-caption">Uwaga: model kombinatoryczny zakłada losowe znaki. Popularne frazy i schematy mogą być łatwe do odgadnięcia niezależnie od wyświetlanej liczby kombinacji. Nie wpisuj haseł używanych w rzeczywistych kontach.</p></div></section><section aria-label="Quiz wiedzy o hasłach" class="panel presenter-panel quiz-panel" data-workspace="scenario" id="presenterPanel">
+ <div class="quiz-heading"><div><h2>🎯 Hasło na medal — teleturniej wiedzy</h2><p class="sub">Wybierz grę indywidualną lub dwa zespoły. Po każdej odpowiedzi zobaczysz wyjaśnienie. Wszystkie pytania dotyczą bezpieczeństwa haseł i treści wcześniejszych materiałów prowadzącego.</p></div><span class="pill">10 pytań · lokalnie</span></div>
+ <div class="quiz-settings"><fieldset><legend>Tryb rozgrywki</legend><label><input type="radio" name="quizMode" value="solo" checked> Jedna osoba</label><label><input type="radio" name="quizMode" value="teams"> Dwa zespoły</label></fieldset><div id="quizTeamNames" hidden><label>Zespół 1 <input id="quizNameA" maxlength="28" value="Drużyna A"></label><label>Zespół 2 <input id="quizNameB" maxlength="28" value="Drużyna B"></label></div><div id="quizTeamOptions" class="quiz-team-options" hidden>
+<label class="quiz-option-setting"><input type="checkbox" id="quizTimeEnabled"> Limit czasu na odpowiedź</label>
+<label class="quiz-time-value">Sekundy <input id="quizTimeSeconds" type="number" min="5" max="300" step="5" value="30" disabled aria-label="Czas na odpowiedź w sekundach"></label>
+<label class="quiz-option-setting"><input type="checkbox" id="quizMusicEnabled"> Muzyka podczas odpowiedzi</label>
+<label class="quiz-volume">Głośność <input type="range" id="quizMusicVolume" min="0" max="100" value="30" aria-label="Głośność muzyki"></label>
+</div><div class="quiz-settings-actions"><button class="btn" id="quizStart" type="button">▶ Rozpocznij quiz</button><button class="btn secondary" id="quizRestart" type="button">↺ Nowa gra</button></div></div>
+ <div class="quiz-scoreboard" id="quizScoreboard" hidden aria-label="Wyniki gry"><div class="quiz-score active" id="quizScoreA"><span id="quizLabelA">Gracz</span><strong id="quizPointsA">0</strong><small>punktów</small></div><div class="quiz-round"><span id="quizRound">Pytanie 1 z 10</span><div class="quiz-progress"><div id="quizProgressFill"></div></div><strong id="quizTurn">Twoja kolej</strong></div><div class="quiz-score" id="quizScoreB" hidden><span id="quizLabelB">Drużyna B</span><strong id="quizPointsB">0</strong><small>punktów</small></div></div>
+ <div class="quiz-board" id="quizBoard" hidden><p class="quiz-category" id="quizCategory"></p><h3 id="quizQuestion"></h3><div id="quizAudioStatus" class="quiz-audio-status" hidden role="status"><span id="quizAudioMessage"></span> <button type="button" id="quizAudioRetry" hidden>▶ Włącz muzykę</button></div><div id="quizTimer" class="quiz-timer" hidden aria-label="Pozostały czas"><strong id="quizTimeLeft">30 s</strong><div class="quiz-timer-track"><div id="quizTimerFill"></div></div></div><div class="quiz-answers" id="quizAnswers" role="group" aria-label="Wybierz odpowiedź"></div><div class="quiz-feedback" id="quizFeedback" role="status" aria-live="polite" hidden></div><div class="quiz-controls"><button class="btn" id="quizNext" type="button" disabled>Następne pytanie →</button></div></div>
+ <p id="quizMusicCredit" class="quiz-music-credit" hidden>♫ „The Escalation” — <a href="https://incompetech.com/music/royalty-free/index.html?Search=Search&amp;isrc=USUAN1400041" target="_blank" rel="noopener noreferrer">Kevin MacLeod</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Odtwarzanie wymaga internetu.</p><audio id="quizMusic" preload="auto" src="https://incompetech.com/music/royalty-free/mp3-royaltyfree/The%20Escalation.mp3"></audio><div class="quiz-welcome" id="quizWelcome"><h3>Jak gramy?</h3><p>W każdej rundzie wybierz jedną z czterech odpowiedzi. Za poprawną odpowiedź otrzymujesz <strong>10 punktów</strong>. W grze drużynowej zespoły odpowiadają naprzemiennie. Po wyborze zobaczysz prawidłową odpowiedź i wyjaśnienie, także przy błędzie.</p><p>Wskazówka: możesz korzystać z quizu na projektorze. Nie wpisuj prawdziwych haseł.</p></div>
+ </section></main><footer class="foot"><span>HasłoLab v56 · Edukacyjny symulator bezpieczeństwa haseł</span><span>Analiza haseł odbywa się lokalnie · bez zewnętrznych bibliotek · muzyka quizu wymaga internetu</span><span class="license-footer"><strong>Autor aplikacji: Michał Tycjan Grześlak.</strong> HasłoLab powstał na potrzeby edukacyjne z wykorzystaniem narzędzi sztucznej inteligencji (AI). Zezwala się na bezpłatne korzystanie, kopiowanie i modyfikowanie aplikacji w celach edukacyjnych pod warunkiem zachowania informacji o autorze i niniejszych warunkach. Wykorzystanie w innych celach, w tym komercyjnych, wymaga uprzedniej zgody autora. Warunki te dotyczą aplikacji HasłoLab i nie zastępują odrębnych licencji materiałów osób trzecich.</span><span class="license-footer">Muzyka: <a href="https://incompetech.com/music/royalty-free/index.html?Search=Search&amp;isrc=USUAN1400041" target="_blank" rel="noopener noreferrer">„The Escalation” — Kevin MacLeod (incompetech.com)</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a> · odtwarzanie od 3:00, bez modyfikacji pliku. Utwór jest własnością autora; licencja muzyki nie określa licencji kodu HasłoLab.</span></footer></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id), RATE=1e11;
+let worker, bruteWorker=null, scanJob=0, scanActive=false, scanHandler=null, currentJob=0, analyzed=null, animation=null, importedCount=0, importedName='', runStarted=0, runTimer=null;
+const builtin=['123456','password','admin','qwerty','haslo','haslo123','password123','123456789','welcome','letmein','polska123'];
+const workerCode=String.raw`
+'use strict';
+let dictionary=new Set(__BUILTIN__), totalRows=0, imported=0, importedFile='';
+const builtin=__BUILTIN__;
+const LIMIT=2000000, MAX_RAW=450*1024*1024, MAX_ZIP=250*1024*1024;
+const norm=s=>s.normalize('NFC').trim();
+function variants(w){const out=new Set();out.add(w);out.add(w+'1');out.add(w+'123');out.add(w+'!');out.add(w+'2026');out.add(w[0].toUpperCase()+w.slice(1));out.add(w.toUpperCase());out.add(w.replace(/a/gi,'@').replace(/o/gi,'0').replace(/e/gi,'3').replace(/i/gi,'1'));return out;}
+const report=(kind,data)=>postMessage({kind,...data});
+async function parseStream(stream,job,base=0,total=1){const reader=stream.getReader(),decoder=new TextDecoder('utf-8'),set=dictionary;let leftover='',processed=0,rows=0,lastUpdate=0;
+function addLines(txt,final=false){const lines=txt.split('\n');leftover=final?'':lines.pop();for(const line of lines){rows++;const w=norm(line.replace(/\r$/,'').replace(/^\uFEFF/,''));if(!w||w.startsWith('#'))continue;if(!set.has(w)){if(set.size>=LIMIT)throw Error('Przekroczono limit 2 000 000 unikalnych haseł.');set.add(w);}}}
+while(true){const {done,value}=await reader.read();if(done)break;processed+=value.byteLength;if(processed>MAX_RAW)throw Error('Przekroczono limit 450 MB rozpakowanych danych.');addLines(leftover+decoder.decode(value,{stream:true}));if(performance.now()-lastUpdate>100){lastUpdate=performance.now();report('progress',{job,percent:Math.min(99,Math.floor((base+processed)/total*100)),rows:totalRows+rows,unique:set.size});await new Promise(r=>setTimeout(r,0));}}
+const tail=leftover+decoder.decode();if(tail){rows++;const w=norm(tail.replace(/\r$/,'').replace(/^\uFEFF/,''));if(w&&!w.startsWith('#')){if(!set.has(w)){if(set.size>=LIMIT)throw Error('Przekroczono limit 2 000 000 unikalnych haseł.');set.add(w);}}}totalRows+=rows;return processed;}
+function entriesZip(bytes){const v=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);let end=-1;for(let i=bytes.length-22;i>=Math.max(0,bytes.length-65557);i--){if(v.getUint32(i,true)===0x06054b50){end=i;break;}}if(end<0)throw Error('Nie znaleziono katalogu ZIP.');const count=v.getUint16(end+10,true),offset=v.getUint32(end+16,true);if(count>2000||offset===0xffffffff)throw Error('Nieobsługiwane archiwum ZIP64 lub zbyt wiele plików.');let pos=offset;const dec=new TextDecoder(),out=[];for(let i=0;i<count;i++){if(pos+46>bytes.length||v.getUint32(pos,true)!==0x02014b50)throw Error('Uszkodzony katalog ZIP.');const flags=v.getUint16(pos+8,true),method=v.getUint16(pos+10,true),size=v.getUint32(pos+20,true),raw=v.getUint32(pos+24,true),n=v.getUint16(pos+28,true),e=v.getUint16(pos+30,true),c=v.getUint16(pos+32,true),local=v.getUint32(pos+42,true);const name=dec.decode(bytes.subarray(pos+46,pos+46+n));pos+=46+n+e+c;if(!/\.txt$/i.test(name)||name.startsWith('__MACOSX/'))continue;if(flags&1)throw Error('Archiwum szyfrowane nie jest obsługiwane.');if(method!==0&&method!==8)throw Error('Nieobsługiwana metoda kompresji ZIP.');if([size,raw,local].includes(0xffffffff))throw Error('ZIP64 nie jest obsługiwany.');if(local+30>bytes.length||v.getUint32(local,true)!==0x04034b50)throw Error('Uszkodzony nagłówek ZIP.');const data=local+30+v.getUint16(local+26,true)+v.getUint16(local+28,true);if(data+size>bytes.length)throw Error('Niepełne dane ZIP.');out.push({name,method,size,raw,data});}return out;}
+async function importFile(file,job){dictionary=new Set(builtin);totalRows=0;imported=0;const zip=/\.zip$/i.test(file.name);if(zip){if(file.size>MAX_ZIP)throw Error('ZIP przekracza limit 250 MB.');const bytes=new Uint8Array(await file.arrayBuffer()),entries=entriesZip(bytes);if(!entries.length)throw Error('W ZIP nie znaleziono plików TXT.');if(entries.length>250)throw Error('ZIP zawiera ponad 250 plików TXT.');const total=entries.reduce((a,e)=>a+e.raw,0);if(total>MAX_RAW)throw Error('Rozpakowane dane przekraczają 450 MB.');let done=0;for(const ent of entries){const raw=bytes.subarray(ent.data,ent.data+ent.size);let stream=new Blob([raw]).stream();if(ent.method===8){try{stream=stream.pipeThrough(new DecompressionStream('deflate-raw'));}catch{throw Error('Przeglądarka nie obsługuje deflate-raw. Rozpakuj ZIP i wczytaj TXT.');}}const n=await parseStream(stream,job,done,total);if(n!==ent.raw)throw Error('Niezgodny rozmiar pliku '+ent.name);done+=n;}}
+else{if(file.size>MAX_RAW)throw Error('TXT przekracza 450 MB.');await parseStream(file.stream(),job,0,file.size||1);}imported=dictionary.size-builtin.length;importedFile=file.name;report('complete',{job,rows:totalRows,unique:dictionary.size,imported,file:file.name});}
+function analyze(pwd,job){const exact=dictionary.has(pwd);let hybrid=false,base='',rule='';if(!exact){for(const w of dictionary){if(variants(w).has(pwd)){hybrid=true;base=w;const rules=[[w+'1','dopisanie 1'],[w+'123','dopisanie 123'],[w+'!','dopisanie !'],[w+'2026','dopisanie 2026'],[w[0].toUpperCase()+w.slice(1),'wielka pierwsza litera'],[w.toUpperCase(),'wielkie litery'],[w.replace(/a/gi,'@').replace(/o/gi,'0').replace(/e/gi,'3').replace(/i/gi,'1'),'zamiana liter na znaki/cyfry']];rule=(rules.find(x=>x[0]===pwd)||[])[1]||'typowa modyfikacja';break;}}}report('analyzed',{job,pwd,exact,hybrid,base,rule,unique:dictionary.size,sample:[...dictionary].slice(0,25)});}
+let scanToken=0;
+async function scanReal(pwd,job){
+ const token=++scanToken, words=[...dictionary], total=words.length;
+ const reportScan=(stage,attempts,maximum,candidate,extra={})=>report('scan',{job,stage,attempts,maximum,candidate,...extra});
+ let attempts=0, last=performance.now(), start=last;
+ for(let i=0;i<total;i++){
+  if(token!==scanToken)return;
+  const w=words[i];attempts++;
+  if(w===pwd){reportScan('dict',attempts,total,w,{state:'found',base:w,rule:'dokładne dopasowanie',elapsed:(performance.now()-start)/1000});return;}
+  const now=performance.now();
+  if(now-last>=90||i===total-1){reportScan('dict',attempts,total,w,{state:'progress',elapsed:(now-start)/1000});last=now;await new Promise(r=>setTimeout(r,0));}
+ }
+ reportScan('dict',attempts,total,'',{state:'done',elapsed:(performance.now()-start)/1000});
+ attempts=0;last=performance.now();start=last;
+ for(let i=0;i<total;i++){
+  if(token!==scanToken)return;
+  const w=words[i];
+  const variants=[['dopisanie 1',w+'1'],['dopisanie 123',w+'123'],['dopisanie !',w+'!'],['dopisanie 2026',w+'2026'],['wielka pierwsza litera',w[0].toUpperCase()+w.slice(1)],['wielkie litery',w.toUpperCase()],['zamiana liter na znaki/cyfry',w.replace(/a/gi,'@').replace(/o/gi,'0').replace(/e/gi,'3').replace(/i/gi,'1')]];
+  for(const [rule,candidate] of variants){
+   attempts++;
+   if(candidate===pwd){reportScan('hybrid',attempts,total*7,candidate,{state:'found',base:w,rule,elapsed:(performance.now()-start)/1000});return;}
+  }
+  const now=performance.now();
+  if(now-last>=90||i===total-1){reportScan('hybrid',attempts,total*7,variants[variants.length-1][1],{state:'progress',elapsed:(now-start)/1000});last=now;await new Promise(r=>setTimeout(r,0));}
+ }
+ reportScan('hybrid',attempts,total*7,'',{state:'done',elapsed:(performance.now()-start)/1000});
+ report('scan',{job,stage:'all',state:'done',attempts:0,maximum:0,candidate:''});
+}
+onmessage=async e=>{const {kind,job,file,pwd}=e.data;try{if(kind==='cancelScan'){scanToken++;}else if(kind==='scan'){await scanReal(pwd,job);}else if(kind==='import')await importFile(file,job);else if(kind==='analyze')analyze(pwd,job);else if(kind==='clear'){dictionary=new Set(builtin);totalRows=0;imported=0;report('complete',{job,rows:0,unique:dictionary.size,imported:0,file:''});}}catch(err){report('error',{job,message:err.message});}};
+`;
+function makeWorker(){if(worker)worker.terminate();const code=workerCode.replaceAll('__BUILTIN__',JSON.stringify(builtin));worker=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));worker.onmessage=handleWorker;worker.onerror=e=>{statusFile('Błąd procesu importu: '+e.message);$('run').disabled=false;};}
+function statusFile(text){$('fileinfo').textContent=text;}
+function importProgress(n){n=Math.min(100,Math.max(0,n));$('importfill').style.width=n+'%';$('importtrack').setAttribute('aria-valuenow',n);}
+function handleWorker(e){const m=e.data;if(m.kind==='scan'){if(m.job===scanJob&&scanActive&&analyzed&&$('pwd').value===analyzed.pwd&&typeof scanHandler==='function')scanHandler(m);return;}if(m.job!==currentJob)return;if(m.kind==='progress'){importProgress(m.percent);statusFile('Import '+m.percent+'% · odczytano '+m.rows.toLocaleString('pl-PL')+' wierszy · '+m.unique.toLocaleString('pl-PL')+' unikalnych haseł');}else if(m.kind==='complete'){importProgress(100);importedCount=m.imported;importedName=m.file;statusFile(m.file?m.file+' · '+m.rows.toLocaleString('pl-PL')+' wierszy · '+m.imported.toLocaleString('pl-PL')+' nowych unikalnych haseł':'Słownik usunięty; aktywny zestaw demonstracyjny.');$('file').disabled=false;$('clear').disabled=false;requestAnalysis();}else if(m.kind==='analyzed'){const pwd=$('pwd').value;if(!pwd||m.pwd!==pwd)return;analyzed={...m,pwd};renderAnalysis();auditFromAnalysis();$('run').disabled=false;}else if(m.kind==='error'){statusFile('Błąd: '+m.message);$('file').disabled=false;$('clear').disabled=false;importProgress(0);$('run').disabled=false;}}
+function fmt(sec){if(!Number.isFinite(sec))return 'Poza zakresem modelu';if(sec<.001)return 'mniej niż 1 ms';if(sec<1)return (sec*1000).toFixed(1)+' ms';if(sec<60)return sec.toFixed(1)+' s';if(sec<3600)return (sec/60).toFixed(1)+' min';if(sec<86400)return (sec/3600).toFixed(1)+' godz.';if(sec<31557600)return (sec/86400).toFixed(1)+' dni';return (sec/31557600).toExponential(2)+' lat';}
+function alphabet(p){let n=0;if(/[a-z]/.test(p))n+=26;if(/[A-Z]/.test(p))n+=26;if(/[0-9]/.test(p))n+=10;if(/[^\p{L}\p{N}\s]/u.test(p))n+=33;if(/\s/.test(p))n++;if(/[^\x00-\x7f]/.test(p))n+=50;return Math.max(1,n);}
+// v29: heurystyczna ocena przewidywalności, niezależna od modelu losowego brute-force.
+function predictability(value){
+ const p=String(value||''),low=p.toLocaleLowerCase('pl-PL'),issues=[];
+ const add=(label,penalty)=>issues.push({label,penalty});
+ const length=[...p].length;
+ if(length<8)add('Bardzo krótki ciąg',4);
+ else if(length<12)add('Mniej niż 12 znaków',2);
+ const common=['123456','123456789','password','password123','qwerty','admin','welcome','letmein','haslo','haslo123','polska123'];
+ if(common.includes(low))add('Popularny, przewidywalny ciąg demonstracyjny',6);
+ else if(/(?:1234|123|qwerty|password|haslo|admin|abcde|asdf)/i.test(p))add('Znany fragment lub sekwencja',3);
+ if(/(.)\1{2,}/u.test(p))add('Powtórzenia tego samego znaku',2);
+ if(/(?:0123|1234|2345|3456|4567|5678|6789|abcd|bcde|cdef|defg|qwer|asdf)/i.test(p))add('Sekwencja klawiaturowa lub liczbowa',3);
+ if(/^(.{1,4})\1{2,}$/u.test(p))add('Powtarzany blok znaków',4);
+ if(/(?:19|20)\d{2}[!?._-]*$/u.test(p))add('Rok na końcu hasła',2);
+ if(/(?:123|1234|!|\?)$/u.test(p)&&length>=7)add('Typowa końcówka',1);
+ if(/^[\p{L}]+(?:\d+|[!?]+)$/u.test(p))add('Słowo z dopisanymi cyframi lub symbolem',2);
+ const words=low.split(/[^\p{L}]+/u).filter(x=>x.length>=3);
+ const familiar=['kawa','rower','kot','pies','dom','szkola','szkoła','polska','lampa','most','las','ala','haslo','hasło'];
+ if(words.some(w=>familiar.includes(w)))add('Rozpoznawalne słowo w przykładzie',2);
+ const penalty=issues.reduce((sum,x)=>sum+x.penalty,0);
+ const score=Math.max(0,Math.min(100,length*5+Math.min(15,new Set([...p]).size*2)-penalty*8));
+ const level=score<25?'Bardzo przewidywalne':score<45?'Przewidywalne':score<70?'Wymaga ostrożności':'Brak oczywistych wzorców';
+ return {score,level,issues:issues.map(x=>x.label),note:'Heurystyka edukacyjna: nie wykrywa wszystkich słów, wycieków ani metod ataku; wynik nie jest gwarancją bezpieczeństwa.'};
+}
+// v51: raport obserwacji i modeli, bez przechowywania testowanego hasła.
+let auditSnapshot=null;
+function auditSet(facts,estimates,status){
+ auditSnapshot={facts,estimates,status,at:new Date().toLocaleString('pl-PL')};
+ const paint=(id,lines)=>{const el=$(id);if(!el)return;el.replaceChildren();const ul=document.createElement('ul');for(const value of lines){const li=document.createElement('li');li.textContent=value;ul.appendChild(li);}el.appendChild(ul);};
+ paint('auditFacts',facts);paint('auditEstimates',estimates);$('auditStatus').textContent=status;
+}
+function auditText(){if(!auditSnapshot)return 'HasłoLab v56 — brak danych do raportu.';const a=auditSnapshot;return ['HasłoLab v56 — raport wiarygodności','Data: '+a.at,'','POTWIERDZONE OBSERWACJE',...a.facts.map(x=>'- '+x),'','SZACUNKI I OGRANICZENIA',...a.estimates.map(x=>'- '+x),'','Status: '+a.status,'','Raport nie zawiera testowanego hasła. Nie jest certyfikatem bezpieczeństwa.'].join('\n');}
+function auditExport(){const blob=new Blob([auditText()],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='haslolab_v46_raport.txt';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+$('auditCopy').onclick=()=>{const txt=auditText();if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(()=>$('auditStatus').textContent='Skopiowano raport bez hasła.').catch(()=>$('auditStatus').textContent='Nie udało się skopiować. Użyj pobierania TXT.');else $('auditStatus').textContent='Schowek niedostępny. Użyj pobierania TXT.';};
+$('auditDownload').onclick=auditExport;
+function renderAnalysis(){
+ const a=analyzed,p=a.pwd,n=alphabet(p),lg=p.length*Math.log10(n),seconds=lg>300?Infinity:10**lg/(2*RATE);
+ a.seconds=seconds;a.n=n;
+ const match=a.exact||a.hybrid,heur=predictability(p);
+ const rating=match?'Znaleziono w słowniku / regułach':heur.level;
+ $('length').textContent=[...p].length+' znaków';
+ $('charset').textContent='Alfabet modelu losowego ~'+n+' znaków';
+ $('strength').textContent=rating;
+ $('bar').style.width=(match?8:Math.max(6,heur.score))+'%';
+ $('bar').style.background=match||heur.score<45?'var(--red)':heur.score<70?'var(--amber)':'var(--green)';
+ $('dictResult').textContent=a.exact?'Dopasowanie znalezione':'Brak trafienia w słowniku';
+ $('dictNote').textContent='Sprawdzono '+a.unique.toLocaleString('pl-PL')+' unikalnych wpisów';
+ $('hybridResult').textContent=a.hybrid?'Dopasowanie modyfikacji':a.exact?'Hasło już w słowniku':'Brak trafienia w regułach';
+ $('hybridNote').textContent=a.hybrid?'Baza: '+a.base+' · Reguła: '+a.rule:'Wybrane warianty na wpis';
+ $('bruteResult').textContent='Pomiar po uruchomieniu';
+ $('bruteNote').textContent='CPU: brak pomiaru. Model GPU opisano osobno poniżej; nie jest to przewidywany czas rzeczywistego ataku.';
+ $('cpuModelValue').textContent='Brak pomiaru';$('cpuModelDetail').textContent='Uruchom brute-force, aby zmierzyć szybkość rzeczywistych prób SHA-256.';
+ $('gpuModelValue').textContent=fmt(seconds)+' (model)';
+ const explanation=$('predictabilityExplanation');
+ if(explanation){explanation.replaceChildren();const heading=document.createElement('strong');heading.textContent='Dlaczego taka ocena?';explanation.appendChild(heading);
+ const detail=document.createElement('p');detail.textContent=match?'Wykryto dopasowanie w zaimportowanym słowniku lub w regułach modyfikacji.':heur.issues.length?heur.issues.join(' · '):'Nie znaleziono prostych wzorców w ograniczonym zestawie reguł.';explanation.appendChild(detail);
+ const caveat=document.createElement('small');caveat.textContent=heur.note+' Długość i alfabet pokazane osobno dotyczą wyłącznie losowych ciągów.';explanation.appendChild(caveat);}
+}
+function auditFromAnalysis(){if(!analyzed)return;const a=analyzed,p=a.pwd,h=predictability(p);auditSet([
+ 'Analiza lokalna: '+[...p].length+' znaków; wykryty alfabet modelowy: '+a.n+' znaków.',
+ 'Dopasowanie do bieżącego słownika: '+(a.exact?'TAK':'NIE')+'.',
+ 'Dopasowanie do wybranych reguł: '+(a.hybrid?'TAK':'NIE')+'.',
+ 'Nie przeprowadzono jeszcze rzeczywistego testu brute-force w tym uruchomieniu.'
+ ],[
+ 'Heurystyka przewidywalności: '+h.level+' (ocena orientacyjna).',
+ 'Hipotetyczny GPU 100 mld prób/s: '+fmt(a.seconds)+' średnio w modelu losowych znaków.',
+ 'Brak pomiaru CPU do momentu uruchomienia brute-force.',
+ 'Brak trafienia w słowniku nie wyklucza trafienia w innym zbiorze; nie znamy parametrów Argon2id rzeczywistej usługi.'
+ ],'Analiza wstępna — brak końcowego wyniku demonstracji.');}
+function reset(){for(const x of ['dict','hybrid','brute']){$('stage-'+x).className='stage';$('stage-'+x+'-info').textContent='Oczekuje';}progress(0,'Gotowość','—');$('state').textContent='GOTOWY';$('state').className='terminal-state';}
+function progress(n,phase,candidate){
+ const pct=Math.max(0,Math.min(100,Number(n)||0));
+ $('scanfill').style.width=pct+'%';
+ $('scanpct').textContent=pct===0?'0%':pct<.01?pct.toLocaleString('pl-PL',{maximumFractionDigits:7})+'%':pct<1?pct.toLocaleString('pl-PL',{maximumFractionDigits:4})+'%':pct.toLocaleString('pl-PL',{maximumFractionDigits:2})+'%';
+ $('scantrack').setAttribute('aria-valuenow',pct);
+ $('scanphase').textContent=phase;$('candidate').textContent=candidate;
+}
+// Etapy są zawsze na górze terminala. Tylko aktywny etap ma dynamiczną linię.
+let activeConsoleStage=null;
+function consoleRow(name){return [...document.querySelectorAll('[data-console-stage]')].find(el=>el.dataset.consoleStage===name);}
+function resetConsoleStages(){activeConsoleStage=null;for(const row of document.querySelectorAll('[data-console-stage]')){row.className='console-stage';row.querySelector('.console-stage-icon').textContent='○';row.querySelector('.console-stage-status').textContent='Oczekuje';const live=row.querySelector('.console-stage-live');live.hidden=true;live.textContent='';}}
+function activateConsoleStage(name){
+ if(activeConsoleStage===name)return;
+ if(activeConsoleStage)completeConsoleStage('done');
+ const row=consoleRow(name);if(!row)return;
+ activeConsoleStage=name;row.className='console-stage active';row.querySelector('.console-stage-icon').textContent='▶';row.querySelector('.console-stage-status').textContent='Trwa';
+ const live=row.querySelector('.console-stage-live');live.hidden=false;live.textContent='Rozpoczynanie prób…';
+}
+function liveAttempt(s){if(!activeConsoleStage)return;const row=consoleRow(activeConsoleStage);if(!row)return;const live=row.querySelector('.console-stage-live');live.hidden=false;live.textContent=s;}
+function log(s){
+ const match=/^▶ (SŁOWNIK|MODYFIKACJE|BRUTE-FORCE)$/.exec(s);
+ if(match){activateConsoleStage(match[1]);return;}
+ const el=$('log'),line=document.createElement('span');
+ line.className='term-line '+(/\[✓\]|ODGADNIĘTO/.test(s)?'term-success':/\[!\]|\[×\]/.test(s)?'term-error':/^(▶|\[→\])/.test(s)?'term-try':'term-info');
+ line.textContent=s+'\n';el.appendChild(line);
+ while(el.childNodes.length>170)el.removeChild(el.firstChild);
+ el.scrollTop=el.scrollHeight;
+}
+function completeConsoleStage(outcome='done'){
+ if(!activeConsoleStage)return;
+ const row=consoleRow(activeConsoleStage);if(!row)return;
+ row.className='console-stage '+outcome;
+ row.querySelector('.console-stage-icon').textContent=outcome==='stopped'?'■':'✓';
+ row.querySelector('.console-stage-status').textContent=outcome==='found'?'Odgadnięto':outcome==='stopped'?'Przerwano':'Zakończono';
+ const live=row.querySelector('.console-stage-live');live.hidden=true;live.textContent='';activeConsoleStage=null;
+}
+function stop(){
+ if(scanActive){scanActive=false;scanJob++;if(worker)worker.postMessage({kind:'cancelScan',job:currentJob});scanHandler=null;}
+ if(animation)clearInterval(animation);animation=null;
+ if(runTimer)clearTimeout(runTimer);runTimer=null;
+ if(bruteWorker){bruteWorker.terminate();bruteWorker=null;}
+ $('stop').disabled=true;$('run').disabled=!analyzed;
+}
+function requestAnalysis(){if($('file').disabled)return;stop();analyzed=null;reset();$('run').disabled=true;const pwd=$('pwd').value;if(!pwd){$('strength').textContent='Wprowadź hasło';return;}currentJob++;worker.postMessage({kind:'analyze',job:currentJob,pwd});}
+function run(){
+ if(!analyzed)return;
+ stop();
+ runStarted=performance.now();
+ const a=analyzed,p=a.pwd;
+ let actualAttempts=0, measuredRate=0, estimatedCpuSeconds=null,slowWarnings=0,previousRate=0,slowConsecutive=0;const startedAt=performance.now();
+ const lower='abcdefghijklmnopqrstuvwxyz',upper='ABCDEFGHIJKLMNOPQRSTUVWXYZ',digits='0123456789';
+ const punctuation='!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
+ let charset='';
+ if(/[a-z]/.test(p))charset+=lower;
+ if(/[A-Z]/.test(p))charset+=upper;
+ if(/[0-9]/.test(p))charset+=digits;
+ if(/[\x21-\x2f\x3a-\x40\x5b-\x60\x7b-\x7e]/.test(p))charset+=punctuation;
+ if(/\s/.test(p))charset+=' ';
+ // Non-ASCII symbols cannot be exhaustively covered by the ASCII search alphabet.
+ const supported=[...p].every(ch=>charset.includes(ch));
+ const space=charset.length?charset.length**[...p].length:Infinity;
+ const canBrute=supported&&Number.isSafeInteger(space)&&space>0;
+ const unlimited=$('unlimited').checked;
+ $('log').textContent='';resetConsoleStages();reset();$('state').textContent='SPRAWDZANIE';$('state').className='warn';$('run').disabled=true;$('stop').disabled=false;
+ log('[i] Pełny słownik: '+a.unique.toLocaleString('pl-PL')+' wpisów. Konsola pokazuje faktyczne postępy skanowania, nie próbkę animacyjną.');
+ log('[i] Model GPU: hipotetyczne 100 mld prób/s, bez pomiaru GPU. Wynik CPU zostanie zmierzony osobno.');
+ log('[+] Inicjalizacja symulacji · tryb edukacyjny / offline');
+ log(unlimited?'[i] TRYB ROZSZERZONY: brak limitu czasu. Zatrzymaj ręcznie przyciskiem Stop.':'[i] Limit demonstracji: 60 s. Gdy przewidywany czas jest dłuższy, pokażemy prognozę zamiast długiego oczekiwania.');
+ if(!unlimited)runTimer=setTimeout(()=>{if(bruteWorker){bruteWorker.terminate();bruteWorker=null;}if(animation){clearInterval(animation);animation=null;}finish(false,'limit czasu',actualAttempts,true,'Przekroczono 60 s — przerwano rzeczywiste próby.');},60000);
+ function stage(name,info){
+ const stages=['dict','hybrid','brute'];const active=stages.indexOf(name);
+ for(let i=0;i<stages.length;i++){
+  const st=stages[i];$('stage-'+st).className='stage'+(st===name?' active':'');
+  $('stage-'+st+'-info').textContent=i<active?'Zakończono':i===active?info:'Oczekuje';
+ }
+}
+ function finish(found,method,attempts,skipped=false,detail=''){
+   if(scanActive){scanActive=false;scanJob++;scanHandler=null;worker.postMessage({kind:'cancelScan',job:currentJob});}
+   completeConsoleStage(found?'found':skipped?'stopped':'done');
+   if(bruteWorker){bruteWorker.terminate();bruteWorker=null;}
+   if(animation){clearInterval(animation);animation=null;}
+   if(runTimer){clearTimeout(runTimer);runTimer=null;}
+   $('run').disabled=false;$('stop').disabled=true;
+   $('state').textContent=found?'ODGADNIĘTO':skipped?'NIE ZAKOŃCZONO':'NIE ODGADNIĘTO';$('state').className=found?'bad':skipped?'warn':'terminal-state';
+   progress(skipped?Math.min(99.9999999,Number(($('scanpct').textContent||'0').replace(/\s/g,'').replace('%','').replace(',','.'))||0):100,skipped?'Przerwano / szacunek':'Zakończono',found?'DOPASOWANIE':skipped?'WYNIK CZĘŚCIOWY':'BRAK DOPASOWANIA');
+   if(found&&a.hybrid&&method==='reguły')log('[i] Hasło bazowe: '+a.base+' · zastosowana reguła: '+(a.rule||'typowa modyfikacja')+'.');
+   if(found){log('[✓] SUKCES · Dopasowanie metodą '+method+(attempts?' · próba #'+attempts.toLocaleString('pl-PL'):' · sprawdzono cały zaimportowany słownik')+'.');log('[✓] ODGADNIĘTE HASŁO: '+p);$('candidate').textContent=p;$('scanphase').textContent='ODGADNIĘTE HASŁO';$('scanpct').textContent='✓';}
+   else if(skipped){log('[!] '+(detail||'Nie ukończono przeszukiwania. Nie jest to wynik odporności hasła.'));if(actualAttempts)log('[i] Faktycznie sprawdzono '+actualAttempts.toLocaleString('pl-PL')+' kandydatów.');if(measuredRate)log('[i] Zmierzona wydajność CPU: '+Math.round(measuredRate).toLocaleString('pl-PL')+' prób/s.');if(estimatedCpuSeconds!==null)log('[i] Prognoza pełnego zakresu na tym urządzeniu: '+fmt(estimatedCpuSeconds)+' (przy utrzymaniu zmierzonej szybkości).');} else log('[×] Hasła nie znaleziono w sprawdzonych metodach. Nie oznacza to, że jest niemożliwe do odgadnięcia.');
+   log('[i] Czas działania: '+fmt((performance.now()-startedAt)/1000)+' · rzeczywiste próby brute-force: '+actualAttempts.toLocaleString('pl-PL')+' · szybkość CPU: '+(measuredRate?Math.round(measuredRate).toLocaleString('pl-PL')+' prób/s':'brak pomiaru')+'.');
+   log('[i] Hipotetyczny model GPU (100 mld prób/s): '+fmt(a.seconds)+' średnio dla losowego alfabetu; nie jest to pomiar ani prognoza dla systemu z Argon2id.');
+   const verified=['Skanowanie słownika i modyfikacji: rzeczywiste porównania kandydatów z wpisanym ciągiem.',
+    'Wynik demonstracji: '+(found?'ODNALEZIONO ('+method+')':skipped?'NIE UKOŃCZONO':'BRAK TRAFIENIA W PRZESZUKANYM ZAKRESIE')+'.',
+    'Rzeczywiste próby SHA-256 na CPU: '+actualAttempts.toLocaleString('pl-PL')+'.',
+    'Czas od uruchomienia: '+fmt((performance.now()-startedAt)/1000)+'.'];
+   if(measuredRate)verified.push('Zmierzona średnia szybkość CPU: '+Math.round(measuredRate).toLocaleString('pl-PL')+' prób/s.');
+   auditSet(verified,[
+    'Heurystyczna ocena wzorców: '+predictability(p).level+' — nie jest to test wszystkich znanych haseł.',
+    'GPU: '+fmt(a.seconds)+' — model 100 mld prób/s, nie pomiar.',
+    estimatedCpuSeconds!==null?'Pozostały zakres CPU: '+fmt(estimatedCpuSeconds)+' — prognoza z krótkiego pomiaru.':'Czas pełnego zakresu CPU nie został wiarygodnie wyznaczony.',
+    'Argon2id: bez parametrów i sprzętu nie można podać czasu; nie oceniono odporności konkretnego konta.',
+    'Brak trafienia lub przerwanie nie dowodzi bezpieczeństwa hasła.'
+   ],found?'Dopasowanie potwierdzone w demonstracji.':skipped?'Test przerwany — wynik częściowy.':'Sprawdzony zakres zakończony bez trafienia.');
+
+ }
+ function brute(){
+  stage('brute',canBrute?'SHA-256 / CPU':'Tylko szacunek');
+  if(!canBrute){log('▶ BRUTE-FORCE');log('[i] Nie uruchomiono brute-force: '+(!supported?'hasło zawiera znaki spoza obsługiwanego alfabetu ASCII.':'przestrzeń jest zbyt duża, by bezpiecznie indeksować ją liczbami JavaScript.') );finish(false,'brute-force',0,true);return;}
+  log('[i] Alfabet '+charset.length+' znaków, długość '+[...p].length+', przestrzeń '+space.toLocaleString('pl-PL')+' kombinacji.');
+  log('[+] Rzeczywisty atak offline: dla każdego kandydata obliczamy SHA-256 i porównujemy skróty.');
+  const code=String.raw`'use strict';
+  let stopped=false, updateInterval=180,prevRate=0,slowCount=0;
+  onmessage=async e=>{if(e.data.kind==='stop'){stopped=true;return;}
+   const {targetHash,charset,total,len,unlimited}=e.data, n=charset.length;
+   const enc=new TextEncoder();let i=0, last=performance.now(), started=last, calibrated=false;
+   while(!stopped&&i<total){
+    const end=Math.min(i+2048,total);let guess='';
+    for(;i<end;i++){
+      let j=i;guess='';for(let k=0;k<len;k++){guess=charset[j%n]+guess;j=Math.floor(j/n);}
+      const digest=await crypto.subtle.digest('SHA-256',enc.encode(guess));
+      const hash=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
+      if(hash===targetHash){postMessage({kind:'found',attempts:i+1,total,candidate:guess});return;}
+    }
+    const now=performance.now();if(!calibrated&&(i>=2048||i===total)){calibrated=true;const rate=i/Math.max(.001,(now-started)/1000);if(!unlimited && total>i && (total-i)/rate>60){postMessage({kind:'estimate',attempts:i,total,candidate:guess,rate,seconds:(total-i)/rate});return;}}if(now-last>updateInterval||i===total){const rate=i/Math.max(.001,(now-started)/1000);let slowdown=false;if(prevRate>0&&rate<prevRate*.6)slowCount++;else slowCount=0;if(slowCount>=3){slowdown=true;updateInterval=Math.min(1200,updateInterval*2);slowCount=0;}prevRate=prevRate?prevRate*.8+rate*.2:rate;postMessage({kind:i===total?'done':'progress',attempts:i,total,candidate:guess,rate,slowdown,updateInterval});last=now;}
+    await new Promise(resolve=>setTimeout(resolve,0));
+   }
+  };`;
+  bruteWorker=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
+  let lastLogged=0,lastLogTime=performance.now();const bruteStart=performance.now();
+  log('[+] Uruchomiono przeszukiwanie kombinacji na CPU…');log(unlimited?'[i] Tryb bez limitu: sprawdzamy SHA-256 do dopasowania, wyczerpania zakresu lub ręcznego Stop.':'[i] Sprawdzamy SHA-256 rzeczywistych kandydatów. Po pomiarze CPU długie zadanie zostanie zastąpione prognozą.');
+  log('▶ BRUTE-FORCE');
+  bruteWorker.onmessage=e=>{const m=e.data;
+    actualAttempts=m.attempts||actualAttempts;if(m.rate){measuredRate=m.rate;const remaining=Math.max(0,m.total-m.attempts);$('cpuModelValue').textContent=fmt(remaining/m.rate)+' (prognoza)';$('cpuModelDetail').textContent='Zmierzono '+Math.round(m.rate).toLocaleString('pl-PL')+' prób/s · pozostało '+remaining.toLocaleString('pl-PL')+' kombinacji. Wynik może się zmieniać.';$('bruteResult').textContent=m.kind==='found'?'Odgadnięto':m.kind==='done'?'Zakończono':'CPU: '+fmt(remaining/m.rate);$('bruteNote').textContent='Na tym urządzeniu: '+Math.round(m.rate).toLocaleString('pl-PL')+' prób/s · pozostały zakres (prognoza, nie gwarancja).';}if(m.slowdown){slowWarnings++;log('[!] Wykryto spadek wydajności CPU; konsola będzie odświeżana rzadziej ('+m.updateInterval+' ms).');}const percent=Math.min(m.kind==='done'||m.kind==='found'?100:99.9999999,100*m.attempts/m.total);
+    progress(percent,'Brute-force: '+m.attempts.toLocaleString('pl-PL')+' / '+m.total.toLocaleString('pl-PL'),m.candidate);
+    $('stage-brute-info').textContent=m.attempts.toLocaleString('pl-PL')+' prób';
+    if(m.kind==='estimate'){estimatedCpuSeconds=m.seconds;$('bruteResult').textContent='CPU: '+fmt(m.seconds);$('bruteNote').textContent='Prognoza na tym urządzeniu; pełne przeszukiwanie nie zostało wykonane.';finish(false,'brute-force',m.attempts,true,'Szacowany czas przekracza 60 s. Przerwano po pomiarze wydajności, bez udawania odgadnięcia.');}
+    else if(m.kind==='found'){$('bruteResult').textContent='Odgadnięto na CPU';$('bruteNote').textContent='Rzeczywiste dopasowanie po '+m.attempts.toLocaleString('pl-PL')+' próbach.';log('[→] brute: '+m.candidate);finish(true,'brute-force',m.attempts);}
+    else if(m.kind==='done'){finish(false,'brute-force',m.attempts);}
+    else if(performance.now()-lastLogTime>=Math.max(180,m.updateInterval||180)){lastLogged=m.attempts;lastLogTime=performance.now();const secs=Math.max(.001,(performance.now()-bruteStart)/1000);const rate=Math.round(m.rate||m.attempts/secs);liveAttempt('PRÓBA #'+m.attempts.toLocaleString('pl-PL')+'  |  '+m.candidate+'  |  '+rate.toLocaleString('pl-PL')+' prób/s');}
+  };
+  bruteWorker.onerror=e=>{log('[!] Błąd procesu brute-force: '+e.message);stop();$('state').textContent='BŁĄD';};
+  crypto.subtle.digest('SHA-256',new TextEncoder().encode(p)).then(buffer=>{
+    if(!bruteWorker)return;
+    const targetHash=Array.from(new Uint8Array(buffer),b=>b.toString(16).padStart(2,'0')).join('');
+    bruteWorker.postMessage({kind:'start',targetHash,charset,total:space,len:[...p].length,unlimited});
+  }).catch(e=>{log('[!] SHA-256 niedostępne: '+e.message);finish(false,'brute-force',0,true,'Przeglądarka nie udostępnia SHA-256 w tym kontekście.');});
+ }
+ // Rzeczywisty przegląd wszystkich wpisów odbywa się w Web Workerze.
+ // Kandydaci i liczniki w konsoli pochodzą z wykonywanego skanowania.
+ scanActive=true;scanJob=++currentJob;
+ let previousStage='';
+ scanHandler=m=>{
+  if(!scanActive)return;
+  if(m.stage==='all'&&m.state==='done'){
+   scanActive=false;scanHandler=null;
+   log('[✓] Zakończono pełne przeszukiwanie słownika i reguł; rozpoczynam brute-force.');
+   brute();return;
+  }
+  if(m.stage!==previousStage){
+   previousStage=m.stage;
+   log('▶ '+(m.stage==='dict'?'SŁOWNIK':'MODYFIKACJE'));
+  }
+  stage(m.stage,m.state==='found'?'Znaleziono':m.state==='done'?'Zakończono':'Sprawdzanie');
+  const pct=m.maximum?100*m.attempts/m.maximum:0;
+  progress(pct,(m.stage==='dict'?'Słownik':'Modyfikacje')+': '+m.attempts.toLocaleString('pl-PL')+' / '+m.maximum.toLocaleString('pl-PL'),m.candidate||'—');
+  if(m.state==='progress')liveAttempt('PRÓBA #'+m.attempts.toLocaleString('pl-PL')+'  |  '+m.candidate+'  |  '+Math.round(m.attempts/Math.max(.001,m.elapsed)).toLocaleString('pl-PL')+' prób/s');
+  if(m.state==='found'){
+   scanActive=false;scanHandler=null;
+   if(m.stage==='hybrid'){a.base=m.base;a.rule=m.rule;a.hybrid=true;}
+   log('[✓] Faktyczne dopasowanie w '+(m.stage==='dict'?'słowniku':'regułach')+' po '+m.attempts.toLocaleString('pl-PL')+' próbach.');
+   finish(true,m.stage==='dict'?'słownik':'reguły',m.attempts);
+  }else if(m.state==='done'){
+   log('[i] '+(m.stage==='dict'?'Słownik':'Modyfikacje')+': sprawdzono '+m.attempts.toLocaleString('pl-PL')+' rzeczywistych kandydatów, bez dopasowania.');
+  }
+ };
+ worker.postMessage({kind:'scan',job:scanJob,pwd:p});
+}
+$('unlimited').addEventListener('change',()=>{$('timeWarning').hidden=!$('unlimited').checked;});
+$('pwd').addEventListener('input',()=>{clearTimeout(window.debounce);window.debounce=setTimeout(requestAnalysis,180);});$('analyze').onclick=requestAnalysis;$('pwd').onkeydown=e=>{if(e.key==='Enter')requestAnalysis();};$('show').onclick=()=>{const visible=$('pwd').type==='password';$('pwd').type=visible?'text':'password';$('show').setAttribute('aria-pressed',String(visible));$('show').setAttribute('aria-label',visible?'Ukryj hasło':'Pokaż hasło');$('show').title=visible?'Ukryj hasło':'Pokaż hasło';$('show').textContent=visible?'◉':'👁';};$('run').onclick=run;$('stop').onclick=()=>{const line=$('stage-brute-info').textContent;const elapsed=runStarted?fmt((performance.now()-runStarted)/1000):'—';completeConsoleStage('stopped');stop();$('state').textContent='ZATRZYMANO';log('[i] Zatrzymano na żądanie użytkownika. Czas: '+elapsed+' · '+line+'.');log('[i] Wynik częściowy nie oznacza odporności hasła.');if(analyzed)auditSet(['Ręcznie zatrzymano demonstrację.','Czas od startu: '+elapsed+'.','Ostatni status: '+line+'.'],['Nie ukończono całego przeszukiwania.','Model GPU i ocena heurystyczna nie są pomiarem rzeczywistego konta.'],'Wynik częściowy — zatrzymano ręcznie.');};
+$('file').onchange=e=>{const file=e.target.files[0];if(!file)return;stop();$('file').disabled=true;$('clear').disabled=true;importProgress(0);statusFile('Rozpoczynanie importu…');makeWorker();currentJob++;worker.postMessage({kind:'import',job:currentJob,file});e.target.value='';};
+$('clear').onclick=()=>{stop();makeWorker();currentJob++;worker.postMessage({kind:'clear',job:currentJob});};$('example').onclick=()=>{$('pwd').value='Haslo123';requestAnalysis();};makeWorker();reset();$('run').disabled=true;
+
+// v16: porównanie edukacyjne — niezależne od symulacji i bez przesyłania danych.
+const examples=['123456','Haslo123!','Kawa!Rower7','most-lampa-ogród-kot'];
+let presetTarget='compareA';
+document.querySelectorAll('.preset').forEach(btn=>btn.addEventListener('click',()=>{
+  $(presetTarget).value=btn.dataset.example;
+  presetTarget=presetTarget==='compareA'?'compareB':'compareA';
+  comparePasswords();
+}));
+function characterizePassword(value){
+ const chars=[...value],length=chars.length;
+ const pool=alphabet(value),logSpace=length*Math.log10(pool);
+ const obvious=/^(?:123456|password|admin|qwerty|haslo|haslo123|password123|123456789|welcome|letmein|polska123)$/i.test(value);
+ const patterns=[];
+ if(obvious)patterns.push('Popularne hasło demonstracyjne');
+ if(/(?:123|abc|qwerty|password|haslo)/i.test(value))patterns.push('Zawiera przewidywalny fragment');
+ if(/(.)\1{2,}/u.test(value))patterns.push('Powtarzające się znaki');
+ if(length<8)patterns.push('Krótki ciąg');
+ if(length>=14)patterns.push('Długość co najmniej 14 znaków');
+ const heuristic=predictability(value);return {length,pool,logSpace,patterns,heuristic};
+}
+function comparePasswords(){
+ const a=$('compareA').value,b=$('compareB').value,container=$('comparison');container.replaceChildren();
+ if(!a||!b){container.textContent='Wpisz oba testowe ciągi, aby je porównać.';return;}
+ const results=[characterizePassword(a),characterizePassword(b)];
+ results.forEach((r,i)=>{
+  const card=document.createElement('div');card.className='compare-card';
+  const title=document.createElement('h3');title.textContent='Hasło '+(i?'B':'A');card.appendChild(title);
+  const lines=[['Długość',r.length+' znaków'],['Przybliżony alfabet',r.pool+' znaków'],['Przestrzeń kombinacji','10^'+r.logSpace.toFixed(1)],['Sygnały edukacyjne',[...new Set([...r.patterns,...r.heuristic.issues])].join(' · ')||'Brak prostych wzorców wykrytych przez te reguły'],['Ocena heurystyczna',r.heuristic.level]];
+  lines.forEach(([label,value])=>{const p=document.createElement('p');const strong=document.createElement('strong');strong.textContent=label+': ';p.append(strong,document.createTextNode(value));card.appendChild(p);});container.appendChild(card);
+ });
+ const difference=results[1].logSpace-results[0].logSpace;
+ const msg=document.createElement('div');msg.className='compare-explain';
+ const lead=Math.abs(difference)<.3?'Obie przestrzenie kombinacji są zbliżone w tym modelu.':difference>0?'Hasło B ma większą teoretyczną przestrzeń kombinacji.':'Hasło A ma większą teoretyczną przestrzeń kombinacji.';
+ msg.textContent=lead+' Uwaga: to model losowych ciągów, a nie ranking rzeczywistej odporności. Popularne słowa, schematy i wycieki mogą drastycznie skrócić czas odgadnięcia.';
+ container.appendChild(msg);
+}
+$('compareBtn').addEventListener('click',comparePasswords);
+$('compareA').addEventListener('input',comparePasswords);
+$('compareB').addEventListener('input',comparePasswords);
+$('useCompare').addEventListener('click',()=>{$('pwd').value=$('compareB').value;requestAnalysis();$('pwd').scrollIntoView({behavior:'smooth',block:'center'});});
+comparePasswords();
+
+// v17: samodzielne ćwiczenie edukacyjne, bez przechowywania danych.
+let exerciseStage=0;
+let exerciseStart='Haslo123';
+let exerciseImproved='';
+const exerciseTasks=[
+ 'Etap 1: oceń przykładowe hasło. Zwróć uwagę na słowa i przewidywalne sekwencje.',
+ 'Etap 2: zmień hasło testowe. Spróbuj użyć dłuższego, mniej przewidywalnego ciągu lub kilku niezwiązanych słów.',
+ 'Etap 3: porównaj oba ciągi i omów, czego sam model kombinatoryczny nie uwzględnia.'
+];
+function exerciseSummary(value){
+ const r=characterizePassword(value);
+ const issues=[];
+ if(r.length<12)issues.push('mniej niż 12 znaków');
+ if(/(?:haslo|password|admin|qwerty|123|abc)/i.test(value))issues.push('przewidywalny fragment');
+ if(/(.)\1{2,}/u.test(value))issues.push('powtarzające się znaki');
+ if(/^(?:[a-z]+|[0-9]+)$/i.test(value))issues.push('jeden rodzaj znaków');
+ return {r,issues};
+}
+function renderExercise(){
+ const value=$('exercisePwd').value,summary=exerciseSummary(value),feedback=$('exerciseFeedback');
+ [...$('exerciseSteps').children].forEach((el,i)=>el.classList.toggle('active',i===exerciseStage));
+ $('exerciseTask').textContent=exerciseTasks[exerciseStage];
+ feedback.replaceChildren();
+ const line=(label,text)=>{const p=document.createElement('div');const b=document.createElement('strong');b.textContent=label+' ';p.append(b,document.createTextNode(text));feedback.appendChild(p);};
+ if(!value){line('Wpisz:', 'przykładowe hasło testowe.');return;}
+ line('Długość:',summary.r.length+' znaków');
+ line('Model losowych znaków:', 'około 10^'+summary.r.logSpace.toFixed(1)+' kombinacji');
+ line('Wykryte sygnały:',summary.issues.join(', ')||'brak oczywistych wzorców w prostych regułach');
+ if(exerciseStage===2){
+  const first=exerciseSummary(exerciseStart),delta=summary.r.logSpace-first.r.logSpace;
+  line('Względem początku:',delta>0.3?'większa modelowa przestrzeń kombinacji':delta<-.3?'mniejsza modelowa przestrzeń kombinacji':'zbliżona modelowa przestrzeń kombinacji');
+  line('Wniosek:',summary.r.length>first.r.length?'Zwiększono długość. To zwykle pomaga, o ile nowy ciąg nie jest przewidywalny.':'Sama zamiana liter na symbole nie gwarantuje lepszej ochrony.');
+ } else if(exerciseStage===1){line('Podpowiedź:','Długość i nieprzewidywalność są ważniejsze od kosmetycznych zamian, np. a → @.');}
+ $('exerciseNext').textContent=exerciseStage===2?'Zakończ / od nowa':'Następny etap →';
+ renderExerciseReport();
+}
+// Raport jest tworzony lokalnie. Domyślnie nie ujawnia wpisanych ciągów.
+function buildExerciseReport(){
+ const initial=exerciseSummary(exerciseStart),final=exerciseSummary($('exercisePwd').value);
+ const lengthDiff=final.r.length-initial.r.length;
+ const modelDiff=final.r.logSpace-initial.r.logSpace;
+ const fixed=initial.issues.filter(x=>!final.issues.includes(x));
+ const remaining=final.issues;
+ const findings=[
+  'Długość: '+initial.r.length+' → '+final.r.length+' znaków ('+(lengthDiff>0?'+':'')+lengthDiff+').',
+  'Modelowa przestrzeń: 10^'+initial.r.logSpace.toFixed(1)+' → 10^'+final.r.logSpace.toFixed(1)+' (model losowych znaków).',
+  'Wyeliminowane sygnały: '+(fixed.join(', ')||'brak wykrytej poprawy według prostych reguł')+'.',
+  'Sygnały wymagające uwagi: '+(remaining.join(', ')||'brak w zakresie prostych reguł')+'.',
+  'Wniosek: '+(lengthDiff>0?'Zwiększono długość ciągu. ':'Nie zwiększono długości ciągu. ')+(modelDiff>0.3?'Teoretyczna przestrzeń kombinacji wzrosła. ':modelDiff<-.3?'Teoretyczna przestrzeń kombinacji zmalała. ':'Teoretyczna przestrzeń kombinacji jest zbliżona. '),
+  'Do zapamiętania: długość, nieprzewidywalność i unikalność hasła są ważniejsze niż schematyczne zamiany znaków.',
+  'Ograniczenia: to edukacyjna heurystyka, nie pomiar bezpieczeństwa konta ani gwarancja odporności na ataki. Nie używaj prawdziwych haseł.'
+ ];
+ if($('reportIncludePasswords').checked){findings.unshift('Testowe hasło początkowe: '+exerciseStart,'Testowe hasło końcowe: '+$('exercisePwd').value);}
+ return findings;
+}
+function renderExerciseReport(){
+ const panel=$('exerciseReport');panel.hidden=exerciseStage!==2;
+ if(panel.hidden)return;
+ const content=$('reportContent');content.replaceChildren();
+ buildExerciseReport().forEach(item=>{const p=document.createElement('p');p.textContent=item;content.appendChild(p);});
+}
+$('reportIncludePasswords').addEventListener('change',renderExerciseReport);
+$('reportCopy').addEventListener('click',async()=>{
+ const text='HasłoLab v26 — podsumowanie ćwiczenia\n\n'+buildExerciseReport().join('\n');
+ try{await navigator.clipboard.writeText(text);$('reportMessage').textContent='Skopiowano raport.';}
+ catch(e){$('reportMessage').textContent='Schowek niedostępny. Skorzystaj z pobierania TXT.';}
+});
+$('reportDownload').addEventListener('click',()=>{
+ const text='HasłoLab v26 — podsumowanie ćwiczenia\n\n'+buildExerciseReport().join('\n');
+ const url=URL.createObjectURL(new Blob(['\ufeff',text],{type:'text/plain;charset=utf-8'}));
+ const a=document.createElement('a');a.href=url;a.download='haslolab_v26_podsumowanie.txt';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+ $('reportMessage').textContent='Przygotowano raport TXT.';
+});
+$('exerciseEvaluate').addEventListener('click',renderExercise);
+$('exercisePwd').addEventListener('input',renderExercise);
+$('exerciseReset').addEventListener('click',()=>{$('reportIncludePasswords').checked=false;$('reportMessage').textContent='';exerciseStage=0;exerciseStart='Haslo123';exerciseImproved='';$('exercisePwd').value=exerciseStart;renderExercise();});
+$('exerciseNext').addEventListener('click',()=>{
+ if(exerciseStage===0){exerciseStart=$('exercisePwd').value||'Haslo123';exerciseStage=1;}
+ else if(exerciseStage===1){exerciseImproved=$('exercisePwd').value;exerciseStage=2;}
+ else {$('reportIncludePasswords').checked=false;$('reportMessage').textContent='';exerciseStage=0;exerciseStart='Haslo123';exerciseImproved='';$('exercisePwd').value=exerciseStart;}
+ renderExercise();
+});
+$('exerciseLab').addEventListener('click',()=>{$('pwd').value=$('exercisePwd').value;requestAnalysis();$('pwd').scrollIntoView({behavior:'smooth',block:'center'});});
+renderExercise();
+
+// v51: teleturniej edukacyjny, gra indywidualna lub dwa zespoły.
+const quizQuestions=[
+ {cat:'Popularne hasła',q:'Które z tych haseł jest najbardziej przewidywalne?',opts:['123456','Kawa!Rower7','most-lampa-ogród-kot','Losowy długi ciąg znaków'],correct:0,why:'„123456” to bardzo popularna sekwencja. Napastnik może sprawdzić ją na początku listy prób. Samo użycie cyfr nie oznacza, że hasło jest losowe.'},
+ {cat:'Długość i przewidywalność',q:'Który wybór zwykle lepiej pomaga tworzyć mocne hasło?',opts:['Krótki wyraz z wykrzyknikiem','Data urodzenia z cyfrą','Długa, nieoczywista fraza','Imię z dopisanym 123'],correct:2,why:'Długość i nieprzewidywalność są ważniejsze niż sam symbol. Fraza z kilku niezwiązanych słów może być wygodna, ale słowa powinny być dobrane w sposób trudny do przewidzenia.'},
+ {cat:'Ograniczenia pokazu',q:'Program nie odgadł hasła w ciągu 60 sekund. Co z tego wynika?',opts:['Hasło jest na pewno bezpieczne','Sprawdzono tylko ograniczony zakres prób','Żaden komputer go nie odgadnie','Hasło nie znajduje się w żadnym słowniku'],correct:1,why:'Limit czasu dotyczy tego pokazu na konkretnym urządzeniu. Inne słowniki, metody, sprzęt lub dłuższy czas mogą dać inny rezultat.'},
+ {cat:'Metody odgadywania',q:'Dlaczego „Haslo123!” może zostać sprawdzone wcześniej niż losowe kombinacje?',opts:['Bo wykrzyknik wyłącza ochronę','Bo typowe dopiski są przewidywalne','Bo każde długie hasło jest słabe','Bo program zna wszystkie hasła'],correct:1,why:'Metoda hybrydowa zmienia słowa z listy, np. dopisując „123” lub „!”. Trafienie zależy od słownika i konkretnych reguł; nie jest gwarantowane.'},
+ {cat:'Ochrona konta',q:'Co najlepiej zrobić, by ograniczyć skutki wycieku hasła z jednej usługi?',opts:['Używać tego samego hasła wszędzie','Stosować unikalne hasło dla każdej usługi','Dopisywać wszędzie ten sam rok','Zapisać hasło publicznie'],correct:1,why:'Unikalne hasła ograniczają ryzyko wykorzystania wykradzionego hasła w innych usługach. Pomocny jest menedżer haseł.'},
+ {cat:'Ochrona konta',q:'Co dodatkowo chroni konto, nawet jeśli ktoś pozna hasło?',opts:['Uwierzytelnianie wieloskładnikowe (MFA)','Krótszy login','Wpisywanie hasła częściej','Wyłączenie aktualizacji'],correct:0,why:'MFA dodaje drugi czynnik uwierzytelniania. Najlepiej wybierać rozwiązania odporne na phishing, np. klucze bezpieczeństwa lub passkeys, gdy usługa je obsługuje.'},
+ {cat:'Słownik haseł',q:'Na czym polega metoda słownikowa?',opts:['Na losowaniu wszystkich znaków','Na sprawdzaniu gotowej listy haseł','Na wysyłaniu wiadomości do użytkownika','Na zgadywaniu wyłącznie cyfr'],correct:1,why:'Program sprawdza kolejne wpisy z przygotowanej listy. Brak trafienia oznacza jedynie, że hasła nie znaleziono w sprawdzonym zbiorze.'},
+ {cat:'Kombinacje znaków',q:'Co robi metoda kolejnych kombinacji (brute-force)?',opts:['Sprawdza tylko popularne nazwiska','Sprawdza ciągi znaków według ustalonej kolejności','Zawsze kończy w minutę','Odczytuje hasło z serwera'],correct:1,why:'Brute-force przegląda kombinacje znaków. Liczba możliwości rośnie bardzo szybko wraz z długością hasła. HasłoLab wykonuje takie próby lokalnie na CPU.'},
+ {cat:'Pomiar i szacunek',q:'Co oznacza prognoza GPU pokazywana w HasłoLab?',opts:['Pomiar karty graficznej użytkownika','Gwarantowany czas złamania konta','Hipotetyczny wynik przy założonej szybkości','Czas odgadnięcia przez serwer'],correct:2,why:'Model GPU opiera się na przyjętej liczbie prób na sekundę, a nie na pomiarze GPU. Rzeczywiste pomiary CPU i matematyczne prognozy to różne informacje.'},
+ {cat:'Argon2id i sól',q:'Dlaczego HasłoLab nie podaje wiarygodnego czasu łamania hasła chronionego Argon2id?',opts:['Ponieważ sól jest tajnym hasłem','Ponieważ nie znamy parametrów, sprzętu i warunków ataku','Ponieważ Argon2id nie używa obliczeń','Ponieważ wszystkie takie hasła są nie do złamania'],correct:1,why:'Argon2id utrudnia masowe próby, a unikalna sól przeciwdziała m.in. używaniu gotowych tablic. Bez parametrów funkcji i sprzętu nie można podać rzetelnego czasu. Lokalny pokaz SHA-256 nie odzwierciedla tego zabezpieczenia.'}
+];
+// Rozwinięte objaśnienie do pytania o Argon2id, dostępne na życzenie po odpowiedzi.
+const argon2idExpanded=[
+ ['Dlaczego serwis nie powinien przechowywać zwykłego hasła?', 'Gdy zakładasz konto, serwis nie powinien zapisywać hasła w czytelnej postaci. Powinien zapisać wynik funkcji przeznaczonej do ochrony haseł. Dzięki temu wyciek bazy danych nie ujawnia od razu samych haseł.'],
+ ['Jak działa Argon2id?', 'Argon2id to funkcja specjalnie zaprojektowana do zabezpieczania haseł. Jej działanie można ustawić tak, aby każda próba sprawdzenia hasła wymagała określonego czasu i pamięci. To utrudnia masowe sprawdzanie milionów propozycji.'],
+ ['Czym jest sól?', 'Sól (salt) to losowa wartość tworzona automatycznie dla każdego zapisu hasła. Nie jest dodatkowym hasłem do zapamiętania ani tajnym kluczem. Gdy Anna i Piotr użyją tego samego hasła „Wakacje2026!”, unikalne sole sprawią, że zapisane wyniki będą różne. Utrudnia to używanie gotowych tablic i wspólnych obliczeń przeciwko wielu kontom.'],
+ ['Dlaczego nie można podać jednego czasu odgadnięcia?', 'Czas zależy od parametrów Argon2id (m.in. pamięci i liczby przebiegów), możliwości sprzętu, rodzaju ataku i kolejności prób. Podczas logowania serwis może dodatkowo ograniczać liczbę prób. Po wycieku bazy napastnik może natomiast sprawdzać propozycje na swoim sprzęcie, poza formularzem logowania.'],
+ ['Czym różni się pokaz HasłoLab?', 'HasłoLab używa szybkiej funkcji SHA-256, aby lokalnie pokazać sprawdzanie kolejnych propozycji. To demonstracja sposobów zgadywania, a nie symulacja prawidłowo skonfigurowanego Argon2id ani rzeczywistego logowania do serwisu. Nie należy przenosić czasu z tego pokazu na prawdziwe konta.'],
+ ['Co zapamiętać?', 'Długie, unikalne hasło i dodatkowe uwierzytelnianie chronią użytkownika. Po stronie serwisu ważne są właściwie skonfigurowana funkcja ochrony haseł i unikalna sól. Sól utrudnia wykorzystanie gotowych obliczeń, a Argon2id zwiększa koszt każdej próby, ale żadne z nich nie czyni słabego hasła niemożliwym do odgadnięcia.']
+];
+function addArgon2idDetails(parent){
+ const details=document.createElement('details');details.className='quiz-more';
+ const summary=document.createElement('summary');summary.textContent='Dowiedz się więcej — Argon2id, sól i bezpieczeństwo haseł';details.appendChild(summary);
+ for(const [title,body] of argon2idExpanded){const section=document.createElement('section');const heading=document.createElement('h4');heading.textContent=title;const paragraph=document.createElement('p');paragraph.textContent=body;section.append(heading,paragraph);details.appendChild(section);}
+ parent.appendChild(details);
+}
+const qel=id=>document.getElementById(id);
+let quizMode='solo',quizIndex=0,quizPoints=[0,0],quizAnswered=false,quizStarted=false;
+let quizClock=null,quizDeadline=0,quizDuration=30,quizTimed=false;
+const quizAudio=document.getElementById('quizMusic');
+const QUIZ_MUSIC_START=180;
+let quizAudioToken=0;
+quizAudio.loop=false;
+function quizMusicStatus(message,retry=false){
+ const el=qel('quizAudioStatus');el.hidden=!message;qel('quizAudioMessage').textContent=message||'';qel('quizAudioRetry').hidden=!retry;
+}
+function quizSeekMusic(){
+ if(!Number.isFinite(quizAudio.duration)||quizAudio.duration<=QUIZ_MUSIC_START){
+  quizMusicStatus('Utwór nie ma dostępnego fragmentu od 3:00. Sprawdź źródło nagrania.',true);return false;
+ }
+ try{quizAudio.currentTime=QUIZ_MUSIC_START;return true;}catch(e){return false;}
+}
+function quizPlayMusic(){
+ if(quizMode!=='teams'||!qel('quizMusicEnabled').checked||quizAnswered||!quizStarted)return;
+ const token=++quizAudioToken;
+ quizAudio.volume=Number(qel('quizMusicVolume').value)/100;
+ quizMusicStatus('Ładowanie muzyki od 3:00…');
+ if(quizAudio.readyState>=1 && !quizSeekMusic())return;
+ // play() jest wywoływane bezpośrednio z kliknięcia „Rozpocznij” lub „Następne pytanie”,
+ // zanim zakończą się asynchroniczne operacje sieciowe.
+ const promise=quizAudio.play();
+ if(promise&&typeof promise.then==='function')promise.then(()=>{
+  if(token!==quizAudioToken||quizAnswered)return;
+  if(quizAudio.readyState>=1)quizSeekMusic();
+  quizMusicStatus('');
+ }).catch(()=>{if(token===quizAudioToken&&!quizAnswered)quizMusicStatus('Przeglądarka zablokowała odtwarzanie lub plik jest niedostępny.',true);});
+}
+quizAudio.addEventListener('loadedmetadata',()=>{
+ if(quizMode==='teams'&&quizStarted&&!quizAnswered&&qel('quizMusicEnabled').checked){
+  if(quizSeekMusic()&&!quizAudio.paused)quizMusicStatus('');
+ }
+});
+quizAudio.addEventListener('error',()=>{
+ if(quizStarted&&!quizAnswered&&qel('quizMusicEnabled').checked)quizMusicStatus('Nie można pobrać nagrania. Sprawdź połączenie i adres utworu.',true);
+});
+quizAudio.addEventListener('ended',()=>{
+ if(!quizAnswered&&quizStarted&&quizMode==='teams'&&qel('quizMusicEnabled').checked)quizPlayMusic();
+});
+qel('quizAudioRetry').addEventListener('click',()=>{
+ quizAudio.load();quizPlayMusic();
+});
+function quizStopClock(){if(quizClock!==null){clearInterval(quizClock);quizClock=null;}}
+function quizStopMusic(){++quizAudioToken;quizAudio.pause();quizMusicStatus('');}
+function quizStopRound(){quizStopClock();quizStopMusic();}
+function quizSyncTeamOptions(){
+ const teams=document.querySelector('input[name="quizMode"]:checked').value==='teams';
+ qel('quizTeamNames').hidden=!teams;qel('quizTeamOptions').hidden=!teams;
+ qel('quizTimeSeconds').disabled=!teams||!qel('quizTimeEnabled').checked;
+ qel('quizMusicVolume').disabled=!teams||!qel('quizMusicEnabled').checked;
+ qel('quizMusicCredit').hidden=!teams||!qel('quizMusicEnabled').checked;
+ if(!teams){quizStopRound();qel('quizTimer').hidden=true;}
+}
+function quizUpdateTimer(){
+ if(!quizTimed||quizAnswered)return;
+ const remaining=Math.max(0,quizDeadline-performance.now()),seconds=Math.ceil(remaining/1000);
+ qel('quizTimeLeft').textContent=seconds+' s';
+ qel('quizTimerFill').style.width=(remaining/(quizDuration*1000)*100)+'%';
+ qel('quizTimer').classList.toggle('urgent',remaining<=10000);
+ if(remaining<=0)quizAnswer(-1);
+}
+function quizBeginRound(){
+ quizStopRound();
+ quizTimed=quizMode==='teams'&&qel('quizTimeEnabled').checked;
+ qel('quizTimer').hidden=!quizTimed;
+ if(quizTimed){
+  quizDuration=Math.max(5,Math.min(300,Number(qel('quizTimeSeconds').value)||30));
+  qel('quizTimeSeconds').value=quizDuration;
+  quizDeadline=performance.now()+quizDuration*1000;
+  quizUpdateTimer();quizClock=setInterval(quizUpdateTimer,100);
+ }
+ if(quizMode==='teams'&&qel('quizMusicEnabled').checked)quizPlayMusic();
+}
+qel('quizTimeEnabled').addEventListener('change',quizSyncTeamOptions);
+qel('quizMusicEnabled').addEventListener('change',()=>{quizSyncTeamOptions();if(qel('quizMusicEnabled').checked)quizAudio.load();});
+qel('quizMusicVolume').addEventListener('input',()=>{quizAudio.volume=Number(qel('quizMusicVolume').value)/100;});
+quizSyncTeamOptions();
+quizAudio.load();
+document.addEventListener('visibilitychange',()=>{if(document.hidden)quizStopMusic();});
+function quizNames(){return [qel('quizNameA').value.trim()||'Drużyna A',qel('quizNameB').value.trim()||'Drużyna B'];}
+function quizRender(){
+ const teams=quizMode==='teams',turn=teams?quizIndex%2:0;
+ qel('quizScoreboard').hidden=false;qel('quizBoard').hidden=false;qel('quizWelcome').hidden=true;
+ qel('quizScoreB').hidden=!teams;
+ const names=quizNames();qel('quizLabelA').textContent=teams?names[0]:'Gracz';qel('quizLabelB').textContent=names[1];
+ qel('quizPointsA').textContent=quizPoints[0];qel('quizPointsB').textContent=quizPoints[1];
+ qel('quizScoreA').classList.toggle('active',turn===0);qel('quizScoreB').classList.toggle('active',turn===1);
+ qel('quizTurn').textContent=teams?'Odpowiada: '+quizNames()[turn]:'Twoja kolej';
+ qel('quizRound').textContent='Pytanie '+(quizIndex+1)+' z '+quizQuestions.length;
+ qel('quizProgressFill').style.width=((quizIndex)/quizQuestions.length*100)+'%';
+ const q=quizQuestions[quizIndex];qel('quizCategory').textContent=q.cat;qel('quizQuestion').textContent=q.q;
+ const answers=qel('quizAnswers');answers.replaceChildren();q.opts.forEach((option,i)=>{const btn=document.createElement('button');btn.type='button';btn.className='quiz-option';btn.textContent=String.fromCharCode(65+i)+'. '+option;btn.addEventListener('click',()=>quizAnswer(i));answers.appendChild(btn);});
+ qel('quizFeedback').hidden=true;qel('quizFeedback').replaceChildren();qel('quizNext').disabled=true;qel('quizNext').textContent=quizIndex===quizQuestions.length-1?'Zobacz wyniki':'Następne pytanie →';quizAnswered=false;quizBeginRound();
+}
+function quizAnswer(choice){
+ if(quizAnswered)return;quizAnswered=true;quizStopRound();const q=quizQuestions[quizIndex],good=choice===q.correct,turn=quizMode==='teams'?quizIndex%2:0;
+ if(good)quizPoints[turn]+=10;
+ [...qel('quizAnswers').children].forEach((b,i)=>{b.disabled=true;b.classList.toggle('correct',i===q.correct);b.classList.toggle('wrong',i===choice&&!good);});
+ qel('quizPointsA').textContent=quizPoints[0];qel('quizPointsB').textContent=quizPoints[1];
+ const box=qel('quizFeedback');box.hidden=false;const headline=document.createElement('strong');headline.textContent=choice===-1?'⌛ Czas minął — bez punktów':good?'✓ Dobra odpowiedź! +10 punktów':'✕ Tym razem bez punktów';const explanation=document.createElement('p');explanation.textContent='Poprawna odpowiedź: '+q.opts[q.correct]+'. '+q.why;box.append(headline,explanation);if(q.cat==='Argon2id i sól')addArgon2idDetails(box);
+ qel('quizNext').disabled=false;qel('quizProgressFill').style.width=((quizIndex+1)/quizQuestions.length*100)+'%';
+}
+function quizFinish(){
+ quizStopRound();qel('quizTimer').hidden=true;
+ qel('quizBoard').hidden=false;qel('quizCategory').textContent='Koniec rozgrywki';qel('quizQuestion').textContent='Podsumowanie quizu';qel('quizAnswers').replaceChildren();qel('quizFeedback').hidden=false;
+ const names=quizNames(),message=quizMode==='solo'?('Wynik: '+quizPoints[0]+' na '+(quizQuestions.length*10)+' punktów.'):(quizPoints[0]===quizPoints[1]?'Remis! '+names[0]+' i '+names[1]+' zdobyły po '+quizPoints[0]+' punktów.':'Wygrywa '+names[quizPoints[0]>quizPoints[1]?0:1]+'! Wynik: '+quizPoints[0]+' : '+quizPoints[1]+'.');
+ qel('quizFeedback').textContent=message+' Możesz rozpocząć nową grę i ponownie omówić wyjaśnienia.';qel('quizTurn').textContent='Rozgrywka zakończona';qel('quizNext').disabled=true;qel('quizNext').textContent='Koniec';
+}
+function quizStart(){quizMode=document.querySelector('input[name="quizMode"]:checked').value;quizIndex=0;quizPoints=[0,0];quizStarted=true;quizRender();}
+document.querySelectorAll('input[name="quizMode"]').forEach(r=>r.addEventListener('change',quizSyncTeamOptions));
+qel('quizStart').addEventListener('click',quizStart);qel('quizRestart').addEventListener('click',quizStart);
+qel('quizNext').addEventListener('click',()=>{if(!quizAnswered)return;quizIndex++;if(quizIndex>=quizQuestions.length)quizFinish();else quizRender();});
+/* v32: niezależny zestaw testów regresyjnych, wykonywany lokalnie */
+let diagnosticWorker=null, diagnosticCancelled=false;
+function makeTestZip(name,content){
+ const enc=new TextEncoder(),n=enc.encode(name),d=enc.encode(content),a=[];
+ const u16=x=>{a.push(x&255,(x>>>8)&255)},u32=x=>{u16(x&65535);u16((x>>>16)&65535)};
+ const local=()=>{u32(0x04034b50);u16(20);u16(0);u16(0);u16(0);u16(0);u32(0);u32(d.length);u32(d.length);u16(n.length);u16(0);a.push(...n,...d)};
+ local();const off=a.length;u32(0x02014b50);u16(20);u16(20);u16(0);u16(0);u16(0);u16(0);u32(0);u32(d.length);u32(d.length);u16(n.length);u16(0);u16(0);u16(0);u16(0);u32(0);u32(0);a.push(...n);
+ const centralSize=a.length-off;u32(0x06054b50);u16(0);u16(0);u16(1);u16(1);u32(centralSize);u32(off);u16(0);
+ return new File([new Uint8Array(a)],'diagnostyka.zip',{type:'application/zip'});
+}
+async function runDiagnostics(){
+ if(diagnosticWorker)return;
+ diagnosticCancelled=false;
+ const runBtn=$('runDiagnostics'),stopBtn=$('stopDiagnostics'),summary=$('diagnosticsSummary'),results=$('diagnosticsResults');
+ runBtn.disabled=true;stopBtn.disabled=false;results.replaceChildren();summary.textContent='Testy w toku…';
+ let passed=0,failed=0,skipped=0;
+ const line=(name,status,detail='')=>{const el=document.createElement('div');el.style.color=status==='OK'?'#58e0b1':status==='POMINIĘTO'?'#f2c26a':'#ff9b9b';el.textContent=(status==='OK'?'✓ ':status==='POMINIĘTO'?'○ ':'✗ ')+name+(detail?' — '+detail:'');results.append(el);if(status==='OK')passed++;else if(status==='POMINIĘTO')skipped++;else failed++;};
+ const code=workerCode.replaceAll('__BUILTIN__',JSON.stringify(builtin));
+ const worker=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));diagnosticWorker=worker;
+ let seq=900000,waiting=null;
+ worker.onmessage=e=>{if(waiting&&e.data.job===waiting.job&&waiting.accept.includes(e.data.kind)){const w=waiting;waiting=null;clearTimeout(w.timer);w.resolve(e.data);}};
+ const ask=(kind,payload={},accept=['analyzed','complete','error'],timeout=10000)=>new Promise((resolve,reject)=>{const job=++seq;const timer=setTimeout(()=>{waiting=null;reject(Error('Przekroczono limit '+timeout+' ms'))},timeout);waiting={job,accept,resolve,timer};worker.postMessage({kind,job,...payload});});
+ const test=async(name,fn)=>{if(diagnosticCancelled)throw Error('Przerwano');try{const detail=await fn();line(name,'OK',detail||'');}catch(e){line(name,'BŁĄD',e.message);}};
+ try{
+  await test('Dokładne dopasowanie słownikowe',async()=>{const m=await ask('analyze',{pwd:'123456'});if(!m.exact)throw Error('Brak dopasowania');});
+  await test('Reguła hybrydowa i jej opis',async()=>{const m=await ask('analyze',{pwd:'haslo2026'});if(!m.hybrid||m.rule!=='dopisanie 2026')throw Error('Nieprawidłowa reguła: '+m.rule);});
+  await test('Brak fałszywego dopasowania',async()=>{const m=await ask('analyze',{pwd:'X9#z_diagnostyka'});if(m.exact||m.hybrid)throw Error('Fałszywe dopasowanie');});
+  await test('Import TXT i usuwanie duplikatów',async()=>{const f=new File(['test_v32\ntest_v32\n# komentarz\nnowy_v32\n'],'diagnostyka.txt',{type:'text/plain'});const m=await ask('import',{file:f});if(m.kind==='error')throw Error(m.message);if(m.imported!==2)throw Error('Oczekiwano 2 nowych haseł, uzyskano '+m.imported);const a=await ask('analyze',{pwd:'test_v32'});if(!a.exact)throw Error('Nie znaleziono wpisu z TXT');});
+  await test('Import ZIP (plik nieskompresowany)',async()=>{const f=makeTestZip('slownik.txt','zip_v32\nzip_v32\n');const m=await ask('import',{file:f});if(m.kind==='error')throw Error(m.message);if(m.imported!==1)throw Error('Niepoprawna liczba wpisów: '+m.imported);const a=await ask('analyze',{pwd:'zip_v32'});if(!a.exact)throw Error('Brak hasła z ZIP');});
+  await test('Anulowanie skanowania',async()=>{const m=await ask('clear');if(m.kind==='error')throw Error(m.message);const job=++seq;worker.postMessage({kind:'scan',job,pwd:'nieistniejace_v32'});worker.postMessage({kind:'cancelScan',job});await new Promise(r=>setTimeout(r,100));if(diagnosticCancelled)throw Error('Przerwano przez użytkownika');return 'Wysłano sygnał anulowania; brak gwarancji przerwania już zakończonego zadania';});
+  await test('Rzeczywiste SHA-256 i pomiar wydajności',async()=>{if(!crypto?.subtle)throw Error('Web Crypto niedostępne w tym kontekście');const enc=new TextEncoder(),start=performance.now();let found=false;for(let i=0;i<200;i++){const hash=new Uint8Array(await crypto.subtle.digest('SHA-256',enc.encode('a'+i)));if(i===123){const expected='a123',check=new Uint8Array(await crypto.subtle.digest('SHA-256',enc.encode(expected)));found=hash.every((x,j)=>x===check[j]);}}if(!found)throw Error('Porównanie skrótów nie powiodło się');const seconds=Math.max(.001,(performance.now()-start)/1000);return Math.round(200/seconds).toLocaleString('pl-PL')+' prób/s (krótki test, nie pełny benchmark)';});
+  line('Test obciążeniowy 2 mln haseł na telefonie','POMINIĘTO','wymaga osobnego testu urządzenia i pamięci');
+ }catch(e){if(diagnosticCancelled)line('Testy przerwane','POMINIĘTO','na żądanie użytkownika');else line('Zestaw testów','BŁĄD',e.message);}
+ finally{if(waiting){clearTimeout(waiting.timer);waiting=null;}worker.terminate();diagnosticWorker=null;runBtn.disabled=false;stopBtn.disabled=true;summary.textContent=`Wynik: ${passed} zaliczonych, ${failed} błędów, ${skipped} pominiętych. ${failed?'Wymaga poprawy.':'Testy zakończone.'}`;}
+}
+$('runDiagnostics').addEventListener('click',runDiagnostics);
+$('stopDiagnostics').addEventListener('click',()=>{diagnosticCancelled=true;if(diagnosticWorker){diagnosticWorker.terminate();diagnosticWorker=null;}$('diagnosticsSummary').textContent='Przerwano testy diagnostyczne.';$('runDiagnostics').disabled=false;$('stopDiagnostics').disabled=true;});
+</script><script>/* v32: trzy widoki i zakładki funkcjonalne — jeden silnik analizy */
+(()=>{
+ const intro=document.getElementById('modeIntro');
+ const modeButtons=[...document.querySelectorAll('[data-mode]')];
+ const tabButtons=[...document.querySelectorAll('[data-tab]')];
+ const panels=[...document.querySelectorAll('[data-workspace]')];
+ const labels={simple:'<strong>Widok prosty.</strong> Wpisz fikcyjne hasło i uruchom test.',full:'<strong>Widok pełny.</strong> Zacznij od „Sprawdzanie hasła”. Pozostałe zakładki pozwalają dodać listę haseł, porównać przykłady i wykonać ćwiczenie. Trudne pojęcia wyjaśniono w zakładce „Listy haseł”.',presenter:'<strong>Widok prowadzącego.</strong> Otwórz „Quiz wiedzy”, aby rozpocząć grę indywidualną lub rywalizację dwóch drużyn. Możesz też pokazać uczestnikom uproszczony widok.'};
+ let mode='simple',tab='lab';
+ function selectTab(next){
+  if(next==='scenario'&&mode!=='presenter')next='lab';
+  if(!['lab','dictionary','compare','exercise','scenario'].includes(next))next='lab';
+  tab=next;
+  panels.forEach(p=>p.classList.toggle('workspace-active',p.dataset.workspace===tab));
+  tabButtons.forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.tab===tab));b.hidden=b.dataset.tab==='scenario'&&mode!=='presenter'});
+  try{localStorage.setItem('haslolab-tab-v29-'+mode,tab)}catch(_e){}
+ }
+ function setMode(next){
+  if(!['simple','full','presenter'].includes(next))next='simple';
+  mode=next;
+  document.body.classList.remove('mode-simple','mode-full','mode-presenter');
+  document.body.classList.add('mode-'+mode);
+  modeButtons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
+  intro.innerHTML=labels[mode];
+  let stored=mode==='presenter'?'scenario':'lab';
+  try{stored=localStorage.getItem('haslolab-tab-v29-'+mode)||stored;localStorage.setItem('haslolab-view-v46',mode)}catch(_e){}
+  selectTab(stored);
+ }
+ modeButtons.forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+ tabButtons.forEach(b=>b.addEventListener('click',()=>selectTab(b.dataset.tab)));
+ // Każde otwarcie aplikacji zaczyna się w widoku prostym, niezależnie od poprzedniego wyboru.
+ setMode('simple');
+ // Gdy użytkownik przechodzi do laboratorium z ćwiczeń, pokaż właściwą zakładkę.
+ ['useCompare','exerciseLab'].forEach(id=>{const b=document.getElementById(id);if(b)b.addEventListener('click',()=>{selectTab('lab')})});
+ const simpleViewButton=document.getElementById('presenterSimpleView');if(simpleViewButton)simpleViewButton.addEventListener('click',()=>{setMode('simple');document.getElementById('simpleHome')?.scrollIntoView({block:'start'});});
+ const tryButton=document.getElementById('presenterTry');if(tryButton)tryButton.addEventListener('click',()=>selectTab('compare'));
+})();</script><script>
+// v51: prosty interfejs i zrozumiała relacja z rzeczywistych prób.
+(()=>{
+ const by=id=>document.getElementById(id), input=by('simplePwd'), original=by('pwd');
+ let requested=false,started=false,finished=false;
+ const showResult=()=>{
+  const a=analyzed;if(!requested||!a||a.pwd!==input.value)return;
+  const h=predictability(a.pwd),hit=Boolean(a.exact||a.hybrid);
+  by('simpleResultCard').hidden=false;by('simpleDemoCard').hidden=false;
+  by('simpleRating').textContent=hit?'To hasło jest łatwe do odgadnięcia':h.score<45?'To hasło łatwo przewidzieć':h.score<70?'To hasło może być przewidywalne':'Nie wykryto prostych wzorców';
+  by('simpleWhy').textContent=hit?'Program znalazł je w przykładowym zestawie lub po typowej zmianie.':h.issues.length?'Zauważone cechy: '+h.issues.slice(0,3).join('; ')+'.':'W tym ograniczonym sprawdzeniu nie znaleziono oczywistych schematów.';
+  by('simpleAdvice').textContent=hit||h.score<70?'Jak poprawić? Użyj dłuższego, unikalnego hasła lub frazy z kilku niepowiązanych słów. Unikaj dat, popularnych słów i prostych zakończeń.':'Pamiętaj: nawet taki wynik nie daje gwarancji. Najważniejsze, by hasło było długie i niepowtarzane w innych serwisach.';
+ };
+ const resetDemo=()=>{started=false;finished=false;by('simpleLive').hidden=true;by('simpleConclusion').hidden=true;by('simpleFound').hidden=true;by('simpleFoundValue').textContent='';by('simpleDemoStatus').textContent='Naciśnij „Rozpocznij pokaz”, aby zobaczyć kolejne kroki.';for(const n of ['Dict','Hybrid','Brute']){by('simpleStep'+n).classList.remove('is-active','is-done');by('simpleStep'+n+'State').textContent='Czeka na uruchomienie';}};
+ const submit=()=>{const val=input.value;if(!val){by('simpleInputHint').textContent='Najpierw wpisz wymyślone hasło.';input.focus();return;}resetDemo();requested=true;original.value=val;by('simpleInputHint').textContent='Sprawdzam…';requestAnalysis();};
+ input.addEventListener('input',()=>{requested=false;resetDemo();by('simpleResultCard').hidden=true;by('simpleDemoCard').hidden=true;by('simpleInputHint').textContent='Sprawdzenie odbywa się na tym urządzeniu, bez wysyłania hasła na serwer.';});
+ input.addEventListener('keydown',e=>{if(e.key==='Enter')submit();});by('simpleAnalyze').addEventListener('click',submit);
+ by('simpleShow').addEventListener('click',()=>{const visible=input.type==='password';input.type=visible?'text':'password';by('simpleShow').textContent=visible?'Ukryj':'Pokaż';by('simpleShow').setAttribute('aria-pressed',String(visible));by('simpleShow').setAttribute('aria-label',visible?'Ukryj wpisane hasło':'Pokaż wpisane hasło');});
+ by('simpleRun').addEventListener('click',()=>{if(!analyzed||analyzed.pwd!==input.value)return;resetDemo();started=true;by('simpleLive').hidden=false;by('simpleDemoStatus').textContent='Rozpoczynam od sprawdzenia popularnych haseł…';by('simpleCpuForecastValue').textContent='Po pomiarze';by('run').click();refresh();});
+ const simpleUnlimited=by('simpleUnlimited'),fullUnlimited=by('unlimited');
+ const syncSimpleLimit=()=>{simpleUnlimited.checked=fullUnlimited.checked;simpleUnlimited.disabled=!by('stop').disabled;};
+ simpleUnlimited.addEventListener('change',()=>{fullUnlimited.checked=simpleUnlimited.checked;fullUnlimited.dispatchEvent(new Event('change',{bubbles:true}));});
+ fullUnlimited.addEventListener('change',syncSimpleLimit);
+ by('simpleStop').addEventListener('click',()=>{by('stop').click();refresh();});
+ const steps=[{key:'dict',id:'Dict',label:'popularnych haseł',desc:'Sprawdzam hasła z listy.'},{key:'hybrid',id:'Hybrid',label:'typowych zmian',desc:'Sprawdzam zmiany popularnych haseł, np. dopisanie cyfr.'},{key:'brute',id:'Brute',label:'kombinacji znaków',desc:'Sprawdzam kolejne kombinacje znaków. To może potrwać.'}];
+ const refresh=()=>{
+  if(requested&&analyzed&&analyzed.pwd===input.value){showResult();if(by('simpleInputHint').textContent!=='Sprawdzenie zakończone.')by('simpleInputHint').textContent='Sprawdzenie zakończone.';}
+  by('simpleRun').disabled=by('run').disabled||!analyzed||analyzed.pwd!==input.value;by('simpleStop').disabled=by('stop').disabled;
+  syncSimpleLimit();
+  const cpuValue=by('cpuModelValue').textContent.trim();
+  const cpuMeasured=/\bprognoza\b/i.test(cpuValue) && cpuValue!=='Brak pomiaru';
+  by('simpleCpuForecastValue').textContent=cpuMeasured?cpuValue.replace(/\s*\(prognoza\)/i,''):(started&&!by('stop').disabled?'Trwa pomiar…':'Po pomiarze');
+  if(!started)return;
+  const state=by('state').textContent.trim(),isRunning=!by('stop').disabled;
+  const active=steps.findIndex(st=>by('stage-'+st.key).classList.contains('active'));
+  for(let i=0;i<steps.length;i++){
+   const st=steps[i],row=by('simpleStep'+st.id),status=by('simpleStep'+st.id+'State'),info=by('stage-'+st.key+'-info').textContent.trim();
+   const done=by('stage-'+st.key).classList.contains('done')||by('stage-'+st.key).classList.contains('found')||i<active;
+   row.classList.toggle('is-active',i===active&&isRunning);row.classList.toggle('is-done',done);
+   const nextStatus=i===active&&isRunning?'Teraz sprawdzam · '+info:done?'Zakończono ten krok':!isRunning&&i===active?'Przerwano lub zakończono':'Jeszcze nie rozpoczęto';if(status.textContent!==nextStatus)status.textContent=nextStatus;
+  }
+  if(isRunning){
+   const st=active>=0?steps[active]:null;
+   const nextMessage=st?'Krok '+(active+1)+' z 3: '+st.desc:'Przygotowuję kolejne próby…';if(by('simpleDemoStatus').textContent!==nextMessage)by('simpleDemoStatus').textContent=nextMessage;
+   by('simpleLive').hidden=false;
+   by('simpleCandidate').textContent=by('candidate').textContent.trim()||'Trwa przygotowanie…';
+   by('simpleCount').textContent=by('scanphase').textContent.trim()||'Sprawdzanie trwa';
+   const pct=Number(by('scanpct').textContent.replace('%','').replace(',','.'));by('simpleLiveFill').style.width=Number.isFinite(pct)?Math.min(100,Math.max(0,pct))+'%':'0%';
+  }else if(!finished){
+   finished=true;const found=state==='ODGADNIĘTO',partial=state==='NIE ZAKOŃCZONO'||state==='ZATRZYMANO'||state==='BŁĄD';
+   const msg=found?'Program odgadł hasło w tym ćwiczeniu. Takie hasło warto zmienić.':partial?'Pokaz zakończył się przed sprawdzeniem wszystkich możliwości. Nie oznacza to, że hasło jest bezpieczne.':'W sprawdzonym zakresie nie znaleziono hasła. To nie jest gwarancja bezpieczeństwa.';
+   by('simpleDemoStatus').textContent=found?'Pokaz zakończony: znaleziono dopasowanie.':partial?'Pokaz zatrzymany lub ograniczony czasem.':'Pokaz zakończony.';
+   by('simpleConclusion').hidden=false;by('simpleConclusion').textContent=msg;by('simpleFound').hidden=!found;by('simpleFoundValue').textContent=found?input.value:'';
+   by('simpleLive').hidden=true;
+  }
+ };
+ const observer=new MutationObserver(refresh);
+ for(const id of ['strength','state','scanphase','candidate','scanpct','run','stop','stage-dict','stage-hybrid','stage-brute','stage-dict-info','stage-hybrid-info','stage-brute-info','cpuModelValue'])observer.observe(by(id),{attributes:true,childList:true,characterData:true,subtree:true});
+})();
+</script></body></html>
