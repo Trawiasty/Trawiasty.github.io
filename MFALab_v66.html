@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="pl"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#0b1220" name="theme-color"/><title>MFALab v66 — symulator przejmowania konta</title><style>
+:root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#eaf1ff;background:#08111f}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0%,#172c4b 0%,#08111f 55%);min-height:100vh}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.wrap{max-width:1160px;margin:auto;padding:22px}.top{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}.brand{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:850}.logo{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#38bdf8,#818cf8);color:#08111f}.pill{font-size:12px;border:1px solid #354863;background:#13233a;padding:7px 11px;border-radius:30px;color:#cbd8ed}.hero{padding:42px 0 25px}.eyebrow{color:#7dd3fc;font-size:12px;letter-spacing:.15em;font-weight:800;text-transform:uppercase}h1{font-size:clamp(30px,5vw,48px);line-height:1.08;letter-spacing:-.04em;margin:12px 0}p{color:#b5c5da;line-height:1.6}.lead{max-width:740px;font-size:17px}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}.panel{background:#101d30e8;border:1px solid #30415a;border-radius:20px;padding:24px;box-shadow:0 15px 45px #0002}.panel h2{font-size:20px;margin:0 0 14px}.scene{min-height:390px}.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.btn{border:1px solid #3b526d;border-radius:11px;padding:12px 16px;background:#1b2e47;color:#eff6ff;font-weight:700}.btn:hover{filter:brightness(1.15)}.primary{background:#38bdf8;color:#071322;border-color:#38bdf8}.danger{background:#4b2734;border-color:#a44b64}.success{background:#153e38;border-color:#2f9f83}.small{font-size:13px}.muted{color:#93a9c2}.option{display:block;width:100%;text-align:left;padding:15px 16px;margin:9px 0;border:1px solid #3b526d;background:#18283f;border-radius:12px;color:#e8f0ff}.option:hover{border-color:#60c9ff;background:#213a57}.option:disabled{opacity:.8}.option.correct{border-color:#34d399;background:#103d37}.option.wrong{border-color:#fb7185;background:#4b2434}.badge{display:inline-block;background:#183a55;color:#7dd3fc;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:750}.device{max-width:440px;margin:18px auto;background:#f8fafc;color:#142235;border-radius:17px;padding:20px;box-shadow:0 20px 45px #0004}.device p{color:#52647a}.device input{width:100%;border:1px solid #b7c5d5;padding:12px;border-radius:9px;margin:6px 0 12px;background:white;color:#152238}.device .url{background:#e8edf4;border-radius:8px;padding:10px;font-size:12px;overflow-wrap:anywhere}.device .btn{width:100%;background:#1968b3;color:white;border:0}.notification{border:1px solid #cad7e5;border-radius:13px;padding:15px;margin-top:12px;background:white}.notification strong{display:block}.notification small{color:#52647a}.feedback{margin-top:18px;padding:15px;border-radius:12px;border:1px solid #426581;background:#173047;line-height:1.5}.feedback.good{border-color:#218e72;background:#103a34}.feedback.bad{border-color:#a75b6a;background:#412431}.statrow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:17px 0}.stat{padding:12px;background:#192a41;border-radius:12px}.stat b{display:block;font-size:22px}.stat span{font-size:12px;color:#9db2cb}.progress{height:8px;background:#263b55;border-radius:20px;overflow:hidden}.progress>div{height:100%;background:linear-gradient(90deg,#38bdf8,#818cf8);transition:width .25s}.timeline{padding-left:20px;color:#bbcee3;line-height:1.9;font-size:14px}.timeline li::marker{color:#60c9ff}.hint{border-left:3px solid #38bdf8;padding:10px 13px;background:#172b42;border-radius:0 9px 9px 0;color:#bcd0e5}.footer{font-size:12px;color:#8fa4bd;padding:24px 0 10px}.hidden{display:none!important}.modalback{position:fixed;inset:0;background:#030913d9;display:grid;place-items:center;z-index:10;padding:15px}.modal{max-width:660px;width:100%;max-height:90vh;overflow:auto;background:#12233a;border:1px solid #47617e;border-radius:22px;padding:28px;box-shadow:0 30px 100px #0008}.modal h2{margin-top:0}.compare{width:100%;border-collapse:collapse;font-size:13px}.compare th,.compare td{padding:12px 9px;border-bottom:1px solid #34465d;text-align:left;vertical-align:top}.compare th{color:#7dd3fc}.result{font-size:45px;font-weight:850;color:#7dd3fc;margin:10px 0}.check{display:flex;align-items:center;gap:9px;font-size:13px;color:#b9cbe1;margin-top:14px}a{color:#7dd3fc}@media(max-width:780px){.grid{grid-template-columns:1fr}.wrap{padding:14px}.panel{padding:17px}.hero{padding:25px 0 18px}.scene{min-height:0}.statrow{gap:6px}.stat{padding:10px}.modal{padding:20px}}
+
+/* v2 interactive laboratory */
+.lab{background:#0c192b;border:1px solid #38516c;border-radius:16px;padding:17px;margin:16px 0}.browser{background:#eaf0f8;color:#14233a;border-radius:12px;overflow:hidden}.browserbar{background:#d3dfed;padding:10px 12px;font-size:12px;overflow-wrap:anywhere}.browserbody{padding:22px;max-width:480px;margin:auto}.browserbody input{width:100%;padding:12px;margin:5px 0 12px;border:1px solid #a4b2c6;border-radius:8px;color:#14233a;background:#fff}.browserbody button,.phone button{border:0;border-radius:8px;padding:11px 14px;font-weight:700}.phone{max-width:335px;margin:14px auto;background:#14253c;border:7px solid #52647b;border-radius:32px;padding:18px;min-height:330px;box-shadow:0 15px 35px #0005}.phonehead{text-align:center;font-size:13px;color:#bacbe3;border-bottom:1px solid #52647b;padding-bottom:14px}.phonecard{background:#e8f1ff;color:#152641;border-radius:13px;padding:16px;margin-top:24px}.phoneactions{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}.phoneactions button{flex:1}.deny{background:#ffd7d7;color:#842525}.approve{background:#b6f0cb;color:#12532c}.counter{font-weight:800;font-size:22px}.incident{border-left:4px solid #ef9c50;padding:10px 14px;background:#3b2b20;border-radius:8px;margin:12px 0}.labnote{font-size:13px;color:#b9cbe0}.methodgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.method{background:#1b324f;border:1px solid #466180;border-radius:12px;padding:14px}.method button{margin-top:12px}.lab button{cursor:pointer}.lab button:disabled{opacity:.5;cursor:not-allowed}.event{margin:9px 0;padding:11px;border-radius:9px;background:#1a304b}.resultpanel{padding:14px;border:1px solid #577a9c;border-radius:12px;margin-top:12px}.resultpanel strong{display:block;margin-bottom:8px}.minibtn{background:#254e78;color:white;border:1px solid #6388b0;padding:10px 13px;border-radius:9px}.hidden{display:none!important}@media(max-width:600px){.wrap{padding:12px}.phone{max-width:100%}.browserbody{padding:13px}.lab{padding:11px}.controls{flex-wrap:wrap}}
+
+/* MFALab v66 — pełny scenariusz pocztowy w jednym oknie */
+.hero{padding:14px 0 12px}.hero h1{font-size:clamp(26px,3vw,36px)}.hero .lead{font-size:14px;max-width:none}.wrap{max-width:1400px}.panel{padding:18px}.desktop.mail-desktop{height:min(65vh,690px);min-height:490px;max-height:690px;aspect-ratio:16/9;margin:auto;background:linear-gradient(135deg,#0e4a76,#163c73 58%,#2e4377)}.mail-desktop .desk-icons{position:absolute;left:0;top:10px;width:100px;padding:10px;gap:10px}.mail-desktop .deskicon{min-height:66px}.mail-desktop .window{top:15px;left:108px;right:15px;bottom:50px;overflow:hidden}.mail-app,.browser-sim{height:100%;background:#fff;color:#20324b}.mail-head{height:54px;background:#195ca6;color:white;display:flex;justify-content:space-between;align-items:center;padding:0 20px;font-size:14px}.mail-head span{font-size:12px;color:#e2efff}.mail-layout{display:grid;grid-template-columns:175px minmax(0,1fr);height:calc(100% - 54px)}.mail-folders{background:#f0f5fc;border-right:1px solid #d8e2f0;padding:22px 13px;font-size:13px}.mail-folders>*{display:block;padding:12px 8px}.mail-folders b{background:#dceaff;border-radius:8px}.mail-folders span{float:right}.mail-message{min-width:0;overflow:auto;padding:14px 24px}.mail-toolbar{display:flex;justify-content:space-between;border-bottom:1px solid #e2e8f0;padding:0 0 12px;color:#64748b;font-size:12px}.mail-toolbar span{color:#2563eb}.mail-message h3{font-size:clamp(15px,1.7vw,21px);margin:20px 0}.mail-sender{display:flex;align-items:center;gap:12px;border-bottom:1px solid #e2e8f0;padding-bottom:15px}.mail-sender small{display:block;color:#60728b;font-size:12px;margin-top:3px}.avatar-mail{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-weight:800}.mail-content{font-size:clamp(12px,1.2vw,15px);max-width:720px;line-height:1.6}.mail-content p{color:#253c56;margin:12px 0}.mail-link{border:0;border-radius:7px;background:#1d63c4;color:white;padding:12px 18px;font-weight:750;cursor:pointer}.mail-link:hover{background:#124b9d}.browser-sim .tabs{height:46px}.browser-sim .address{margin:8px 12px}.browser-sim .webpage{padding:20px;max-width:530px}.site-logo{font-size:22px;font-weight:800;color:#155cc2;margin:10px 0 24px}.mail-desktop .taskbar{height:44px}.locked-ui{pointer-events:none;filter:saturate(.7)}@media(max-width:750px){.desktop.mail-desktop{height:550px;min-height:0;aspect-ratio:auto}.mail-desktop .desk-icons{display:none}.mail-desktop .window{left:8px;right:8px;top:8px;bottom:50px}.mail-layout{grid-template-columns:1fr}.mail-folders{display:none}.mail-message{padding:12px}.mail-head span{display:none}.mail-content{font-size:13px}.mail-desktop .taskbar{gap:5px;padding:5px}.mail-desktop .taskbar button{padding:6px 8px;font-size:12px}.mail-desktop .taskbar span{font-size:10px}.browser-sim .webpage{padding:12px}}
+
+/* Laboratoria interaktywne v10 */
+.lab4-toolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}.lab4-toolbar .action{width:100%;min-width:0;margin:0;white-space:normal}.lab4-toolbar .selected{outline:3px solid #7cc7ff;background:#225b94}.lab4-browser{border:1px solid #526783;border-radius:14px;overflow:hidden;background:#f5f8fc;color:#172b46;min-height:380px}.lab4-top{background:#dce6f5;padding:13px 18px;font-weight:700;display:flex;justify-content:space-between;gap:10px}.lab4-top span{font-size:12px;font-weight:400}.lab4-address{background:white;border:1px solid #c6d2e4;border-radius:8px;margin:10px;padding:10px;overflow-wrap:anywhere;font-size:13px}.lab4-screen{max-width:560px;margin:24px auto;padding:10px 24px 28px;text-align:center}.lab4-screen p{color:#334861}.lab4-lock{font-size:46px}.lab4-alert{padding:16px;border:1px solid #e9a4a4;border-radius:10px;background:#fff0f0;color:#832525;margin:18px 0;text-align:left}.lab4-label{display:block;text-align:left;margin:18px 0}.lab4-label input{display:block;width:100%;padding:12px;border-radius:8px;border:1px solid #9badc4;margin-top:8px;font-size:18px}.lab4-screen .action{background:#2465bd;color:white}.incident-workspace{border:1px solid #3b5270;border-radius:14px;overflow:hidden}.incident-toolbar{background:#203a59;padding:15px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.incident-workspace .incident-grid{padding:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.incident-workspace .incident-card{min-width:0;display:flex;flex-direction:column}.incident-workspace .incident-card .action{margin-top:auto}.incident-progress{padding:10px 16px;font-weight:600}.incident-workspace .choicebar{padding:12px 14px 18px;display:flex;flex-wrap:wrap;gap:10px}.incident-workspace button:disabled{opacity:.65;cursor:default}@media(max-width:750px){.lab4-toolbar{grid-template-columns:1fr}.incident-workspace .incident-grid{grid-template-columns:1fr}.lab4-screen{padding:10px 12px}}
+
+/* v11: dwie równoległe powierzchnie — przeglądarka i urządzenie */
+.lab4-workspace{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(245px,.85fr);gap:16px;align-items:stretch}.lab4-workspace .lab4-browser{min-width:0;min-height:490px}.lab4-workspace .lab4-screen{margin:14px auto;padding:12px 16px}.lab4-device-area{min-width:0;display:flex;align-items:center;justify-content:center;background:#14243a;border:1px solid #405a79;border-radius:15px;padding:14px}.lab4-device-placeholder{text-align:center;color:#cbd8eb;max-width:250px;font-size:35px}.lab4-device-placeholder p{font-size:13px}.lab4-phone{position:relative;width:min(100%,285px);min-height:465px;border:9px solid #090f1d;border-radius:39px;background:linear-gradient(150deg,#213e72,#302454);color:white;padding:18px 13px 60px;box-shadow:0 15px 35px #0005;overflow:hidden}.lab4-notch{position:absolute;top:0;left:34%;width:32%;height:20px;background:#090f1d;border-radius:0 0 15px 15px}.lab4-phone-status{display:flex;justify-content:space-between;font-size:12px;font-weight:700}.lab4-signal{font-size:10px}.lab4-phone-time{text-align:center;font-size:43px;font-weight:300;margin:36px 0 15px}.lab4-phone-card{background:#f5f8ff;color:#1a2c47;border-radius:19px;padding:13px;box-shadow:0 8px 24px #0004}.lab4-app-heading{font-size:13px;font-weight:750;border-bottom:1px solid #d5deeb;padding-bottom:10px}.lab4-message,.lab4-auth-entry{font-size:13px;padding:12px 2px}.lab4-message p,.lab4-auth-entry p{color:#465b76;margin:9px 0}.lab4-code{font-size:29px;letter-spacing:3px;font-weight:800;color:#164d98;margin:12px 0}.lab4-message small,.lab4-auth-entry small{color:#54657b}.lab4-totp-progress{height:5px;background:#d7e4f5;border-radius:10px;margin:12px 0}.lab4-totp-progress span{display:block;background:#2563eb;width:100%;height:100%;border-radius:10px;transition:width .22s linear}.lab4-auth-entry{padding:13px 4px}.lab4-auth-entry .lab4-code{font-variant-numeric:tabular-nums;font-size:32px;letter-spacing:4px;margin:8px 0;color:#123f86}.lab4-auth-entry .lab4-totp-progress{height:9px;margin:14px 0 7px;overflow:hidden}.lab4-totp-caption{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:#4d6480}.lab4-auth-entry .lab4-auth-title{font-size:12px;color:#52647a;margin:5px 0}.lab4-auth-entry .lab4-auth-logo{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:10px;background:#dceaff;margin-right:7px}.lab4-phone-dock{position:absolute;bottom:19px;left:0;right:0;text-align:center;letter-spacing:5px;font-size:18px}.lab4-system{width:100%;max-width:320px;background:#f6f8fd;color:#1d2c43;border-radius:16px;padding:20px;text-align:center;box-shadow:0 12px 32px #0004}.lab4-system-head{font-size:12px;color:#50637b}.lab4-system-icon{font-size:42px;margin:16px}.lab4-system p{color:#425570}.lab4-domain{background:#e6edf8;border-radius:8px;padding:10px;overflow-wrap:anywhere;font-weight:700;font-size:12px}.lab4-system-warning{background:#fff0eb;border:1px solid #e5aa98;color:#8c3222;border-radius:9px;padding:11px;font-size:13px;margin:12px 0}.lab4-system #lab4PassResult{color:#36506e}@media(max-width:850px){.lab4-workspace{grid-template-columns:1fr}.lab4-workspace .lab4-browser{min-height:340px}.lab4-device-area{padding:16px}.lab4-phone{min-height:450px}}
+
+.lab4-toolbar button.lab4-complete{border:2px solid #46b994;background:#153d36;color:#e7fff5}.lab4-toolbar button.selected{outline:3px solid #7db8fa;outline-offset:1px}.lab4-toolbar button{min-height:54px;white-space:normal}.lab4-toolbar button:not(.selected):not(.lab4-complete){color:#173052;background:#dce8fa}.story-finish:not(:disabled){background:#18794e!important;color:white!important;font-weight:800}.story-finish:disabled{opacity:1;background:#36475d!important;color:#d7e2f2!important;cursor:not-allowed}.story-note{line-height:1.6}
+
+/* MFALab v66: jeden pulpit i telefon jako nakładka */
+.lab4-desktop{position:relative;min-height:540px;border:1px solid #45617f;border-radius:16px;background:linear-gradient(135deg,#144c7a,#203d70 65%,#302854);padding:15px 15px 55px;overflow:hidden}.lab4-desktop-header{display:flex;justify-content:space-between;gap:10px;color:#dbeafe;font-size:12px;margin-bottom:12px}.lab4-workspace{display:block;position:relative;min-height:450px}.lab4-workspace .lab4-browser{width:100%;min-height:450px;max-width:none;border-radius:12px;overflow:hidden}.lab4-workspace .lab4-screen{max-width:560px;margin:25px auto;padding:22px}.lab4-device-area{position:absolute;right:18px;top:22px;bottom:10px;width:260px;padding:0;background:transparent;border:0;z-index:2;align-items:center;pointer-events:none}.lab4-device-area .lab4-phone{pointer-events:auto;width:250px;min-height:420px;transform:scale(.92);transform-origin:center right;box-shadow:0 22px 45px #0008}.lab4-phone-status .status-icons{gap:5px}.lab4-phone-status .signal-bars{height:15px}.lab4-phone-status .battery{border:1.5px solid white;width:19px;height:10px;border-radius:3px;position:relative}.lab4-phone-status .battery:before{content:'';position:absolute;inset:2px;background:white;border-radius:1px}.lab4-phone-status .battery:after{content:'';position:absolute;right:-4px;top:2px;width:2px;height:4px;background:white}.lab4-taskbar{position:absolute;bottom:0;left:0;right:0;height:42px;background:#0b1830;display:flex;justify-content:space-between;align-items:center;padding:0 18px;font-size:12px;color:#e2efff}.lab4-pass-modal{max-width:360px;margin:15px auto;padding:18px;background:#fff;color:#20304a;border:1px solid #b8c8db;border-radius:14px;box-shadow:0 14px 36px #0003;text-align:center}.lab4-pass-modal p{color:#425570}.lab4-pass-modal .action{width:100%;margin-top:12px}.lab4-screen:has(+ *){min-width:0}@media(min-width:850px){.lab4-workspace:has(.lab4-device-area:not(.hidden)) .lab4-screen{margin-left:25px;margin-right:285px;max-width:500px}}@media(max-width:850px){.lab4-desktop{min-height:650px}.lab4-workspace .lab4-browser{min-height:565px}.lab4-device-area{right:0;top:200px;bottom:auto;width:190px}.lab4-device-area .lab4-phone{transform:scale(.68);transform-origin:top right}.lab4-workspace .lab4-screen{margin:10px 190px 0 8px;padding:10px}.lab4-screen h3{font-size:17px}}@media(max-width:550px){.lab4-desktop{min-height:810px}.lab4-workspace .lab4-browser{min-height:730px}.lab4-device-area{top:350px;right:50%;transform:translateX(50%);width:250px}.lab4-device-area .lab4-phone{transform:scale(.8);transform-origin:top center}.lab4-workspace .lab4-screen{margin:10px;padding:10px}.lab4-desktop-header span:last-child{display:none}}
+
+/* v17: panel działań w prawej kolumnie i okno zadania */
+.scenario-aside{display:flex;flex-direction:column;gap:12px;align-self:start}
+.scenario-actions{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.scenario-actions .btn{padding:11px 9px;font-size:13px;min-width:0;line-height:1.25}
+.scenario-actions #next{grid-column:1/-1}
+.scenario-aside .feedback{margin:0}
+.brief-dialog{max-width:580px}
+.brief-dialog p{font-size:17px;line-height:1.65}
+.brief-dialog .controls{justify-content:flex-end}
+.phone-stage:has(#pushNotice){justify-content:center}
+.push-dismiss{position:absolute;right:8px;top:7px;border:0!important;background:transparent!important;color:#243f61!important;display:flex;align-items:center;gap:3px;padding:3px 6px!important;font-size:20px!important;font-weight:800;z-index:3}
+.push-dismiss small{display:inline!important;margin:0!important;font-size:11px!important;color:#243f61!important}
+.floating:has(.push-dismiss)>strong{padding-right:90px}
+@media(max-width:800px){.scenario-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.scenario-aside{position:static}}
+
+/* v19 — cały nagłówek w jednym, zwartym wierszu */
+.wrap{padding-top:14px}
+header.top{display:flex;flex-wrap:nowrap;align-items:center;gap:18px;padding-bottom:14px}
+header .brand{flex:0 0 auto;white-space:nowrap;font-size:22px}
+.header-intro{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px;line-height:1.25}
+.header-intro strong{font-size:clamp(17px,1.65vw,24px);color:#f0f6ff;letter-spacing:-.025em}
+.header-intro span{font-size:12px;color:#a9c3df;white-space:normal}
+header .pill{flex:0 0 auto;display:flex;align-items:center;gap:8px;white-space:nowrap;padding:6px 9px}
+.header-help{margin-left:0}
+header #soundToggle{margin-left:0!important}
+@media(max-width:1100px){header.top{gap:10px}header .pill{font-size:0}header .pill button{font-size:12px}.header-intro span{font-size:11px}}
+@media(max-width:760px){header.top{flex-wrap:wrap}header .brand{font-size:19px}.header-intro{order:3;flex-basis:100%}header .pill{margin-left:auto}header .pill button{padding:6px!important}}
+
+/* v27: stabilny obszar scenariusza 4 — bez skoków przy przełączaniu metod */
+.lab4-desktop{height:540px;min-height:540px;max-height:540px;box-sizing:border-box}
+.lab4-workspace{height:450px;min-height:450px;max-height:450px}
+.lab4-workspace .lab4-browser{height:450px;min-height:450px;max-height:450px;box-sizing:border-box}
+.lab4-workspace .lab4-screen{box-sizing:border-box;min-height:320px;max-height:350px;overflow-y:auto}
+.lab4-device-area{height:410px;top:16px;bottom:auto;align-items:center;justify-content:center}
+.lab4-device-area .lab4-phone{box-sizing:border-box;width:250px!important;height:440px!important;min-height:440px!important;max-height:440px!important;flex:0 0 440px;transform:scale(.9)!important;transform-origin:center center!important}
+@media(min-width:851px){.lab4-workspace .lab4-screen,.lab4-workspace:has(.lab4-device-area:not(.hidden)) .lab4-screen{margin:25px 285px 0 25px;max-width:none}}
+@media(max-width:850px){.lab4-desktop{height:650px;min-height:650px;max-height:650px}.lab4-workspace,.lab4-workspace .lab4-browser{height:565px;min-height:565px;max-height:565px}.lab4-device-area{height:340px;top:195px}.lab4-device-area .lab4-phone{transform:scale(.68)!important;transform-origin:top right!important}.lab4-workspace .lab4-screen{margin:10px 190px 0 8px;max-height:390px}}
+@media(max-width:550px){.lab4-desktop{height:810px;min-height:810px;max-height:810px}.lab4-workspace,.lab4-workspace .lab4-browser{height:730px;min-height:730px;max-height:730px}.lab4-device-area{top:345px;height:350px}.lab4-device-area .lab4-phone{transform:scale(.78)!important;transform-origin:top center!important}.lab4-workspace .lab4-screen{margin:10px;min-height:260px;max-height:300px}}
+
+/* v27: poprawione proporcje telefonu i nieco wyższy pulpit scenariusza 4 */
+@media(min-width:851px){
+.lab4-desktop{height:590px;min-height:590px;max-height:590px}
+.lab4-workspace,.lab4-workspace .lab4-browser{height:500px;min-height:500px;max-height:500px}
+.lab4-workspace .lab4-screen{min-height:350px;max-height:405px}
+.lab4-device-area{top:12px;right:12px;width:280px;height:470px;bottom:auto;display:flex;align-items:center;justify-content:center}
+.lab4-device-area.hidden{display:none}
+.lab4-device-area .lab4-phone{box-sizing:border-box;width:270px!important;min-width:270px!important;max-width:270px!important;height:465px!important;min-height:465px!important;max-height:465px!important;flex:0 0 auto!important;transform:none!important;margin:0!important}
+.lab4-workspace .lab4-screen,.lab4-workspace:has(.lab4-device-area:not(.hidden)) .lab4-screen{margin:30px 310px 0 25px;max-width:none}
+}
+@media(max-width:850px){.lab4-device-area .lab4-phone{flex:0 0 auto!important;width:250px!important;min-width:250px!important;max-width:250px!important}}
+
+/* Raport: jedyna akcja to zakończenie w prawym górnym rogu. */
+.scenario-heading #finishExit{margin-left:auto;white-space:nowrap;background:#277b55;border-color:#3b986b;color:#fff;font-weight:750;padding:10px 20px}
+.scenario-heading #finishExit.hidden{display:none}
+.scenario-layout.report-mode{display:block!important}
+.scenario-layout.report-mode .scenario-aside{display:none!important}
+@media(max-width:620px){.scenario-heading #finishExit{padding:8px 12px;font-size:13px}}
+
+/* v32: zamykanie okna aplikacji w scenariuszu 1 */
+.mail-desktop .window{position:absolute}
+.mail-desktop .window.hidden{display:none!important}
+.mail-desktop .sim-window-close{position:absolute;right:10px;top:7px;z-index:12;width:31px;height:30px;border:0;border-radius:7px;background:#ffffff26;color:#fff;font-size:25px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
+.mail-desktop .sim-window-close:hover,.mail-desktop .sim-window-close:focus-visible{background:#c63745;color:white;outline:2px solid #fff8;outline-offset:1px}
+.mail-desktop .mail-head{padding-right:52px}
+.mail-desktop .browser-sim .tabs{padding-right:50px}
+
+/* v35: neutralne przyciski decyzyjne i czytelna sygnalizacja połączenia */
+.phone-stage .smartphone.is-ringing{animation:mfaIncomingShake .24s ease-in-out infinite alternate;overflow:visible}
+.phone-stage .smartphone.is-ringing::after{content:"";position:absolute;inset:-19px;border:3px solid #8bcaff;border-radius:56px;box-shadow:0 0 0 9px #8bcaff22,0 0 0 19px #8bcaff12;animation:mfaRingWave 1.3s ease-out infinite;pointer-events:none}
+@keyframes mfaIncomingShake{from{transform:translateX(-2px) rotate(-.45deg)}to{transform:translateX(2px) rotate(.45deg)}}
+@keyframes mfaRingWave{0%{opacity:1;transform:scale(.99)}100%{opacity:0;transform:scale(1.075)}}
+@media(prefers-reduced-motion:reduce){.phone-stage .smartphone.is-ringing,.phone-stage .smartphone.is-ringing::after{animation:none}}
+/* Jednolita barwa odpowiedzi przed oceną; kolor nie wskazuje prawidłowej decyzji. */
+#approvePush,#rejectPush,#ignorePush,#shareCode,#safeCall,#dismissIncident,#finishIncident,.call-choice.risky,.call-choice.safe,.floating .danger,.floating .choicebar button,.lab4-screen .story-safe,.lab4-screen #lab4Send,.lab4-screen #lab4Refuse{background:#dceaff!important;color:#17345b!important;border:1px solid #87a4c5!important}
+#approvePush:hover,#rejectPush:hover,#shareCode:hover,#safeCall:hover,#lab4Send:hover,#lab4Refuse:hover{filter:brightness(.95)}
+.lab4-toolbar{grid-template-columns:repeat(4,minmax(0,1fr))}
+.lab4-toolbar button{font-size:12px;line-height:1.25;padding:9px 7px}
+</style><style>
+.wrap{max-width:1450px}.grid{display:block!important}.grid>.scene{width:100%;max-width:none!important}.scene{min-width:0}.hero{padding-bottom:12px}.hero h1{margin:8px 0}.hero .lead{margin:8px 0}.controls{position:relative;z-index:2}.lab{margin-top:14px}.desktop{position:relative;min-height:420px;border:1px solid #506b8d;border-radius:14px;overflow:hidden;background:linear-gradient(145deg,#103d6c,#162449 65%,#3c2260);color:#fff}.desk-icons{display:flex;flex-direction:column;gap:16px;padding:20px;width:115px}.deskicon{background:#ffffff18;border:1px solid #ffffff33;color:white;border-radius:9px;padding:12px 4px;text-align:center;font-size:12px;min-height:75px}.taskbar{position:absolute;bottom:0;left:0;right:0;background:#091729d9;padding:8px 16px;display:flex;gap:12px;align-items:center}.taskbar button{background:#ffffff20;border:0;color:white;border-radius:6px;padding:7px 14px}.window{position:absolute;top:26px;left:clamp(115px,18%,230px);right:22px;bottom:56px;background:#f7faff;color:#17233b;border-radius:10px;overflow:auto;box-shadow:0 15px 45px #0008}.tabs{display:flex;align-items:center;gap:6px;background:#dce6f4;padding:8px}.tabs button{border:0;border-radius:6px;padding:5px 12px;background:#fff;color:#192b44}.address{background:#fff;border:1px solid #afc3dc;border-radius:7px;padding:9px;margin:7px;font-size:13px;overflow-wrap:anywhere}.webpage{padding:16px;max-width:600px;margin:auto}.webpage input{display:block;width:100%;margin:6px 0 10px;padding:10px;border:1px solid #aabbd2;border-radius:6px;color:#17233b;background:#fff}.webpage button,.action{padding:10px 14px;border-radius:8px;border:1px solid #87a4c5;background:#dceaff;color:#17345b;font-weight:650}.webpage button{background:#155cc2;color:white}.choicebar{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.choicebar button{flex:1 1 190px;min-height:45px}.phone-stage{display:flex;justify-content:center;align-items:flex-start;gap:30px;flex-wrap:wrap;padding:12px}.smartphone{width:290px;max-width:100%;height:545px;border:8px solid #101521;border-radius:39px;background:linear-gradient(150deg,#233a72,#18224a 60%,#37215e);box-shadow:0 15px 35px #0006;position:relative;overflow:hidden;color:#fff;flex-shrink:0}.smartphone:before{content:'';position:absolute;top:5px;left:35%;width:30%;height:18px;border-radius:0 0 14px 14px;background:#101521;z-index:2}.statusphone{display:flex;justify-content:space-between;padding:26px 19px 8px;font-size:12px}.phone-home{padding:25px 16px;text-align:center}.phone-home .bigclock{font-size:47px;font-weight:300}.floating{position:absolute;top:130px;left:12px;right:12px;background:#f7faff;color:#17233b;padding:15px;border-radius:17px;box-shadow:0 12px 25px #0008;line-height:1.5;z-index:1}.floating strong{display:block;font-size:16px}.floating small{display:block;color:#42546c;margin:6px 0 12px}.floating button{padding:9px 11px;border:0;border-radius:8px;background:#dce9fa;color:#17365e}.floating .danger{background:#b52b40;color:white}.phone-dock{position:absolute;bottom:18px;left:18px;right:18px;display:flex;justify-content:space-around}.phone-dock span{padding:12px;background:#ffffff25;border-radius:13px}.explain{flex:1 1 250px;max-width:490px;line-height:1.6}.callbox{position:absolute;inset:60px 14px 22px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:17px}.caller{width:76px;height:76px;border-radius:50%;background:#ffffff33;display:grid;place-items:center;font-size:37px}.callbox .callbtn{border:0;border-radius:30px;background:#16844e;color:#fff;padding:13px 24px}.callbox .hang{background:#b62b48}.sms{background:#f5f8ff;color:#18314c;border-radius:14px;padding:13px;font-size:15px;line-height:1.6;width:100%}.methods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.methodcard{display:flex;flex-direction:column;gap:12px;padding:18px;background:#152944;border:1px solid #3c5676;border-radius:13px}.methodcard p{flex:1;margin:0}.methodcard button{width:100%;min-height:48px;margin-top:auto}.methodcard h3{margin:0}.incident-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.incident-card{padding:18px;border:1px solid #456080;border-radius:12px;background:#10233c}.incident-card h3{margin-top:0}.incident-card li{margin:9px 0}.reporttable{width:100%;border-collapse:collapse}.reporttable th,.reporttable td{border-bottom:1px solid #53617a;padding:12px;text-align:left}.locked-ui{pointer-events:none!important;user-select:none;filter:saturate(.6)}.locked-ui button{cursor:not-allowed!important}.feedback{margin-top:16px}.result-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.result-grid>div{background:#162b48;border:1px solid #46617e;border-radius:10px;padding:16px;text-align:center}.result-grid strong{display:block;font-size:27px}.progress-mini{height:7px;background:#1e3655;border-radius:20px;overflow:hidden;margin:12px 0}.progress-mini div{height:100%;background:#5eaeec;transition:width .2s}.muted-light{color:#c7d7eb}.voice-note{font-size:12px;color:#c8d6ec}.voice-transcript{padding:12px;border-left:3px solid #8db9f2;background:#132942;border-radius:7px;margin-top:12px}
+@media(max-width:720px){.wrap{padding:12px}.desktop{min-height:440px}.window{left:10px;right:10px;top:110px;bottom:48px}.desk-icons{flex-direction:row;width:auto;padding:8px}.deskicon{min-height:75px;width:100px}.methods,.incident-grid,.result-grid{grid-template-columns:1fr}.phone-stage{gap:15px}.smartphone{width:280px}.hero h1{font-size:27px}}
+
+/* MFALab v66 — pełny scenariusz pocztowy w jednym oknie */
+.hero{padding:14px 0 12px}.hero h1{font-size:clamp(26px,3vw,36px)}.hero .lead{font-size:14px;max-width:none}.wrap{max-width:1400px}.panel{padding:18px}.desktop.mail-desktop{height:min(65vh,690px);min-height:490px;max-height:690px;aspect-ratio:16/9;margin:auto;background:linear-gradient(135deg,#0e4a76,#163c73 58%,#2e4377)}.mail-desktop .desk-icons{position:absolute;left:0;top:10px;width:100px;padding:10px;gap:10px}.mail-desktop .deskicon{min-height:66px}.mail-desktop .window{top:15px;left:108px;right:15px;bottom:50px;overflow:hidden}.mail-app,.browser-sim{height:100%;background:#fff;color:#20324b}.mail-head{height:54px;background:#195ca6;color:white;display:flex;justify-content:space-between;align-items:center;padding:0 20px;font-size:14px}.mail-head span{font-size:12px;color:#e2efff}.mail-layout{display:grid;grid-template-columns:175px minmax(0,1fr);height:calc(100% - 54px)}.mail-folders{background:#f0f5fc;border-right:1px solid #d8e2f0;padding:22px 13px;font-size:13px}.mail-folders>*{display:block;padding:12px 8px}.mail-folders b{background:#dceaff;border-radius:8px}.mail-folders span{float:right}.mail-message{min-width:0;overflow:auto;padding:14px 24px}.mail-toolbar{display:flex;justify-content:space-between;border-bottom:1px solid #e2e8f0;padding:0 0 12px;color:#64748b;font-size:12px}.mail-toolbar span{color:#2563eb}.mail-message h3{font-size:clamp(15px,1.7vw,21px);margin:20px 0}.mail-sender{display:flex;align-items:center;gap:12px;border-bottom:1px solid #e2e8f0;padding-bottom:15px}.mail-sender small{display:block;color:#60728b;font-size:12px;margin-top:3px}.avatar-mail{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-weight:800}.mail-content{font-size:clamp(12px,1.2vw,15px);max-width:720px;line-height:1.6}.mail-content p{color:#253c56;margin:12px 0}.mail-link{border:0;border-radius:7px;background:#1d63c4;color:white;padding:12px 18px;font-weight:750;cursor:pointer}.mail-link:hover{background:#124b9d}.browser-sim .tabs{height:46px}.browser-sim .address{margin:8px 12px}.browser-sim .webpage{padding:20px;max-width:530px}.site-logo{font-size:22px;font-weight:800;color:#155cc2;margin:10px 0 24px}.mail-desktop .taskbar{height:44px}.locked-ui{pointer-events:none;filter:saturate(.7)}@media(max-width:750px){.desktop.mail-desktop{height:550px;min-height:0;aspect-ratio:auto}.mail-desktop .desk-icons{display:none}.mail-desktop .window{left:8px;right:8px;top:8px;bottom:50px}.mail-layout{grid-template-columns:1fr}.mail-folders{display:none}.mail-message{padding:12px}.mail-head span{display:none}.mail-content{font-size:13px}.mail-desktop .taskbar{gap:5px;padding:5px}.mail-desktop .taskbar button{padding:6px 8px;font-size:12px}.mail-desktop .taskbar span{font-size:10px}.browser-sim .webpage{padding:12px}}
+
+/* v5: widoczny podgląd linku na hover i focus, również na ekranach dotykowych przez dłuższe naciśnięcie natywnego title */
+.link-preview-wrap{display:inline-flex;position:relative;flex-direction:column;align-items:flex-start;max-width:100%}.link-preview{position:absolute;z-index:20;left:0;top:calc(100% + 7px);padding:10px 12px;background:#10243b;color:#fff;border:1px solid #86b8f5;box-shadow:0 8px 24px #0005;border-radius:8px;font-size:12px;line-height:1.5;max-width:min(480px,75vw);width:max-content;overflow-wrap:anywhere;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .12s}.link-preview-wrap:hover .link-preview,.link-preview-wrap:focus-within .link-preview{opacity:1;visibility:visible}.mail-tip{font-size:12px;color:#4a607d;border-top:1px solid #d7e0ee;padding-top:10px}.mail-link:focus-visible{outline:3px solid #e1a126;outline-offset:3px}
+
+/* Laboratoria interaktywne v10 */
+.lab4-toolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}.lab4-toolbar .action{width:100%;min-width:0;margin:0;white-space:normal}.lab4-toolbar .selected{outline:3px solid #7cc7ff;background:#225b94}.lab4-browser{border:1px solid #526783;border-radius:14px;overflow:hidden;background:#f5f8fc;color:#172b46;min-height:380px}.lab4-top{background:#dce6f5;padding:13px 18px;font-weight:700;display:flex;justify-content:space-between;gap:10px}.lab4-top span{font-size:12px;font-weight:400}.lab4-address{background:white;border:1px solid #c6d2e4;border-radius:8px;margin:10px;padding:10px;overflow-wrap:anywhere;font-size:13px}.lab4-screen{max-width:560px;margin:24px auto;padding:10px 24px 28px;text-align:center}.lab4-screen p{color:#334861}.lab4-lock{font-size:46px}.lab4-alert{padding:16px;border:1px solid #e9a4a4;border-radius:10px;background:#fff0f0;color:#832525;margin:18px 0;text-align:left}.lab4-label{display:block;text-align:left;margin:18px 0}.lab4-label input{display:block;width:100%;padding:12px;border-radius:8px;border:1px solid #9badc4;margin-top:8px;font-size:18px}.lab4-screen .action{background:#2465bd;color:white}.incident-workspace{border:1px solid #3b5270;border-radius:14px;overflow:hidden}.incident-toolbar{background:#203a59;padding:15px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.incident-workspace .incident-grid{padding:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.incident-workspace .incident-card{min-width:0;display:flex;flex-direction:column}.incident-workspace .incident-card .action{margin-top:auto}.incident-progress{padding:10px 16px;font-weight:600}.incident-workspace .choicebar{padding:12px 14px 18px;display:flex;flex-wrap:wrap;gap:10px}.incident-workspace button:disabled{opacity:.65;cursor:default}@media(max-width:750px){.lab4-toolbar{grid-template-columns:1fr}.incident-workspace .incident-grid{grid-template-columns:1fr}.lab4-screen{padding:10px 12px}}
+
+/* v11: dwie równoległe powierzchnie — przeglądarka i urządzenie */
+.lab4-workspace{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(245px,.85fr);gap:16px;align-items:stretch}.lab4-workspace .lab4-browser{min-width:0;min-height:490px}.lab4-workspace .lab4-screen{margin:14px auto;padding:12px 16px}.lab4-device-area{min-width:0;display:flex;align-items:center;justify-content:center;background:#14243a;border:1px solid #405a79;border-radius:15px;padding:14px}.lab4-device-placeholder{text-align:center;color:#cbd8eb;max-width:250px;font-size:35px}.lab4-device-placeholder p{font-size:13px}.lab4-phone{position:relative;width:min(100%,285px);min-height:465px;border:9px solid #090f1d;border-radius:39px;background:linear-gradient(150deg,#213e72,#302454);color:white;padding:18px 13px 60px;box-shadow:0 15px 35px #0005;overflow:hidden}.lab4-notch{position:absolute;top:0;left:34%;width:32%;height:20px;background:#090f1d;border-radius:0 0 15px 15px}.lab4-phone-status{display:flex;justify-content:space-between;font-size:12px;font-weight:700}.lab4-signal{font-size:10px}.lab4-phone-time{text-align:center;font-size:43px;font-weight:300;margin:36px 0 15px}.lab4-phone-card{background:#f5f8ff;color:#1a2c47;border-radius:19px;padding:13px;box-shadow:0 8px 24px #0004}.lab4-app-heading{font-size:13px;font-weight:750;border-bottom:1px solid #d5deeb;padding-bottom:10px}.lab4-message,.lab4-auth-entry{font-size:13px;padding:12px 2px}.lab4-message p,.lab4-auth-entry p{color:#465b76;margin:9px 0}.lab4-code{font-size:29px;letter-spacing:3px;font-weight:800;color:#164d98;margin:12px 0}.lab4-message small,.lab4-auth-entry small{color:#54657b}.lab4-totp-progress{height:5px;background:#d7e4f5;border-radius:10px;margin:12px 0}.lab4-totp-progress span{display:block;background:#2563eb;width:100%;height:100%;border-radius:10px;transition:width .22s linear}.lab4-auth-entry{padding:13px 4px}.lab4-auth-entry .lab4-code{font-variant-numeric:tabular-nums;font-size:32px;letter-spacing:4px;margin:8px 0;color:#123f86}.lab4-auth-entry .lab4-totp-progress{height:9px;margin:14px 0 7px;overflow:hidden}.lab4-totp-caption{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:#4d6480}.lab4-auth-entry .lab4-auth-title{font-size:12px;color:#52647a;margin:5px 0}.lab4-auth-entry .lab4-auth-logo{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:10px;background:#dceaff;margin-right:7px}.lab4-phone-dock{position:absolute;bottom:19px;left:0;right:0;text-align:center;letter-spacing:5px;font-size:18px}.lab4-system{width:100%;max-width:320px;background:#f6f8fd;color:#1d2c43;border-radius:16px;padding:20px;text-align:center;box-shadow:0 12px 32px #0004}.lab4-system-head{font-size:12px;color:#50637b}.lab4-system-icon{font-size:42px;margin:16px}.lab4-system p{color:#425570}.lab4-domain{background:#e6edf8;border-radius:8px;padding:10px;overflow-wrap:anywhere;font-weight:700;font-size:12px}.lab4-system-warning{background:#fff0eb;border:1px solid #e5aa98;color:#8c3222;border-radius:9px;padding:11px;font-size:13px;margin:12px 0}.lab4-system #lab4PassResult{color:#36506e}@media(max-width:850px){.lab4-workspace{grid-template-columns:1fr}.lab4-workspace .lab4-browser{min-height:340px}.lab4-device-area{padding:16px}.lab4-phone{min-height:450px}}
+
+.lab4-toolbar button.lab4-complete{border:2px solid #46b994;background:#153d36;color:#e7fff5}.lab4-toolbar button.selected{outline:3px solid #7db8fa;outline-offset:1px}.lab4-toolbar button{min-height:54px;white-space:normal}.lab4-toolbar button:not(.selected):not(.lab4-complete){color:#173052;background:#dce8fa}.story-finish:not(:disabled){background:#18794e!important;color:white!important;font-weight:800}.story-finish:disabled{opacity:1;background:#36475d!important;color:#d7e2f2!important;cursor:not-allowed}.story-note{line-height:1.6}
+
+/* MFALab v66: jeden pulpit i telefon jako nakładka */
+.lab4-desktop{position:relative;min-height:540px;border:1px solid #45617f;border-radius:16px;background:linear-gradient(135deg,#144c7a,#203d70 65%,#302854);padding:15px 15px 55px;overflow:hidden}.lab4-desktop-header{display:flex;justify-content:space-between;gap:10px;color:#dbeafe;font-size:12px;margin-bottom:12px}.lab4-workspace{display:block;position:relative;min-height:450px}.lab4-workspace .lab4-browser{width:100%;min-height:450px;max-width:none;border-radius:12px;overflow:hidden}.lab4-workspace .lab4-screen{max-width:560px;margin:25px auto;padding:22px}.lab4-device-area{position:absolute;right:18px;top:22px;bottom:10px;width:260px;padding:0;background:transparent;border:0;z-index:2;align-items:center;pointer-events:none}.lab4-device-area .lab4-phone{pointer-events:auto;width:250px;min-height:420px;transform:scale(.92);transform-origin:center right;box-shadow:0 22px 45px #0008}.lab4-phone-status .status-icons{gap:5px}.lab4-phone-status .signal-bars{height:15px}.lab4-phone-status .battery{border:1.5px solid white;width:19px;height:10px;border-radius:3px;position:relative}.lab4-phone-status .battery:before{content:'';position:absolute;inset:2px;background:white;border-radius:1px}.lab4-phone-status .battery:after{content:'';position:absolute;right:-4px;top:2px;width:2px;height:4px;background:white}.lab4-taskbar{position:absolute;bottom:0;left:0;right:0;height:42px;background:#0b1830;display:flex;justify-content:space-between;align-items:center;padding:0 18px;font-size:12px;color:#e2efff}.lab4-pass-modal{max-width:360px;margin:15px auto;padding:18px;background:#fff;color:#20304a;border:1px solid #b8c8db;border-radius:14px;box-shadow:0 14px 36px #0003;text-align:center}.lab4-pass-modal p{color:#425570}.lab4-pass-modal .action{width:100%;margin-top:12px}.lab4-screen:has(+ *){min-width:0}@media(min-width:850px){.lab4-workspace:has(.lab4-device-area:not(.hidden)) .lab4-screen{margin-left:25px;margin-right:285px;max-width:500px}}@media(max-width:850px){.lab4-desktop{min-height:650px}.lab4-workspace .lab4-browser{min-height:565px}.lab4-device-area{right:0;top:200px;bottom:auto;width:190px}.lab4-device-area .lab4-phone{transform:scale(.68);transform-origin:top right}.lab4-workspace .lab4-screen{margin:10px 190px 0 8px;padding:10px}.lab4-screen h3{font-size:17px}}@media(max-width:550px){.lab4-desktop{min-height:810px}.lab4-workspace .lab4-browser{min-height:730px}.lab4-device-area{top:350px;right:50%;transform:translateX(50%);width:250px}.lab4-device-area .lab4-phone{transform:scale(.8);transform-origin:top center}.lab4-workspace .lab4-screen{margin:10px;padding:10px}.lab4-desktop-header span:last-child{display:none}}
+
+/* v17: panel działań w prawej kolumnie i okno zadania */
+.scenario-aside{display:flex;flex-direction:column;gap:12px;align-self:start}
+.scenario-actions{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.scenario-actions .btn{padding:11px 9px;font-size:13px;min-width:0;line-height:1.25}
+.scenario-actions #next{grid-column:1/-1}
+.scenario-aside .feedback{margin:0}
+.brief-dialog{max-width:580px}
+.brief-dialog p{font-size:17px;line-height:1.65}
+.brief-dialog .controls{justify-content:flex-end}
+.phone-stage:has(#pushNotice){justify-content:center}
+.push-dismiss{position:absolute;right:8px;top:7px;border:0!important;background:transparent!important;color:#243f61!important;display:flex;align-items:center;gap:3px;padding:3px 6px!important;font-size:20px!important;font-weight:800;z-index:3}
+.push-dismiss small{display:inline!important;margin:0!important;font-size:11px!important;color:#243f61!important}
+.floating:has(.push-dismiss)>strong{padding-right:90px}
+@media(max-width:800px){.scenario-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.scenario-aside{position:static}}
+
+/* v19 — cały nagłówek w jednym, zwartym wierszu */
+.wrap{padding-top:14px}
+header.top{display:flex;flex-wrap:nowrap;align-items:center;gap:18px;padding-bottom:14px}
+header .brand{flex:0 0 auto;white-space:nowrap;font-size:22px}
+.header-intro{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px;line-height:1.25}
+.header-intro strong{font-size:clamp(17px,1.65vw,24px);color:#f0f6ff;letter-spacing:-.025em}
+.header-intro span{font-size:12px;color:#a9c3df;white-space:normal}
+header .pill{flex:0 0 auto;display:flex;align-items:center;gap:8px;white-space:nowrap;padding:6px 9px}
+.header-help{margin-left:0}
+header #soundToggle{margin-left:0!important}
+@media(max-width:1100px){header.top{gap:10px}header .pill{font-size:0}header .pill button{font-size:12px}.header-intro span{font-size:11px}}
+@media(max-width:760px){header.top{flex-wrap:wrap}header .brand{font-size:19px}.header-intro{order:3;flex-basis:100%}header .pill{margin-left:auto}header .pill button{padding:6px!important}}
+
+/* Raport: jedyna akcja to zakończenie w prawym górnym rogu. */
+.scenario-heading #finishExit{margin-left:auto;white-space:nowrap;background:#277b55;border-color:#3b986b;color:#fff;font-weight:750;padding:10px 20px}
+.scenario-heading #finishExit.hidden{display:none}
+.scenario-layout.report-mode{display:block!important}
+.scenario-layout.report-mode .scenario-aside{display:none!important}
+@media(max-width:620px){.scenario-heading #finishExit{padding:8px 12px;font-size:13px}}
+</style><style>
+/* v6: symulacja i podsumowanie obok siebie */
+.scenario-layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:18px;align-items:start;margin-top:12px}
+.scenario-main{min-width:0}.scenario-aside{position:sticky;top:14px;min-width:0}
+.scenario-aside .feedback{margin:0;padding:20px;line-height:1.65;overflow-wrap:anywhere}
+.aside-wait{border:1px dashed #48617f;background:#14253b;border-radius:15px;padding:23px;color:#b8cbe1}
+.aside-wait h3{font-size:17px;color:#eaf1ff;margin:12px 0 6px}.aside-wait p{font-size:14px;margin:0}.aside-icon{font-size:28px;color:#7dd3fc}
+.scenario-layout.report-mode{display:block}.scenario-layout.report-mode .scenario-aside{display:none}
+.phone-stage{gap:18px}.smartphone{width:292px;height:585px;border:7px solid #0c1220;border-radius:43px;background:linear-gradient(160deg,#213a74 0%,#1d2b58 55%,#352259 100%);box-shadow:0 18px 45px #0006}
+.smartphone:before{height:19px;width:31%;left:34.5%;border-radius:0 0 15px 15px}
+.statusphone{padding:22px 22px 0;align-items:center;font-size:13px;font-weight:650;min-height:43px}
+.status-icons{display:flex;align-items:center;gap:7px}.signal-bars{height:15px;display:flex;gap:2px;align-items:flex-end}.signal-bars i{display:block;width:3px;background:white;border-radius:1px}.signal-bars i:nth-child(1){height:5px}.signal-bars i:nth-child(2){height:8px}.signal-bars i:nth-child(3){height:11px}.signal-bars i:nth-child(4){height:14px}
+.battery{position:relative;width:21px;height:11px;border:1.5px solid white;border-radius:3px}.battery:before{content:'';position:absolute;inset:2px 4px 2px 2px;background:white;border-radius:1px}.battery:after{content:'';position:absolute;right:-4px;top:3px;width:2px;height:4px;background:white;border-radius:0 2px 2px 0}
+.phone-home{padding:65px 12px 0}.phone-home .bigclock{font-size:57px;line-height:1.1;font-variant-numeric:tabular-nums}.phone-lock-date{font-size:14px;margin-top:10px;text-transform:capitalize;color:#e4eafa}
+.floating{top:200px;left:13px;right:13px;padding:15px 14px;border-radius:19px;line-height:1.4;animation:noticeAppear .35s ease-out}
+.floating strong{font-size:15px}.floating small{font-size:13px;line-height:1.45}.floating .choicebar{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}.floating .choicebar button{width:100%;min-height:42px;flex:none;font-size:14px}
+.phone-dock{bottom:21px}.phone-dock span{font-size:18px;padding:10px}
+@keyframes noticeAppear{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:1060px){.scenario-layout{grid-template-columns:minmax(0,1fr) 260px;gap:12px}.scenario-aside .feedback,.aside-wait{padding:15px}}
+@media(max-width:800px){.scenario-layout{grid-template-columns:1fr}.scenario-aside{position:static}.phone-stage{justify-content:center}}
+/* v7: pulpit dopasowany do kolumny symulacji, bez wychodzenia pod panel podsumowania */
+.scenario-layout{grid-template-columns:minmax(0,1fr) minmax(250px,290px)}
+.scenario-main,.scenario-main #sceneBody,.scenario-main .lab{min-width:0;max-width:100%}
+.scenario-main .desktop.mail-desktop{width:100%;max-width:100%;aspect-ratio:auto;height:clamp(490px,58vh,650px);min-width:0;margin:0}
+.mail-desktop .window{min-width:0}
+.mail-desktop .taskbar{min-width:0;gap:8px}
+.mail-desktop .taskbar span{margin-left:auto;text-align:right;white-space:nowrap;font-size:clamp(10px,1vw,13px)}
+@media(max-width:1060px){.scenario-layout{grid-template-columns:minmax(0,1fr) 250px}.mail-desktop .desk-icons{width:78px;padding:8px}.mail-desktop .window{left:88px}.mail-layout{grid-template-columns:135px minmax(0,1fr)}.mail-message{padding:12px}.mail-head{padding:0 12px}}
+@media(max-width:800px){.scenario-layout{grid-template-columns:minmax(0,1fr)}.scenario-main .desktop.mail-desktop{height:550px}.mail-desktop .window{left:8px}.mail-desktop .taskbar span{font-size:10px}}
+@media(max-width:440px){.mail-desktop .taskbar span{font-size:9px;white-space:normal}.mail-desktop .taskbar button{padding:6px}}
+
+/* Scenariusz 3: telefon identyczny jak w wielokrotne prośby o zatwierdzenie logowania, z etapami SMS i rozmowy */
+.incoming-call,.active-call{position:absolute;inset:95px 12px 20px;z-index:4;display:flex;flex-direction:column;align-items:center;text-align:center;color:white;background:linear-gradient(160deg,#233a72,#26234f);border-radius:20px;padding:34px 12px 16px;gap:12px}
+.caller-avatar{width:76px;height:76px;border-radius:50%;background:#ffffff25;display:grid;place-items:center;font-size:36px;margin-bottom:12px}
+.incoming-call strong,.active-call strong{font-size:24px}.incoming-call small,.active-call small{font-size:12px;color:#e1e8fa;line-height:1.5}
+.incoming-actions{display:flex;justify-content:space-around;width:100%;margin-top:auto;padding-bottom:30px;gap:24px}
+.call-round{width:66px;height:66px;border:0;border-radius:50%;color:white;font-size:29px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;cursor:pointer}
+.call-round span{position:absolute;top:72px;font-size:12px;white-space:nowrap}.call-round.reject{background:#c2384e}.call-round.accept{background:#168a59}
+.sms-in-call{margin-top:12px;padding:12px 8px;background:#f6f8ff;color:#14233a;border-radius:12px;width:100%;font-size:13px}
+.call-decisions{display:grid;gap:10px;width:100%;margin-top:auto}.call-choice{border:0;border-radius:12px;padding:12px 8px;font-size:13px;font-weight:650;color:white;cursor:pointer}.call-choice.risky{background:#b12d45}.call-choice.safe{background:#23784f}
+#smsNotice{top:205px}#smsNotice strong{display:inline}#smsNotice>strong{display:block;margin-bottom:8px}
+
+/* Laboratoria interaktywne v10 */
+.lab4-toolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}.lab4-toolbar .action{width:100%;min-width:0;margin:0;white-space:normal}.lab4-toolbar .selected{outline:3px solid #7cc7ff;background:#225b94}.lab4-browser{border:1px solid #526783;border-radius:14px;overflow:hidden;background:#f5f8fc;color:#172b46;min-height:380px}.lab4-top{background:#dce6f5;padding:13px 18px;font-weight:700;display:flex;justify-content:space-between;gap:10px}.lab4-top span{font-size:12px;font-weight:400}.lab4-address{background:white;border:1px solid #c6d2e4;border-radius:8px;margin:10px;padding:10px;overflow-wrap:anywhere;font-size:13px}.lab4-screen{max-width:560px;margin:24px auto;padding:10px 24px 28px;text-align:center}.lab4-screen p{color:#334861}.lab4-lock{font-size:46px}.lab4-alert{padding:16px;border:1px solid #e9a4a4;border-radius:10px;background:#fff0f0;color:#832525;margin:18px 0;text-align:left}.lab4-label{display:block;text-align:left;margin:18px 0}.lab4-label input{display:block;width:100%;padding:12px;border-radius:8px;border:1px solid #9badc4;margin-top:8px;font-size:18px}.lab4-screen .action{background:#2465bd;color:white}.incident-workspace{border:1px solid #3b5270;border-radius:14px;overflow:hidden}.incident-toolbar{background:#203a59;padding:15px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.incident-workspace .incident-grid{padding:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.incident-workspace .incident-card{min-width:0;display:flex;flex-direction:column}.incident-workspace .incident-card .action{margin-top:auto}.incident-progress{padding:10px 16px;font-weight:600}.incident-workspace .choicebar{padding:12px 14px 18px;display:flex;flex-wrap:wrap;gap:10px}.incident-workspace button:disabled{opacity:.65;cursor:default}@media(max-width:750px){.lab4-toolbar{grid-template-columns:1fr}.incident-workspace .incident-grid{grid-template-columns:1fr}.lab4-screen{padding:10px 12px}}
+
+/* v11: dwie równoległe powierzchnie — przeglądarka i urządzenie */
+.lab4-workspace{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(245px,.85fr);gap:16px;align-items:stretch}.lab4-workspace .lab4-browser{min-width:0;min-height:490px}.lab4-workspace .lab4-screen{margin:14px auto;padding:12px 16px}.lab4-device-area{min-width:0;display:flex;align-items:center;justify-content:center;background:#14243a;border:1px solid #405a79;border-radius:15px;padding:14px}.lab4-device-placeholder{text-align:center;color:#cbd8eb;max-width:250px;font-size:35px}.lab4-device-placeholder p{font-size:13px}.lab4-phone{position:relative;width:min(100%,285px);min-height:465px;border:9px solid #090f1d;border-radius:39px;background:linear-gradient(150deg,#213e72,#302454);color:white;padding:18px 13px 60px;box-shadow:0 15px 35px #0005;overflow:hidden}.lab4-notch{position:absolute;top:0;left:34%;width:32%;height:20px;background:#090f1d;border-radius:0 0 15px 15px}.lab4-phone-status{display:flex;justify-content:space-between;font-size:12px;font-weight:700}.lab4-signal{font-size:10px}.lab4-phone-time{text-align:center;font-size:43px;font-weight:300;margin:36px 0 15px}.lab4-phone-card{background:#f5f8ff;color:#1a2c47;border-radius:19px;padding:13px;box-shadow:0 8px 24px #0004}.lab4-app-heading{font-size:13px;font-weight:750;border-bottom:1px solid #d5deeb;padding-bottom:10px}.lab4-message,.lab4-auth-entry{font-size:13px;padding:12px 2px}.lab4-message p,.lab4-auth-entry p{color:#465b76;margin:9px 0}.lab4-code{font-size:29px;letter-spacing:3px;font-weight:800;color:#164d98;margin:12px 0}.lab4-message small,.lab4-auth-entry small{color:#54657b}.lab4-totp-progress{height:5px;background:#d7e4f5;border-radius:10px;margin:12px 0}.lab4-totp-progress span{display:block;background:#2563eb;width:100%;height:100%;border-radius:10px;transition:width .22s linear}.lab4-auth-entry{padding:13px 4px}.lab4-auth-entry .lab4-code{font-variant-numeric:tabular-nums;font-size:32px;letter-spacing:4px;margin:8px 0;color:#123f86}.lab4-auth-entry .lab4-totp-progress{height:9px;margin:14px 0 7px;overflow:hidden}.lab4-totp-caption{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:#4d6480}.lab4-auth-entry .lab4-auth-title{font-size:12px;color:#52647a;margin:5px 0}.lab4-auth-entry .lab4-auth-logo{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:10px;background:#dceaff;margin-right:7px}.lab4-phone-dock{position:absolute;bottom:19px;left:0;right:0;text-align:center;letter-spacing:5px;font-size:18px}.lab4-system{width:100%;max-width:320px;background:#f6f8fd;color:#1d2c43;border-radius:16px;padding:20px;text-align:center;box-shadow:0 12px 32px #0004}.lab4-system-head{font-size:12px;color:#50637b}.lab4-system-icon{font-size:42px;margin:16px}.lab4-system p{color:#425570}.lab4-domain{background:#e6edf8;border-radius:8px;padding:10px;overflow-wrap:anywhere;font-weight:700;font-size:12px}.lab4-system-warning{background:#fff0eb;border:1px solid #e5aa98;color:#8c3222;border-radius:9px;padding:11px;font-size:13px;margin:12px 0}.lab4-system #lab4PassResult{color:#36506e}@media(max-width:850px){.lab4-workspace{grid-template-columns:1fr}.lab4-workspace .lab4-browser{min-height:340px}.lab4-device-area{padding:16px}.lab4-phone{min-height:450px}}
+
+.lab4-toolbar button.lab4-complete{border:2px solid #46b994;background:#153d36;color:#e7fff5}.lab4-toolbar button.selected{outline:3px solid #7db8fa;outline-offset:1px}.lab4-toolbar button{min-height:54px;white-space:normal}.lab4-toolbar button:not(.selected):not(.lab4-complete){color:#173052;background:#dce8fa}.story-finish:not(:disabled){background:#18794e!important;color:white!important;font-weight:800}.story-finish:disabled{opacity:1;background:#36475d!important;color:#d7e2f2!important;cursor:not-allowed}.story-note{line-height:1.6}
+
+/* MFALab v66: jeden pulpit i telefon jako nakładka */
+.lab4-desktop{position:relative;min-height:540px;border:1px solid #45617f;border-radius:16px;background:linear-gradient(135deg,#144c7a,#203d70 65%,#302854);padding:15px 15px 55px;overflow:hidden}.lab4-desktop-header{display:flex;justify-content:space-between;gap:10px;color:#dbeafe;font-size:12px;margin-bottom:12px}.lab4-workspace{display:block;position:relative;min-height:450px}.lab4-workspace .lab4-browser{width:100%;min-height:450px;max-width:none;border-radius:12px;overflow:hidden}.lab4-workspace .lab4-screen{max-width:560px;margin:25px auto;padding:22px}.lab4-device-area{position:absolute;right:18px;top:22px;bottom:10px;width:260px;padding:0;background:transparent;border:0;z-index:2;align-items:center;pointer-events:none}.lab4-device-area .lab4-phone{pointer-events:auto;width:250px;min-height:420px;transform:scale(.92);transform-origin:center right;box-shadow:0 22px 45px #0008}.lab4-phone-status .status-icons{gap:5px}.lab4-phone-status .signal-bars{height:15px}.lab4-phone-status .battery{border:1.5px solid white;width:19px;height:10px;border-radius:3px;position:relative}.lab4-phone-status .battery:before{content:'';position:absolute;inset:2px;background:white;border-radius:1px}.lab4-phone-status .battery:after{content:'';position:absolute;right:-4px;top:2px;width:2px;height:4px;background:white}.lab4-taskbar{position:absolute;bottom:0;left:0;right:0;height:42px;background:#0b1830;display:flex;justify-content:space-between;align-items:center;padding:0 18px;font-size:12px;color:#e2efff}.lab4-pass-modal{max-width:360px;margin:15px auto;padding:18px;background:#fff;color:#20304a;border:1px solid #b8c8db;border-radius:14px;box-shadow:0 14px 36px #0003;text-align:center}.lab4-pass-modal p{color:#425570}.lab4-pass-modal .action{width:100%;margin-top:12px}.lab4-screen:has(+ *){min-width:0}@media(min-width:850px){.lab4-workspace:has(.lab4-device-area:not(.hidden)) .lab4-screen{margin-left:25px;margin-right:285px;max-width:500px}}@media(max-width:850px){.lab4-desktop{min-height:650px}.lab4-workspace .lab4-browser{min-height:565px}.lab4-device-area{right:0;top:200px;bottom:auto;width:190px}.lab4-device-area .lab4-phone{transform:scale(.68);transform-origin:top right}.lab4-workspace .lab4-screen{margin:10px 190px 0 8px;padding:10px}.lab4-screen h3{font-size:17px}}@media(max-width:550px){.lab4-desktop{min-height:810px}.lab4-workspace .lab4-browser{min-height:730px}.lab4-device-area{top:350px;right:50%;transform:translateX(50%);width:250px}.lab4-device-area .lab4-phone{transform:scale(.8);transform-origin:top center}.lab4-workspace .lab4-screen{margin:10px;padding:10px}.lab4-desktop-header span:last-child{display:none}}
+
+/* v17: panel działań w prawej kolumnie i okno zadania */
+.scenario-aside{display:flex;flex-direction:column;gap:12px;align-self:start}
+.scenario-actions{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.scenario-actions .btn{padding:11px 9px;font-size:13px;min-width:0;line-height:1.25}
+.scenario-actions #next{grid-column:1/-1}
+.scenario-aside .feedback{margin:0}
+.brief-dialog{max-width:580px}
+.brief-dialog p{font-size:17px;line-height:1.65}
+.brief-dialog .controls{justify-content:flex-end}
+.phone-stage:has(#pushNotice){justify-content:center}
+.push-dismiss{position:absolute;right:8px;top:7px;border:0!important;background:transparent!important;color:#243f61!important;display:flex;align-items:center;gap:3px;padding:3px 6px!important;font-size:20px!important;font-weight:800;z-index:3}
+.push-dismiss small{display:inline!important;margin:0!important;font-size:11px!important;color:#243f61!important}
+.floating:has(.push-dismiss)>strong{padding-right:90px}
+@media(max-width:800px){.scenario-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.scenario-aside{position:static}}
+
+/* v19 — cały nagłówek w jednym, zwartym wierszu */
+.wrap{padding-top:14px}
+header.top{display:flex;flex-wrap:nowrap;align-items:center;gap:18px;padding-bottom:14px}
+header .brand{flex:0 0 auto;white-space:nowrap;font-size:22px}
+.header-intro{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px;line-height:1.25}
+.header-intro strong{font-size:clamp(17px,1.65vw,24px);color:#f0f6ff;letter-spacing:-.025em}
+.header-intro span{font-size:12px;color:#a9c3df;white-space:normal}
+header .pill{flex:0 0 auto;display:flex;align-items:center;gap:8px;white-space:nowrap;padding:6px 9px}
+.header-help{margin-left:0}
+header #soundToggle{margin-left:0!important}
+@media(max-width:1100px){header.top{gap:10px}header .pill{font-size:0}header .pill button{font-size:12px}.header-intro span{font-size:11px}}
+@media(max-width:760px){header.top{flex-wrap:wrap}header .brand{font-size:19px}.header-intro{order:3;flex-basis:100%}header .pill{margin-left:auto}header .pill button{padding:6px!important}}
+
+/* Raport: jedyna akcja to zakończenie w prawym górnym rogu. */
+.scenario-heading #finishExit{margin-left:auto;white-space:nowrap;background:#277b55;border-color:#3b986b;color:#fff;font-weight:750;padding:10px 20px}
+.scenario-heading #finishExit.hidden{display:none}
+.scenario-layout.report-mode{display:block!important}
+.scenario-layout.report-mode .scenario-aside{display:none!important}
+@media(max-width:620px){.scenario-heading #finishExit{padding:8px 12px;font-size:13px}}
+</style><style> .story-mail{background:#f8fafc;color:#172b46;border-radius:12px;overflow:hidden;margin:14px 0;border:1px solid #cbd5e1}.story-mail-top{background:#25609d;color:white;padding:13px 16px;font-weight:750;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.story-mail-top span{font-size:12px;font-weight:400}.story-mail-item{padding:12px 16px;border-bottom:1px solid #d8e1ec}.story-mail-item p{margin:6px 0;color:#35465c}.story-note{background:#17334c;border-left:4px solid #77c9f3;color:#e5f2ff;border-radius:8px;padding:13px 16px;margin:14px 0;line-height:1.5}.story-finish{margin-top:14px;width:100%}.story-safe{background:#25744e!important;color:white!important;margin-top:10px!important}.lab4-screen .action{width:100%;white-space:normal;margin-bottom:8px}.lab4-toolbar .action{font-size:13px}.incident-card p{line-height:1.5} 
+.lab4-toolbar button.lab4-complete{border:2px solid #46b994;background:#153d36;color:#e7fff5}.lab4-toolbar button.selected{outline:3px solid #7db8fa;outline-offset:1px}.lab4-toolbar button{min-height:54px;white-space:normal}.lab4-toolbar button:not(.selected):not(.lab4-complete){color:#173052;background:#dce8fa}.story-finish:not(:disabled){background:#18794e!important;color:white!important;font-weight:800}.story-finish:disabled{opacity:1;background:#36475d!important;color:#d7e2f2!important;cursor:not-allowed}.story-note{line-height:1.6}
+
+/* MFALab v66: jeden pulpit i telefon jako nakładka */
+.lab4-desktop{position:relative;min-height:540px;border:1px solid #45617f;border-radius:16px;background:linear-gradient(135deg,#144c7a,#203d70 65%,#302854);padding:15px 15px 55px;overflow:hidden}.lab4-desktop-header{display:flex;justify-content:space-between;gap:10px;color:#dbeafe;font-size:12px;margin-bottom:12px}.lab4-workspace{display:block;position:relative;min-height:450px}.lab4-workspace .lab4-browser{width:100%;min-height:450px;max-width:none;border-radius:12px;overflow:hidden}.lab4-workspace .lab4-screen{max-width:560px;margin:25px auto;padding:22px}.lab4-device-area{position:absolute;right:18px;top:22px;bottom:10px;width:260px;padding:0;background:transparent;border:0;z-index:2;align-items:center;pointer-events:none}.lab4-device-area .lab4-phone{pointer-events:auto;width:250px;min-height:420px;transform:scale(.92);transform-origin:center right;box-shadow:0 22px 45px #0008}.lab4-phone-status .status-icons{gap:5px}.lab4-phone-status .signal-bars{height:15px}.lab4-phone-status .battery{border:1.5px solid white;width:19px;height:10px;border-radius:3px;position:relative}.lab4-phone-status .battery:before{content:'';position:absolute;inset:2px;background:white;border-radius:1px}.lab4-phone-status .battery:after{content:'';position:absolute;right:-4px;top:2px;width:2px;height:4px;background:white}.lab4-taskbar{position:absolute;bottom:0;left:0;right:0;height:42px;background:#0b1830;display:flex;justify-content:space-between;align-items:center;padding:0 18px;font-size:12px;color:#e2efff}.lab4-pass-modal{max-width:360px;margin:15px auto;padding:18px;background:#fff;color:#20304a;border:1px solid #b8c8db;border-radius:14px;box-shadow:0 14px 36px #0003;text-align:center}.lab4-pass-modal p{color:#425570}.lab4-pass-modal .action{width:100%;margin-top:12px}.lab4-screen:has(+ *){min-width:0}@media(min-width:850px){.lab4-workspace:has(.lab4-device-area:not(.hidden)) .lab4-screen{margin-left:25px;margin-right:285px;max-width:500px}}@media(max-width:850px){.lab4-desktop{min-height:650px}.lab4-workspace .lab4-browser{min-height:565px}.lab4-device-area{right:0;top:200px;bottom:auto;width:190px}.lab4-device-area .lab4-phone{transform:scale(.68);transform-origin:top right}.lab4-workspace .lab4-screen{margin:10px 190px 0 8px;padding:10px}.lab4-screen h3{font-size:17px}}@media(max-width:550px){.lab4-desktop{min-height:810px}.lab4-workspace .lab4-browser{min-height:730px}.lab4-device-area{top:350px;right:50%;transform:translateX(50%);width:250px}.lab4-device-area .lab4-phone{transform:scale(.8);transform-origin:top center}.lab4-workspace .lab4-screen{margin:10px;padding:10px}.lab4-desktop-header span:last-child{display:none}}
+
+/* v17: panel działań w prawej kolumnie i okno zadania */
+.scenario-aside{display:flex;flex-direction:column;gap:12px;align-self:start}
+.scenario-actions{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.scenario-actions .btn{padding:11px 9px;font-size:13px;min-width:0;line-height:1.25}
+.scenario-actions #next{grid-column:1/-1}
+.scenario-aside .feedback{margin:0}
+.brief-dialog{max-width:580px}
+.brief-dialog p{font-size:17px;line-height:1.65}
+.brief-dialog .controls{justify-content:flex-end}
+.phone-stage:has(#pushNotice){justify-content:center}
+.push-dismiss{position:absolute;right:8px;top:7px;border:0!important;background:transparent!important;color:#243f61!important;display:flex;align-items:center;gap:3px;padding:3px 6px!important;font-size:20px!important;font-weight:800;z-index:3}
+.push-dismiss small{display:inline!important;margin:0!important;font-size:11px!important;color:#243f61!important}
+.floating:has(.push-dismiss)>strong{padding-right:90px}
+@media(max-width:800px){.scenario-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.scenario-aside{position:static}}
+/* v18 — przycisk instrukcji w nagłówku i niezmienna wysokość ekranu passkey */
+.header-help{margin-left:12px;padding:6px 12px;font-size:12px;border-radius:8px;vertical-align:middle}
+.scenario-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+.lab4-browser{position:relative}
+.lab4-screen{position:static}
+.lab4-pass-modal{position:absolute;z-index:8;left:50%;top:50%;transform:translate(-50%,-50%);width:min(370px,calc(100% - 24px));max-width:none;margin:0;box-shadow:0 22px 65px #0008;border:1px solid #91a8c5}
+@media(max-width:700px){.pill{display:flex;flex-wrap:wrap;align-items:center;gap:6px}.header-help{margin-left:0}.lab4-pass-modal{width:calc(100% - 16px);padding:12px}}
+
+/* v19 — cały nagłówek w jednym, zwartym wierszu */
+.wrap{padding-top:14px}
+header.top{display:flex;flex-wrap:nowrap;align-items:center;gap:18px;padding-bottom:14px}
+header .brand{flex:0 0 auto;white-space:nowrap;font-size:22px}
+.header-intro{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px;line-height:1.25}
+.header-intro strong{font-size:clamp(17px,1.65vw,24px);color:#f0f6ff;letter-spacing:-.025em}
+.header-intro span{font-size:12px;color:#a9c3df;white-space:normal}
+header .pill{flex:0 0 auto;display:flex;align-items:center;gap:8px;white-space:nowrap;padding:6px 9px}
+.header-help{margin-left:0}
+header #soundToggle{margin-left:0!important}
+@media(max-width:1100px){header.top{gap:10px}header .pill{font-size:0}header .pill button{font-size:12px}.header-intro span{font-size:11px}}
+@media(max-width:760px){header.top{flex-wrap:wrap}header .brand{font-size:19px}.header-intro{order:3;flex-basis:100%}header .pill{margin-left:auto}header .pill button{padding:6px!important}}
+/* v20 — numer, tytuł i licznik scenariusza w jednym wierszu */
+.scenario-heading{display:flex;align-items:center;gap:18px;flex-wrap:nowrap;min-width:0}
+.scenario-heading #sceneTitle{margin:0!important;flex:1 1 auto;min-width:0;font-size:clamp(17px,1.6vw,25px);line-height:1.3}
+.scenario-heading #stepTag{flex:0 0 auto;white-space:nowrap}
+.scenario-heading #stepNo{flex:0 0 auto;margin-left:auto;white-space:nowrap}
+@media(max-width:650px){.scenario-heading{gap:9px}.scenario-heading #sceneTitle{font-size:16px}.scenario-heading #stepTag{font-size:11px;padding:6px}.scenario-heading #stepNo{font-size:11px}}
+
+/* Raport: jedyna akcja to zakończenie w prawym górnym rogu. */
+.scenario-heading #finishExit{margin-left:auto;white-space:nowrap;background:#277b55;border-color:#3b986b;color:#fff;font-weight:750;padding:10px 20px}
+.scenario-heading #finishExit.hidden{display:none}
+.scenario-layout.report-mode{display:block!important}
+.scenario-layout.report-mode .scenario-aside{display:none!important}
+@media(max-width:620px){.scenario-heading #finishExit{padding:8px 12px;font-size:13px}}
+</style><style>
+/* MFALab v66: pasek postępu nad wyborem metod */
+.lab4-progress-row{display:flex;align-items:stretch;gap:10px;margin:10px 0 8px;min-width:0}
+.lab4-progress-row .story-note{flex:1 1 auto;min-width:0;margin:0;padding:10px 14px;display:block;line-height:1.4;font-size:14px}
+.lab4-progress-row .story-finish{flex:0 0 124px;width:124px;min-width:124px;max-width:124px;margin:0;padding:10px 14px;font-size:14px;line-height:1.3;white-space:normal}
+.lab4-progress-row + .lab4-toolbar{margin-top:8px}
+@media(max-width:850px){.lab4-progress-row{flex-wrap:wrap}.lab4-progress-row .story-finish{max-width:none;min-width:0;flex:1 1 100%}}
+
+/* Raport: jedyna akcja to zakończenie w prawym górnym rogu. */
+.scenario-heading #finishExit{margin-left:auto;white-space:nowrap;background:#277b55;border-color:#3b986b;color:#fff;font-weight:750;padding:10px 20px}
+.scenario-heading #finishExit.hidden{display:none}
+.scenario-layout.report-mode{display:block!important}
+.scenario-layout.report-mode .scenario-aside{display:none!important}
+@media(max-width:620px){.scenario-heading #finishExit{padding:8px 12px;font-size:13px}}
+
+/* v40: cztery etapy w jednym rzędzie; neutralne wizualnie wybory */
+.lab4-toolbar{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:9px!important;align-items:stretch}
+.lab4-toolbar .action{min-width:0!important;width:100%!important;font-size:12px!important;padding:11px 7px!important;min-height:58px;line-height:1.25;overflow-wrap:anywhere}
+.lab4-toolbar .lab4-complete{border-color:#6e9bc8!important;background:#dce8fa!important;color:#173052!important}
+.lab4-toolbar .selected{outline:2px solid #93c5fd!important;outline-offset:1px}
+@media(max-width:1100px){.lab4-toolbar{gap:5px!important}.lab4-toolbar .action{font-size:11px!important;padding:9px 4px!important}}
+.lab4-usb-stage{display:grid;gap:14px;justify-items:center;margin:10px 0 12px;padding:14px;background:linear-gradient(135deg,#e9f0fa,#dce9f8);border:1px solid #b9cce3;border-radius:15px}
+.lab4-usb-computer{width:min(100%,320px);height:86px;background:#30425b;border:6px solid #18283d;border-radius:12px;display:flex;align-items:center;justify-content:flex-end;padding:12px 20px;position:relative;box-shadow:0 8px 0 #93a6be}
+.lab4-usb-port{height:19px;width:40px;background:#0c1624;border:4px solid #8d9bad;border-radius:3px;box-shadow:inset 0 0 0 2px #17243a}
+.lab4-usb-port:after{content:'USB';position:absolute;right:18px;bottom:5px;font-size:9px;color:#d7e7f8;letter-spacing:1px}
+.lab4-usb-key{width:130px;height:35px;background:linear-gradient(#414f67,#1b293d);border-radius:9px;position:relative;box-shadow:0 4px 8px #0003;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;transition:transform .85s ease}
+.lab4-usb-key:before{content:'';position:absolute;right:-29px;width:32px;height:19px;border-radius:2px;background:linear-gradient(#d3dbe7,#8294a9);border:2px solid #62768b}
+.lab4-usb-key:after{content:'';position:absolute;left:10px;width:12px;height:12px;border-radius:50%;border:2px solid #8fa5bd}
+.lab4-usb-stage.plugged .lab4-usb-key{transform:translateX(28px)}
+.lab4-usb-status{font-size:12px;color:#2c4565;text-align:center;min-height:20px}
+.lab4-attack-visual{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;padding:11px;margin-top:10px;border-radius:11px;background:#f0f5fc;border:1px solid #c5d5e9;text-align:center;font-size:12px;color:#19334f}
+.lab4-attack-visual .node{background:white;border:1px solid #bfd0e6;border-radius:9px;padding:10px 5px;font-weight:700}
+.lab4-attack-visual .arrow{font-size:20px;color:#9a4352}
+.lab4-attack-visual small{display:block;color:#526784;font-weight:400;margin-top:4px}
+@media(prefers-reduced-motion:reduce){.lab4-usb-key{transition:none}}
+
+/* v41 — realistyczne ćwiczenie zamiast schematu w pasku */
+.lab4-progress-row .story-note{background:#1b324f!important;border:1px solid #45627f;border-radius:10px;color:#eaf2ff;min-height:54px}
+.lab4-sms-reveal{position:absolute;z-index:8;inset:54px 25px 55px 25px;overflow-y:auto;background:#f7faff;color:#1b304b;border:1px solid #9eb9dc;border-radius:16px;padding:20px 24px;box-shadow:0 18px 55px #0009;max-width:800px;margin:auto}
+.lab4-sms-reveal h3{margin:0 35px 15px 0;font-size:19px}
+.lab4-sms-reveal p{color:#304864;line-height:1.48;font-size:13px}
+.lab4-sms-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.lab4-sms-bubble{padding:14px;background:#eaf1fc;border:1px solid #c1d2e9;border-radius:12px}
+.lab4-sms-bubble small{display:block;color:#4c6280;margin-bottom:8px}
+.lab4-sms-bubble strong{display:block;font-size:15px}
+.lab4-reveal-close{position:absolute;right:14px;top:12px;border:1px solid #a6b8d0;background:white;color:#213650;border-radius:8px;font-size:24px;width:34px;height:34px}
+.lab4-device-area:has(.lab4-usb-overlay){display:flex!important;pointer-events:auto;z-index:5}
+.lab4-usb-overlay{width:270px;max-width:100%;background:#f7faff;color:#1c304b;border-radius:20px;padding:17px 13px;box-shadow:0 16px 45px #0008;border:7px solid #101827}
+.lab4-usb-overlay-title{text-align:center;font-size:13px;font-weight:800;margin-bottom:15px}
+.lab4-usb-stage{display:block;margin:0;padding:18px 8px 12px;background:#e9f0fa}
+.lab4-usb-track{height:90px;position:relative;display:flex;align-items:center;justify-content:space-between;overflow:hidden}
+.lab4-usb-key{width:92px;height:38px;flex:none;position:relative;transition:transform 1.1s cubic-bezier(.25,.7,.2,1);font-size:12px}
+.lab4-usb-key:before{display:none}
+.lab4-usb-key:after{left:8px}
+.lab4-usb-key .lab4-usb-plug{position:absolute;left:100%;width:29px;height:18px;background:linear-gradient(#d5deea,#8194ab);border:2px solid #71869e;border-radius:2px}
+.lab4-usb-port-box{width:76px;height:76px;background:linear-gradient(#506781,#2a3c56);border:4px solid #1c2b42;border-radius:12px;display:flex;align-items:flex-start;justify-content:center;flex-direction:column;padding:9px;gap:6px}
+.lab4-usb-port-box small{font-size:9px;color:white;white-space:nowrap}
+.lab4-usb-port{width:39px;height:20px;position:static}
+.lab4-usb-port:after{display:none}
+.lab4-usb-stage.plugged .lab4-usb-key{transform:translateX(57px)}
+.lab4-usb-status{margin-top:8px;line-height:1.35}
+.lab4-usb-result{background:#fff1f0;border:1px solid #e6b3ad;border-radius:10px;margin-top:14px;padding:12px;font-size:12px}
+.lab4-usb-result p{color:#65433e;margin:8px 0}
+.lab4-usb-result small{display:block;overflow-wrap:anywhere;margin:5px 0}
+.lab4-usb-result button{margin-top:8px;width:100%}
+@media(prefers-reduced-motion:reduce){.lab4-usb-key{transition:none}}
+</style><style id="lab4-v27-layout">
+/* Kompaktowy formularz: oba działania widoczne bez przewijania */
+.lab4-workspace .lab4-screen{margin-top:0!important;padding:4px 12px 8px!important;min-height:0!important;max-height:none!important;height:auto!important;overflow:visible!important}
+.lab4-workspace .lab4-screen .lab4-lock{font-size:28px;line-height:1.05;margin:0 0 3px}
+.lab4-workspace .lab4-screen h3{font-size:19px;line-height:1.25;margin:3px 0 5px}
+.lab4-workspace .lab4-screen p{font-size:14px;line-height:1.35;margin:5px 0 8px}
+.lab4-workspace .lab4-screen .lab4-label{margin:6px 0 7px;font-size:14px}
+.lab4-workspace .lab4-screen .lab4-label input{padding:9px 11px;margin-top:4px;font-size:16px}
+.lab4-workspace .lab4-screen .action{padding:10px 12px!important;min-height:40px;margin:0 0 7px!important;font-size:14px;line-height:1.2}
+.lab4-workspace .lab4-browser{overflow:hidden}
+@media(max-width:850px){.lab4-workspace .lab4-screen{overflow-y:auto!important;max-height:420px!important}}
+
+/* Raport: jedyna akcja to zakończenie w prawym górnym rogu. */
+.scenario-heading #finishExit{margin-left:auto;white-space:nowrap;background:#277b55;border-color:#3b986b;color:#fff;font-weight:750;padding:10px 20px}
+.scenario-heading #finishExit.hidden{display:none}
+.scenario-layout.report-mode{display:block!important}
+.scenario-layout.report-mode .scenario-aside{display:none!important}
+@media(max-width:620px){.scenario-heading #finishExit{padding:8px 12px;font-size:13px}}
+</style><style>
+.incident-desktop{position:relative;border:1px solid #466788;border-radius:15px;overflow:hidden;background:#153a65;color:#fff}.incident-os-top{height:45px;display:flex;justify-content:space-between;align-items:center;padding:0 16px;font-size:13px;background:#204873}.incident-os-top span{font-size:11px}.incident-os-screen{height:590px;position:relative;background:linear-gradient(135deg,#184b79,#152a55 60%,#382451);overflow:hidden}.incident-os-icons{display:flex;flex-direction:column;gap:14px;padding:20px}.incident-os-icon{width:105px;height:86px;border:1px solid #ffffff40;background:#ffffff1c;color:white;border-radius:10px;font-size:29px;cursor:pointer}.incident-os-icon span{display:block;font-size:12px;margin-top:4px}.incident-os-taskbar{display:flex;gap:18px;padding:12px 18px;background:#0c1b30;font-size:13px}.incident-os-taskbar span:last-child{margin-left:auto}.incident-os-window{position:absolute;inset:22px 30px 22px 145px;background:#f6f9fd;color:#182c46;border-radius:12px;box-shadow:0 12px 40px #0009;overflow:auto}.incident-window-head{background:#dbe6f4;display:flex;justify-content:space-between;align-items:center;padding:12px 18px}.incident-window-head button{background:transparent;border:0;font-size:27px;color:#263d57;cursor:pointer}.incident-window-body{padding:24px;max-width:700px;margin:auto}.incident-window-body h3{margin-top:0}.incident-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.incident-menu button,.incident-do{border:1px solid #adc4e0;background:#e3efff;color:#193d66;border-radius:9px;padding:17px 13px;font-weight:700;text-align:left;cursor:pointer}.incident-do{background:#2563b4;color:white;margin-top:20px}.incident-do:disabled{background:#d8e9df;color:#246047}.incident-data-row{padding:15px;border:1px solid #d3dfed;border-radius:9px;margin:12px 0;background:#fff}.incident-data-row small{display:block;color:#64748b;margin-top:5px}.incident-phone-wrap{position:absolute;right:25px;top:15px;z-index:5;display:flex;flex-direction:column;align-items:center;gap:8px}.incident-phone{width:276px;height:485px;margin:0;box-shadow:0 15px 45px #000a}.incident-phone .statusphone{padding-top:25px}.incident-phone .phone-home{padding-top:20px}.incident-bigclock{font-size:46px}.incident-date{font-size:13px}.incident-messages{position:absolute;top:155px;left:12px;right:12px;display:flex;flex-direction:column;gap:10px}.incident-sms{background:#f5f8ff;color:#142842;border-radius:15px;padding:13px;box-shadow:0 6px 14px #0003;font-size:12px}.incident-sms p{margin:5px 0 0;line-height:1.45}.incident-putaway{padding:11px 18px;border:0;border-radius:9px;background:#d9e9ff;color:#18385c;font-weight:750;cursor:pointer}.incident-putaway:disabled{opacity:.5;cursor:default}.incident-bottom{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}.incident-bottom span{flex:1;color:#c5dcf5}.incident-bottom button{min-width:160px}.incident-bottom .incident-ignore{background:#24364e;color:#dce9f9}.incident-bottom .incident-confirm{background:#24364e;color:#dce9f9;font-weight:750;border:1px solid #45617e}.incident-bottom .incident-confirm:hover{background:#30465f}.incident-bottom .incident-confirm:focus-visible{outline:3px solid #8ecaff;outline-offset:2px}@media(max-width:800px){.incident-os-screen{height:610px}.incident-os-window{left:12px;right:12px;top:120px;bottom:12px}.incident-os-icons{flex-direction:row;padding:9px}.incident-phone-wrap{right:8px;top:8px}.incident-phone{width:235px;height:450px}.incident-menu{grid-template-columns:1fr}.incident-os-top span{display:none}}
+
+/* Raport: jedyna akcja to zakończenie w prawym górnym rogu. */
+.scenario-heading #finishExit{margin-left:auto;white-space:nowrap;background:#277b55;border-color:#3b986b;color:#fff;font-weight:750;padding:10px 20px}
+.scenario-heading #finishExit.hidden{display:none}
+.scenario-layout.report-mode{display:block!important}
+.scenario-layout.report-mode .scenario-aside{display:none!important}
+@media(max-width:620px){.scenario-heading #finishExit{padding:8px 12px;font-size:13px}}
+</style><style>
+/* v29: powiększone, stabilne obszary scenariuszy 1–3 */
+@media(min-width:801px){
+ body[data-mfa-step="1"] .mail-desktop{height:690px!important;min-height:690px!important;max-height:none!important}
+ body[data-mfa-step="2"] .phone-stage,
+ body[data-mfa-step="3"] .phone-stage{min-height:690px;align-items:center;justify-content:center;padding:18px 12px;box-sizing:border-box}
+ body[data-mfa-step="2"] .smartphone,
+ body[data-mfa-step="3"] .smartphone{width:322px;height:640px;max-width:100%;flex-shrink:0}
+ body[data-mfa-step="3"] .phone-stage .explain{max-width:440px;align-self:center}
+}
+@media(max-width:800px){
+ body[data-mfa-step="1"] .mail-desktop{min-height:570px!important;height:570px!important}
+ body[data-mfa-step="2"] .phone-stage,
+ body[data-mfa-step="3"] .phone-stage{min-height:620px}
+ body[data-mfa-step="2"] .smartphone,
+ body[data-mfa-step="3"] .smartphone{width:min(100%,310px);height:610px}
+}
+/* Dyskretny sygnał gotowości przycisków przejścia, bez migania tekstu. */
+@keyframes mfaReadyPulse{0%,100%{box-shadow:0 0 0 0 rgba(84,203,249,0);filter:brightness(1)}50%{box-shadow:0 0 0 5px rgba(84,203,249,.16);filter:brightness(1.09)}}
+#next:not(.hidden):not(:disabled),
+#lab4Finish:not(.hidden):not(:disabled),
+#finishIncident:not(.hidden):not(:disabled){animation:mfaReadyPulse 1.9s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){#next,#lab4Finish,#finishIncident{animation:none!important}}
+
+/* v34: jednorzędowa nawigacja i wyraźniejszy stan gotowości */
+.scenario-actions{display:flex!important;flex-direction:column;gap:8px}
+.scenario-actions #briefOpen{width:100%;min-height:43px}
+.scenario-actions #next{width:100%;min-height:48px}
+.header-restart{white-space:nowrap;font-size:13px;padding:7px 10px}
+body[data-mfa-step="report"] .header-restart{display:none!important}
+@keyframes mfaReadyPulseStrong{0%,100%{box-shadow:0 0 0 0 rgba(83,205,255,.1),0 0 0 0 rgba(83,205,255,.05);filter:brightness(1)}50%{box-shadow:0 0 0 5px rgba(83,205,255,.32),0 0 22px rgba(83,205,255,.28);filter:brightness(1.17)}}
+#next:not(.hidden):not(:disabled),#lab4Finish:not(.hidden):not(:disabled){animation:mfaReadyPulseStrong 1.8s ease-in-out infinite!important}
+@media(prefers-reduced-motion:reduce){#next,#lab4Finish{animation:none!important}}
+/* v34: SMS-y scenariusza 5 */
+.incident-phone .incident-messages{top:145px;left:10px;right:10px;gap:12px}
+.incident-phone .incident-sms{background:#f8fbff;color:#12243d;font-size:14px;line-height:1.5;padding:14px 13px;border:1px solid #c5d6ef;box-shadow:0 5px 16px #0004}
+.incident-phone .incident-sms strong{display:block;font-size:14px;color:#0e376c;margin-bottom:6px}
+.incident-phone .incident-sms p{font-size:14px;line-height:1.5;margin:0;color:#182b45}
+@media(max-width:800px){.header-restart{font-size:12px}.incident-phone .incident-sms,.incident-phone .incident-sms p{font-size:13px}}
+
+/* v34 — świadome ograniczenie małych ekranów: symulowane pulpity i nakładki wymagają szerokości. */
+.screen-requirement{display:none}
+@media (max-width:1099px){
+ html,body{min-height:100%;overflow:auto}
+ body>.wrap,body>.modalback{display:none!important}
+ .screen-requirement{display:flex;position:relative;min-height:100vh;min-height:100dvh;box-sizing:border-box;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 75% 0%,#1b3454,#08111f 70%);color:#eef5ff}
+ .screen-requirement-card{width:min(100%,540px);padding:clamp(24px,5vw,40px);background:#12233a;border:1px solid #426080;border-radius:20px;box-shadow:0 20px 70px #0005;text-align:center}
+ .screen-requirement-icon{font-size:42px;line-height:1.2;margin-bottom:14px}
+ .screen-requirement h1{font-size:clamp(24px,5vw,32px);line-height:1.2;letter-spacing:normal;margin:0 0 16px}
+ .screen-requirement p{font-size:16px;line-height:1.65;color:#cbd9ec;margin:0 0 12px}
+ .screen-requirement small{display:block;color:#a9c0d9;line-height:1.5}
+}
+</style><style id="mfalab-v37-fixes">
+/* Scenariusz 4: telefon pełnej wysokości, bez obcinania dolnej części */
+@media(min-width:851px){
+.lab4-desktop{height:660px!important;min-height:660px!important;max-height:660px!important}
+.lab4-workspace,.lab4-workspace .lab4-browser{height:570px!important;min-height:570px!important;max-height:570px!important}
+.lab4-device-area{height:550px!important;top:8px!important;right:12px!important;width:290px!important;align-items:center!important}
+.lab4-device-area .lab4-phone{height:535px!important;min-height:535px!important;max-height:535px!important;width:270px!important;overflow:hidden!important;padding-bottom:65px!important}
+.lab4-workspace:has(.lab4-device-area:not(.hidden)) .lab4-screen{margin-right:320px!important}
+}
+.lab4-phone-time{margin:27px 0 13px!important;font-size:40px!important}
+.lab4-phone-card{padding:12px!important}
+.lab4-auth-entry{padding:9px 2px!important}
+.lab4-auth-entry .lab4-code{margin:9px 0!important}
+.lab4-auth-entry .lab4-totp-progress{margin:11px 0 7px!important}
+.lab4-phone-dock{bottom:18px!important;z-index:1}
+/* Dwa jednakowo wyraziste, neutralne kolorystycznie przyciski decyzyjne */
+.lab4-decision-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:10px;align-items:stretch}
+.lab4-workspace .lab4-screen .lab4-decision-row .action{width:100%!important;min-height:52px!important;height:100%;margin:0!important;padding:10px 12px!important;background:#245fb8!important;color:#fff!important;border:2px solid #174783!important;border-radius:10px!important;box-shadow:0 3px 0 #143a70!important;font-weight:750!important;font-size:14px!important;line-height:1.3!important;white-space:normal}
+.lab4-workspace .lab4-screen .lab4-decision-row .action:hover{background:#194e9a!important;filter:none!important}
+.lab4-workspace .lab4-screen .lab4-decision-row .action:focus-visible{outline:3px solid #f59e0b!important;outline-offset:3px}
+.lab4-workspace .lab4-screen .lab4-decision-row .action:disabled{opacity:.65!important}
+@media(max-width:850px){.lab4-decision-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
+@media(prefers-reduced-motion:reduce){.lab4-decision-row .action{transition:none!important}}
+</style><style>/* MFALab v66: jednolity pasek i panel prowadzącego */
+header.top{align-items:center;gap:16px}header .header-tools{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:7px;flex:0 1 auto;min-width:0}header .header-tools .btn,header .header-tools #soundToggle{box-sizing:border-box;min-height:38px;padding:8px 12px!important;border:1px solid #526c8c!important;border-radius:9px!important;background:#1b304d!important;color:#f1f6ff!important;font-size:12px!important;font-weight:650!important;line-height:1.2!important;white-space:nowrap;margin:0!important;box-shadow:none}header .header-tools .btn:hover,header .header-tools #soundToggle:hover{background:#294869!important;border-color:#8bb4e8!important}header .header-tools .btn:focus-visible{outline:3px solid #8dd0ff;outline-offset:2px}header .header-status{color:#bcd0e7;font-size:12px;white-space:nowrap;padding:0 6px 0 0}header .pill{display:none}.teacher-dialog{max-width:560px}.teacher-title{display:flex;align-items:center;justify-content:space-between;gap:12px}.teacher-title h2{margin:0}.teacher-dialog label{display:block;font-weight:700;margin:12px 0 7px}.teacher-dialog input{display:block;width:100%;padding:12px;border:1px solid #7791ae;border-radius:9px;background:#f8fbff;color:#14233b;font-size:17px;margin-bottom:14px}.teacher-error{color:#ffb6bf;font-size:13px}.teacher-scenarios{display:grid;grid-template-columns:1fr;gap:8px;margin:15px 0}.teacher-scenarios button{width:100%;text-align:left;min-height:47px}.teacher-scenarios button span{display:inline-block;width:26px;font-weight:800;color:#7dd3fc}.teacher-dialog #teacherLock{margin-top:8px}@media(max-width:1400px){header.top{flex-wrap:wrap}header .header-tools{flex:1 1 100%;justify-content:flex-end}}@media(max-width:750px){header .header-tools{justify-content:flex-start}header .header-status{width:100%}}
+</style><style>
+/* MFALab v66: czytelny przepływ SMS, realistyczny klucz FIDO2 */
+.lab4-toolbar .action.lab4-complete,.lab4-toolbar .action.lab4-complete:not(.selected){background:#176348!important;color:#fff!important;border:2px solid #50c69b!important;box-shadow:inset 0 0 0 1px #ffffff1c}
+.lab4-toolbar .action.lab4-complete.selected{background:#187a58!important;outline:3px solid #b5f7dd!important}
+.lab4-explainer{max-width:920px!important;inset:35px 24px 35px!important;padding:22px 24px!important}
+.lab4-explainer h3{font-size:19px!important}
+.lab4-explainer-lead{font-size:15px!important;background:#e7f1ff;border-left:4px solid #2471bc;padding:12px;border-radius:8px}
+.lab4-flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+.lab4-flow-card{display:flex;flex-direction:column;gap:9px;background:#f1f5fc;border:1px solid #b7cbe5;border-radius:12px;padding:12px;position:relative;font-size:12px;line-height:1.45}
+.lab4-flow-card strong{font-size:14px;color:#183b66}
+.lab4-flow-card small{color:#526c8b}
+.lab4-flow-number{width:28px;height:28px;border-radius:50%;background:#1f5c9d;color:#fff;display:grid;place-items:center;font-weight:800}
+.lab4-explainer-note,.lab4-explainer-bottom{font-size:13px;line-height:1.55;border-radius:10px;padding:12px 14px;margin-top:12px;background:#fff4e5;border:1px solid #edc48b}
+.lab4-explainer-bottom{background:#e7f4ed;border-color:#abd5bd}
+.lab4-device-area.lab4-fido-active{display:flex!important;pointer-events:auto;z-index:5}
+.lab4-usb-overlay{width:270px;max-width:100%;border:7px solid #121b2c;border-radius:23px;background:#f8faff;color:#1c304b;padding:13px 12px;box-shadow:0 18px 45px #0007}
+.lab4-usb-stage{padding:16px 8px 10px;background:#edf3fb;border-radius:12px}
+.lab4-usb-track{height:110px;position:relative;display:block;overflow:hidden}
+.lab4-usb-key{position:absolute;left:6px;top:32px;width:94px;height:48px;background:linear-gradient(160deg,#283d5a,#0e192b);border:2px solid #425b7b;border-radius:11px;display:flex;align-items:center;justify-content:center;gap:5px;color:#fff;box-shadow:0 5px 10px #0003;transition:transform 1s ease;z-index:3}
+.lab4-usb-key:before,.lab4-usb-key:after{display:none!important}
+.lab4-key-label{font-size:11px;font-weight:800}
+.lab4-usb-touch{width:23px;height:23px;border-radius:50%;border:2px solid #90a5c1;display:grid;place-items:center;color:#9eb4ce;font-size:18px}
+.lab4-usb-plug{position:absolute!important;left:calc(100% - 2px)!important;top:13px!important;width:31px!important;height:20px!important;border:2px solid #8297af!important;border-radius:0 4px 4px 0!important;background:linear-gradient(#d7e0eb,#7d90a9)!important}
+.lab4-usb-port-box{position:absolute;right:4px;top:17px;width:77px;height:79px;border-radius:13px;background:linear-gradient(#425975,#263b58);border:3px solid #1b2a40;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px}
+.lab4-usb-port{width:39px;height:21px;background:#101b2a;border:3px solid #879bb5;border-radius:4px;box-shadow:inset 0 2px 3px #0007}
+.lab4-usb-port:after{display:none!important}
+.lab4-usb-port-box small{color:white;font-size:10px;font-weight:700}
+.lab4-usb-stage.plugging .lab4-usb-key,.lab4-usb-stage.plugged .lab4-usb-key,.lab4-usb-stage.touched .lab4-usb-key{transform:translateX(53px)}
+.lab4-usb-stage.touched .lab4-usb-touch{background:#a7e8ca;color:#12492f;border-color:#24875e;box-shadow:0 0 0 5px #40c58b33}
+.lab4-usb-status{text-align:center;font-size:12px;min-height:35px;line-height:1.45;margin-top:8px}
+.lab4-touch-button{display:block;width:100%;border:0;background:#245eac;color:white;padding:11px 8px;border-radius:9px;font-weight:750;margin-top:8px}
+.lab4-usb-result{margin-top:10px}
+@media(max-width:700px){.lab4-flow{grid-template-columns:repeat(2,minmax(0,1fr))}.lab4-explainer{inset:10px!important}}
+@media(prefers-reduced-motion:reduce){.lab4-usb-key{transition:none}}
+</style><style id="v43-fido-visibility">
+/* The parent USB stage is a grid; without explicit width its track shrinks to zero. */
+.lab4-usb-overlay .lab4-usb-stage{display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important}
+.lab4-usb-overlay .lab4-usb-track{display:block!important;position:relative!important;width:100%!important;min-width:190px!important;height:115px!important;overflow:visible!important;box-sizing:border-box!important}
+.lab4-usb-overlay .lab4-usb-key{display:flex!important;visibility:visible!important;opacity:1!important;position:absolute!important;top:34px!important;left:0!important;z-index:5!important}
+.lab4-usb-overlay .lab4-usb-port-box{display:flex!important;visibility:visible!important;opacity:1!important;position:absolute!important;top:18px!important;right:0!important;z-index:2!important}
+.lab4-usb-overlay .lab4-usb-stage.plugging .lab4-usb-key,.lab4-usb-overlay .lab4-usb-stage.plugged .lab4-usb-key,.lab4-usb-overlay .lab4-usb-stage.touched .lab4-usb-key{transform:translateX(48px)!important}
+.lab4-usb-overlay .lab4-usb-status{margin-top:12px!important}
+</style><style id="v44-usb-insertion">
+/* Klucz startuje z boku, obraca się i wsuwa w szczelinę. */
+.lab4-usb-overlay .lab4-usb-track{overflow:hidden!important;isolation:isolate}
+.lab4-usb-overlay .lab4-usb-key{left:0!important;top:34px!important;transform:translateX(-43px) rotate(-17deg)!important;transform-origin:55% 50%!important;transition:transform 1.4s cubic-bezier(.18,.75,.2,1)!important;z-index:5!important}
+.lab4-usb-overlay .lab4-usb-stage.plugging .lab4-usb-key,.lab4-usb-overlay .lab4-usb-stage.plugged .lab4-usb-key,.lab4-usb-overlay .lab4-usb-stage.touched .lab4-usb-key{transform:translateX(17px) rotate(0deg)!important}
+.lab4-usb-overlay .lab4-usb-port-box{z-index:6!important;box-shadow:-6px 0 10px #24365044!important}
+.lab4-usb-overlay .lab4-usb-port{position:relative!important;overflow:hidden!important}
+.lab4-usb-overlay .lab4-usb-port:after{content:''!important;display:block!important;position:absolute;inset:4px 2px;background:#101826;border-radius:1px}
+.lab4-usb-overlay .lab4-usb-stage.plugged .lab4-usb-touch{box-shadow:0 0 0 2px #8aa5c9}
+@media(prefers-reduced-motion:reduce){.lab4-usb-overlay .lab4-usb-key{transition:none!important}}
+</style>
+<style id="v45-vertical-usb-insertion">
+/* Klucz w pozycji pionowej, wpinany od dołu do gniazda w górnej części panelu. */
+.lab4-usb-overlay .lab4-usb-track{height:190px!important;min-width:0!important;width:100%!important;overflow:hidden!important;position:relative!important}
+.lab4-usb-overlay .lab4-usb-port-box{left:50%!important;right:auto!important;top:4px!important;transform:translateX(-50%)!important;width:82px!important;height:66px!important;z-index:8!important;box-shadow:0 6px 12px #1b304a44!important;justify-content:flex-start!important;padding-top:8px!important}
+.lab4-usb-overlay .lab4-usb-port{width:38px!important;height:16px!important;flex-shrink:0!important}
+.lab4-usb-overlay .lab4-usb-key{left:50%!important;top:125px!important;width:52px!important;height:106px!important;transform:translateX(-50%) translateY(40px) rotate(-30deg)!important;transform-origin:50% 10%!important;flex-direction:column!important;gap:9px!important;border-radius:12px 12px 14px 14px!important;transition:transform 1.15s cubic-bezier(.2,.7,.2,1)!important;z-index:7!important}
+.lab4-usb-overlay .lab4-usb-key .lab4-key-label{writing-mode:vertical-rl!important;transform:none!important;font-size:11px!important;letter-spacing:.5px!important;order:2!important}
+.lab4-usb-overlay .lab4-usb-key .lab4-usb-touch{order:1!important;flex-shrink:0!important;width:29px!important;height:29px!important;font-size:22px!important}
+.lab4-usb-overlay .lab4-usb-key .lab4-usb-plug{position:absolute!important;left:50%!important;top:-22px!important;width:27px!important;height:27px!important;transform:translateX(-50%)!important;border-radius:4px 4px 0 0!important;background:linear-gradient(90deg,#8c9fb6,#d9e2ee,#8c9fb6)!important;z-index:1!important}
+.lab4-usb-overlay .lab4-usb-stage.plugging .lab4-usb-key,.lab4-usb-overlay .lab4-usb-stage.plugged .lab4-usb-key,.lab4-usb-overlay .lab4-usb-stage.touched .lab4-usb-key{transform:translateX(-50%) translateY(-64px) rotate(0deg)!important}
+.lab4-usb-overlay .lab4-usb-stage.plugged .lab4-usb-key .lab4-usb-plug,.lab4-usb-overlay .lab4-usb-stage.touched .lab4-usb-key .lab4-usb-plug{top:-16px!important}
+@media(prefers-reduced-motion:reduce){.lab4-usb-overlay .lab4-usb-key{transition:none!important}}
+</style>
+<style id="v46-usb-precise-alignment">
+/* Końcówka klucza trafia w czarne gniazdo; obudowa klucza pozostaje przed panelem. */
+.lab4-usb-overlay .lab4-usb-port-box{z-index:7!important}
+.lab4-usb-overlay .lab4-usb-key{z-index:9!important}
+.lab4-usb-overlay .lab4-usb-stage.plugging .lab4-usb-key,
+.lab4-usb-overlay .lab4-usb-stage.plugged .lab4-usb-key,
+.lab4-usb-overlay .lab4-usb-stage.touched .lab4-usb-key{transform:translateX(-50%) translateY(-95px) rotate(0deg)!important}
+/* Zasłoń górny fragment metalowej końcówki obramowaniem gniazda. */
+.lab4-usb-overlay .lab4-usb-port{position:relative!important;z-index:10!important}
+.lab4-usb-overlay .lab4-usb-key .lab4-usb-plug{z-index:-1!important}
+</style>
+<style id="v47-usb-plug-shrink">
+/* Końcówka nie przesuwa się na klucz: po wsunięciu znika jej górna część wewnątrz gniazda. */
+.lab4-usb-overlay .lab4-usb-key .lab4-usb-plug{
+  top:-22px!important;height:27px!important;
+  transition:height .28s ease,top .28s ease!important;
+}
+.lab4-usb-overlay .lab4-usb-stage.plugged .lab4-usb-key .lab4-usb-plug,
+.lab4-usb-overlay .lab4-usb-stage.touched .lab4-usb-key .lab4-usb-plug{
+  top:-6px!important;height:11px!important;
+}
+</style>
+
+<style id="v50-usb-synchronized-insertion">
+/* Końcówka wchodzi do gniazda już w pierwszej fazie ruchu.
+   Maskowanie od góry odtwarza schowanie metalu za obudową portu. */
+.lab4-usb-overlay .lab4-usb-stage.plugging .lab4-usb-key,
+.lab4-usb-overlay .lab4-usb-stage.plugged .lab4-usb-key,
+.lab4-usb-overlay .lab4-usb-stage.touched .lab4-usb-key{
+ transform:translateX(-50%) translateY(-108px) rotate(0deg)!important;
+}
+.lab4-usb-overlay .lab4-usb-key .lab4-usb-plug{
+ top:-22px!important;height:27px!important;
+ transition:none!important;
+ clip-path:inset(0 0 0 0)!important;
+}
+.lab4-usb-overlay .lab4-usb-stage.plugging .lab4-usb-key .lab4-usb-plug{
+ animation:v51-disabled-plug-enter 1.15s linear both!important;
+}
+.lab4-usb-overlay .lab4-usb-stage.plugged .lab4-usb-key .lab4-usb-plug,
+.lab4-usb-overlay .lab4-usb-stage.touched .lab4-usb-key .lab4-usb-plug{
+ clip-path:inset(19px 0 0 0)!important;
+}
+/* Gdy metal mija dolną krawędź gniazda (~8% ruchu),
+   rozpoczyna się płynne skracanie widocznego fragmentu. */
+@keyframes v51-disabled-plug-enter{
+ 0%,8%{clip-path:inset(0 0 0 0)}
+ 40%{clip-path:inset(8px 0 0 0)}
+ 75%{clip-path:inset(15px 0 0 0)}
+ 100%{clip-path:inset(19px 0 0 0)}
+}
+@media(prefers-reduced-motion:reduce){
+ .lab4-usb-overlay .lab4-usb-stage.plugging .lab4-usb-key .lab4-usb-plug{animation:none!important;clip-path:inset(19px 0 0 0)!important}
+}
+</style>
+<style id="v51-usb-geometry">
+/* Jedno źródło ruchu: korpus klucza. Metal jest przytwierdzony do jego górnej krawędzi,
+   a jego wysokość wyliczana jest z rzeczywistej pozycji gniazda w każdej klatce. */
+.lab4-usb-overlay .lab4-usb-key .lab4-usb-plug,
+.lab4-usb-overlay .lab4-usb-stage.plugging .lab4-usb-key .lab4-usb-plug,
+.lab4-usb-overlay .lab4-usb-stage.plugged .lab4-usb-key .lab4-usb-plug,
+.lab4-usb-overlay .lab4-usb-stage.touched .lab4-usb-key .lab4-usb-plug{
+ top:auto!important;bottom:calc(100% - 5px)!important;height:var(--usb-visible-metal,27px)!important;
+ animation:none!important;transition:none!important;clip-path:none!important;
+ transform:translateX(-50%)!important;box-sizing:border-box!important;
+}
+</style><style id="v53-intro-layer-fix">#briefModal{z-index:10000!important;isolation:isolate}#briefModal .brief-dialog{position:relative;z-index:1}#modal{z-index:10001!important}#teacherModal{z-index:10002!important}</style><style id="v54-fido-clickable-sensor">
+.lab4-usb-overlay .lab4-usb-touch.lab4-touch-sensor{appearance:none;display:grid!important;place-items:center!important;padding:0!important;cursor:pointer;position:relative;z-index:12;line-height:1;border:2px solid #90a5c1;background:transparent;color:#9eb4ce;font-family:inherit}
+.lab4-usb-overlay .lab4-usb-touch.lab4-touch-sensor:disabled{cursor:default}
+.lab4-usb-overlay .lab4-usb-stage.plugged .lab4-touch-sensor:not(:disabled){background:#a8f0cf!important;color:#134d38!important;border-color:#30916a!important;box-shadow:0 0 0 4px #37bc8d44!important}
+.lab4-usb-overlay .lab4-touch-sensor:focus-visible{outline:3px solid #f7b731!important;outline-offset:3px}
+.lab4-usb-overlay .lab4-usb-stage.touched .lab4-touch-sensor{background:#a7e8ca!important;color:#12492f!important}
+</style><style id="v55-fido-fixed-panel">
+/* Stała geometria: panel nie zmienia rozmiaru po podłączeniu ani weryfikacji. */
+.lab4-device-area.lab4-fido-active{align-items:center!important;justify-content:center!important}
+.lab4-fido-active .lab4-usb-overlay{position:relative!important;box-sizing:border-box!important;width:270px!important;height:535px!important;min-height:535px!important;max-height:535px!important;flex:0 0 535px!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;padding:14px 12px!important}
+.lab4-fido-active .lab4-usb-overlay-title{flex:0 0 auto!important}
+.lab4-fido-active .lab4-usb-stage{height:420px!important;min-height:420px!important;max-height:420px!important;flex:0 0 420px!important;box-sizing:border-box!important;position:relative!important;overflow:hidden!important}
+.lab4-fido-active .lab4-usb-track{height:220px!important;min-height:220px!important;flex:0 0 220px!important}
+.lab4-fido-active .lab4-usb-status{position:absolute!important;left:8px!important;right:8px!important;top:262px!important;min-height:42px!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:center!important}
+.lab4-fido-active .lab4-touch-button{position:absolute!important;bottom:14px!important;left:8px!important;width:calc(100% - 16px)!important;margin:0!important}
+/* Wynik pojawia się na panelu, nie rozpycha go. */
+.lab4-fido-active .lab4-usb-result:not(.hidden){position:absolute!important;left:12px!important;right:12px!important;bottom:12px!important;z-index:30!important;max-height:280px!important;overflow-y:auto!important;margin:0!important;box-shadow:0 9px 24px #101b2c33!important}
+/* Sensor neutralny do chwili faktycznego dotknięcia. */
+.lab4-usb-overlay .lab4-usb-stage.plugged .lab4-touch-sensor:not(:disabled){background:#243750!important;color:#b2c3d9!important;border-color:#8da4c0!important;box-shadow:0 0 0 2px #8aa5c933!important}
+.lab4-usb-overlay .lab4-usb-stage.touched .lab4-touch-sensor,.lab4-usb-overlay .lab4-usb-stage.touched .lab4-touch-sensor:disabled{background:#a7e8ca!important;color:#12492f!important;border-color:#30916a!important;box-shadow:0 0 0 5px #37bc8d55!important}
+</style><style>
+/* v56: wspólny pasek weryfikacji i uzupełnianie kodu z telefonu */
+.lab4-login-notice{display:flex;align-items:center;gap:12px;margin:8px 14px 0;padding:11px 15px;background:#e8effa;border:1px solid #bfd0e9;border-radius:11px;color:#183a64;font-size:14px;line-height:1.35}
+.lab4-login-icon{font-size:23px;flex:none}
+.lab4-login-notice>span:nth-child(2){flex:1;min-width:0}
+.lab4-login-notice strong{display:block;font-size:15px;margin-bottom:3px}
+.lab4-login-notice small{display:block;font-size:12px;color:#4a6383}
+.lab4-login-step{white-space:nowrap;font-weight:700;color:#375c88;background:#d6e4f5;border-radius:7px;padding:6px 8px;font-size:11px}
+.lab4-fill-code{display:block;width:100%;border:1px solid #9ab8e4;background:#e3edfd;color:#173f77;border-radius:9px;padding:9px 7px;font-size:12px;font-weight:750;margin-top:11px;cursor:pointer;line-height:1.2}
+.lab4-fill-code:hover,.lab4-fill-code:focus-visible{background:#cddfff;border-color:#4c82c8;outline:2px solid #4c82c8;outline-offset:2px}
+.lab4-fill-code:disabled{opacity:.6;cursor:default}
+@media(max-width:780px){.lab4-login-notice{gap:7px;padding:8px}.lab4-login-step{display:none}}
+</style><style id="v59-refinements">
+/* v59: uporządkowany komunikat domeny i scenariusz bez telefonicznego wyłudzenia TOTP */
+.lab4-fido-active .lab4-usb-result:not(.hidden){background:#fff9f8!important;border:1px solid #d8a9a4!important;border-radius:13px!important;padding:14px 12px!important;max-height:310px!important;box-sizing:border-box!important;box-shadow:0 12px 28px #132e4b38!important}
+.lab4-fido-active .lab4-usb-result strong{display:block;color:#72322f;font-size:14px;line-height:1.35;margin-bottom:8px}
+.lab4-fido-active .lab4-usb-result p{font-size:12px!important;line-height:1.5!important;color:#4e4851!important;margin:7px 0 12px!important}
+.lab4-domain-comparison{display:grid;gap:6px;margin:10px 0 12px}
+.lab4-domain-comparison>div{border-radius:8px;background:#fff;border:1px solid #e3d8d6;padding:8px 9px;min-width:0}
+.lab4-domain-comparison>div:first-child{border-left:4px solid #318a66}
+.lab4-domain-comparison>div:last-child{border-left:4px solid #b64d49}
+.lab4-domain-comparison span{display:block;color:#586579;font-size:10px;line-height:1.3;margin-bottom:3px}
+.lab4-domain-comparison strong{display:block!important;font-size:11px!important;font-weight:700;overflow-wrap:anywhere;color:#223c5a!important;margin:0!important}
+.lab4-fido-active .lab4-usb-result .action{background:#265c9f!important;color:white!important;border:1px solid #16477f!important;font-weight:750}
+/* v59: jednolite podsumowania metod MFA */
+.lab4-summary-unified{display:flex;flex-direction:column;gap:12px;box-sizing:border-box;inset:28px 24px!important;max-width:860px!important;background:#f8fbff!important;padding:25px 30px!important}
+.lab4-summary-unified h3{font-size:22px!important;line-height:1.25;margin:0 36px 0 0!important;color:#15345a}
+.lab4-summary-unified .lab4-summary-eyebrow{font-size:13px;font-weight:750;color:#245f9c;text-transform:uppercase;letter-spacing:.03em}
+.lab4-summary-unified .lab4-explainer-lead{margin:0;font-size:15px!important;line-height:1.55}
+.lab4-summary-unified .lab4-flow{margin:0}
+.lab4-summary-unified .lab4-flow-card{min-height:85px}
+.lab4-summary-unified .lab4-explainer-bottom{margin:0;font-size:14px}
+.lab4-summary-unified .lab4-summary-done{align-self:flex-end;margin-top:auto;min-height:42px}
+#briefText strong{font-weight:800;color:#e7f4ff;overflow-wrap:anywhere}
+/* v59: role uczestnika i oszusta w podsumowaniach */
+.lab4-summary-unified .lab4-role-step{display:flex;flex-direction:column;gap:7px;line-height:1.45}
+.lab4-summary-unified .lab4-role-step>strong{font-size:14px;color:#174c86;font-weight:800}
+.lab4-summary-unified .lab4-role-step>span{font-size:13px;color:#233b59}
+.lab4-summary-unified .lab4-flow-card{min-height:130px;align-content:start}
+.lab4-summary-unified .lab4-explainer-lead{font-size:14px!important}
+</style><style>/* MFALab v66: objaśnienia i czytelny widok reguły poczty */
+.incident-window-body{max-width:800px;box-sizing:border-box;width:100%;padding:20px 22px 28px}
+.incident-window-body h3{font-size:22px;line-height:1.3;margin:5px 0 14px}
+.incident-help{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0 18px}
+.incident-help>div{background:#edf4ff;border:1px solid #c9d9f0;border-radius:11px;padding:13px 15px;min-width:0}
+.incident-help>div:last-child{background:#eaf5ef;border-color:#bbdcca}
+.incident-help strong{display:block;font-size:14px;color:#173d69;margin-bottom:5px}
+.incident-help p{margin:0;color:#334861;font-size:14px;line-height:1.5}
+.incident-rule-card{border:1px solid #b9cce5;border-radius:12px;background:white;overflow:hidden;max-width:100%;min-width:0}
+.incident-rule-head{background:#e6effa;padding:12px 15px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:750}
+.incident-rule-badge{font-size:12px;padding:5px 9px;border-radius:30px;background:#fff0d9;color:#84540b;white-space:nowrap}
+.incident-rule-badge.is-off{background:#e0f4e8;color:#236b45}
+.incident-rule-grid{display:grid;grid-template-columns:minmax(100px,30%) minmax(0,1fr);gap:10px 12px;padding:16px;font-size:14px;align-items:start}
+.incident-rule-grid>span{color:#536a83}.incident-rule-grid strong{min-width:0;overflow-wrap:anywhere;word-break:break-word;line-height:1.45}
+.incident-rule-warning{margin:0 15px 15px;padding:12px;border-radius:8px;background:#fff5e6;border:1px solid #f2d19c;color:#694914;line-height:1.45;font-size:14px}
+.incident-rule-warning.incident-rule-safe{background:#e7f6ed;border-color:#acd5bb;color:#1b6740}
+.incident-back{border:0;background:none;color:#225e9e;font-weight:700;padding:2px 0 12px;cursor:pointer;text-align:left}
+.incident-window-body .incident-do{max-width:100%;white-space:normal;text-align:center;margin-top:14px}
+@media(max-width:1000px){.incident-help{grid-template-columns:1fr}.incident-window-body{padding:15px}}
+
+/* v65: osobiste zakładki i czytelny ekran startowy przeglądarki */
+.browser-sim{display:flex;flex-direction:column;min-height:0}.browser-sim.hidden{display:none!important}
+.browser-sim .bookmark-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:9px 12px;background:#f2f6fc;border-bottom:1px solid #d7e2f0;flex-shrink:0}
+.bookmark-bar-label{font-size:12px;color:#526984;font-weight:750;margin-right:4px}
+.saved-bookmark{position:relative;border:1px solid #c4d5e9;background:white;color:#18395f;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap}
+.saved-bookmark:hover,.saved-bookmark:focus-visible{background:#e0edff;border-color:#4b84c4;outline-offset:2px}
+.bookmark-tooltip{position:absolute;left:0;top:calc(100% + 7px);z-index:45;background:#152b48;color:#fff;border:1px solid #9ac5ff;border-radius:8px;padding:9px 12px;font-size:12px;font-weight:500;box-shadow:0 8px 22px #0004;white-space:nowrap;opacity:0;visibility:hidden;pointer-events:none}
+.saved-bookmark:hover .bookmark-tooltip,.saved-bookmark:focus-visible .bookmark-tooltip{opacity:1;visibility:visible}
+.browser-sim .webpage{max-width:none;min-height:0;overflow:auto;flex:1;padding:22px 30px}
+.bookmark-welcome,.bookmark-unavailable,.trusted-login{max-width:730px;margin:10px auto;text-align:center;color:#1b3656}
+.bookmark-welcome-icon,.bookmark-unavailable-icon{font-size:32px}.bookmark-welcome h3,.trusted-login h3,.bookmark-unavailable h3{margin:10px 0;font-size:25px}
+.bookmark-welcome p,.bookmark-unavailable p,.trusted-login p{font-size:15px;line-height:1.55}
+.bookmark-hint{background:#e9f2ff;border-left:4px solid #3278c5;padding:12px;border-radius:8px;text-align:left}
+.bookmark-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:17px;text-align:left}
+.bookmark-grid .saved-bookmark{padding:15px;font-size:15px;white-space:normal}.bookmark-grid .bookmark-tooltip{max-width:290px;white-space:normal;overflow-wrap:anywhere}
+.trusted-login{background:#f4fbf7;border:1px solid #a8d6bb;border-radius:16px;padding:16px 22px}
+.trusted-login .site-logo{margin:0 0 7px}.trusted-check{margin:8px auto;background:#168455;color:white;border-radius:50%;width:50px;height:50px;display:grid;place-items:center;font-size:30px;font-weight:800}
+.trusted-url,.bookmark-unavailable-address{background:white;border:1px solid #c9dbed;padding:10px;border-radius:9px;overflow-wrap:anywhere}
+.trusted-login button,.bookmark-unavailable button{border:0;background:#2367b5;color:white;border-radius:9px;padding:12px 20px;font-weight:750;cursor:pointer}
+</style></head><body><section class="screen-requirement" aria-labelledby="screenRequirementTitle"><div class="screen-requirement-card"><div class="screen-requirement-icon" aria-hidden="true">🖥️</div><h1 id="screenRequirementTitle">MFALab wymaga dużego ekranu</h1><p>Symulator jest przeznaczony do ekranu Full HD (1920 × 1080) lub większego. Aby wszystkie elementy były widoczne, otwórz przeglądarkę w maksymalnym oknie.</p><p>Na mniejszych ekranach symulator jest niedostępny, ponieważ część elementów ćwiczeń mogłaby zostać zasłonięta.</p><small>Jeżeli korzystasz z ekranu Full HD, zmaksymalizuj okno przeglądarki lub naciśnij F11. W razie potrzeby ustaw skalowanie strony na 100%.</small></div></section><main class="wrap"><header class="top"><div class="brand"><span class="logo">🔐</span><span>MFALab <span class="muted small">v65</span></span></div><div class="header-intro"><strong>Czy obronisz swoje konto?</strong><span>Cyberbezpieczeństwo w edukacji · 5 interaktywnych scenariuszy</span></div><div class="header-tools"><span class="header-status">Symulacja edukacyjna · bez prawdziwych kont</span><button class="btn header-help" id="help" type="button">? Instrukcja</button> <button class="btn header-restart" id="restart" type="button">↻ Zacznij od nowa</button> <button class="btn" id="teacherOpen" type="button" title="Wybór scenariusza dla prowadzącego">▦ Prowadzący</button> <button id="soundToggle" type="button" aria-pressed="true" title="Włącz lub wyłącz dźwięki powiadomień" style="margin-left:12px;border:1px solid #59728f;background:#203957;color:white;border-radius:7px;padding:5px 9px;cursor:pointer">🔊 Dźwięk włączony</button></div></header><div class="grid"><section aria-live="polite" class="panel scene"><div class="top scenario-heading"><span class="badge" id="stepTag">Wprowadzenie</span><h2 id="sceneTitle">Witaj w laboratorium</h2><span class="muted small" id="stepNo">0 / 5</span><button class="btn hidden" id="finishExit" type="button">Zakończ →</button></div><div class="scenario-layout" id="scenarioLayout"><div class="scenario-main"><div id="sceneBody"></div><div id="choices"></div></div><aside class="scenario-aside" id="scenarioAside"><div class="controls scenario-actions"><button class="btn primary hidden" id="next">Dalej →</button><button class="btn" id="briefOpen">ⓘ Treść zadania</button></div><div class="feedback hidden" id="feedback"></div><div class="aside-wait" id="asideWait"><span class="aside-icon">◎</span><h3>Podsumowanie scenariusza</h3><p>Wykonaj zadanie w oknie symulacji. Po podjęciu decyzji zobaczysz ocenę oraz wyjaśnienie, co się wydarzyło i dlaczego.</p></div></aside></div></section></div><footer class="footer">© 2026 Michał T. Grześlak · Koncepcja i opracowanie z wykorzystaniem AI. Dozwolone niekomercyjne wykorzystanie i modyfikacja do celów edukacyjnych z podaniem autora. Inne zastosowania, w tym komercyjne, wymagają zgody autora. Wszystkie nazwy usług w symulacji są fikcyjne.</footer></main><div class="modalback hidden" id="briefModal"><div class="modal brief-dialog" role="dialog" aria-modal="true" aria-labelledby="briefTitle"><span class="badge" id="briefBadge">Zadanie</span><h2 id="briefTitle">Twoje zadanie</h2><p id="briefText"></p><div class="controls"><button class="btn primary" id="briefClose">Rozumiem — rozpocznij →</button></div></div></div><div class="modalback" id="modal"><div aria-labelledby="modalTitle" aria-modal="true" class="modal" role="dialog"><span class="badge">Instrukcja</span><h2 id="modalTitle">MFALab — laboratorium uwierzytelniania</h2><p>Wcielasz się w pracownika szkoły korzystającego z fikcyjnego e-dziennika <strong>EduPanel</strong>. W pięciu scenariuszach ćwiczysz rozpoznawanie fałszywych stron, reagowanie na nieoczekiwane prośby o potwierdzenie logowania i zabezpieczanie konta po podejrzeniu włamania.</p><p>Po każdej decyzji zobaczysz wyjaśnienie i konsekwencje. Każda bezpieczna decyzja to <strong>20 punktów</strong>. Na końcu otrzymasz wynik i zalecenia do omówienia podczas szkolenia.</p><p>To kontrolowana symulacja: nie ma połączenia z prawdziwym systemem logowania, nie wysyła danych i nie prosi o rzeczywiste hasła. Wpisuj wyłącznie fikcyjne dane. Pola formularzy są demonstracyjne i niczego nie wysyłają.</p><label class="check"><input id="consent" type="checkbox"/> Rozumiem, że używam wyłącznie fikcyjnych danych.</label><div class="controls"><button class="btn primary" id="begin">Rozpocznij ćwiczenie →</button><button class="btn hidden" id="closeHelp">Wróć do ćwiczenia</button></div></div></div><div class="modalback hidden" id="teacherModal"><div class="modal teacher-dialog" role="dialog" aria-modal="true" aria-labelledby="teacherTitle"><div class="teacher-title"><h2 id="teacherTitle">Panel prowadzącego</h2><button type="button" class="btn" id="teacherClose" aria-label="Zamknij panel">✕</button></div><div id="teacherGate"><p>Podaj kod prowadzącego, aby przejść bezpośrednio do wybranego scenariusza.</p><label for="teacherPin">Kod dostępu</label><input id="teacherPin" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="Kod prowadzącego"/><p class="teacher-error hidden" id="teacherError" role="alert">Nieprawidłowy kod.</p><button type="button" class="btn primary" id="teacherUnlock">Odblokuj panel</button></div><div id="teacherPicker" class="hidden"><p>Wybierz scenariusz. Zmiana rozpoczyna wybrane ćwiczenie od początku i zeruje dotychczasowy wynik.</p><div class="teacher-scenarios" id="teacherScenarios"></div><button type="button" class="btn" id="teacherLock">Zablokuj panel</button></div></div></div><script>(()=>{'use strict';
+// Dźwięki demonstracyjne generowane lokalnie przez Web Audio API — bez plików i połączeń sieciowych.
+let audioCtx=null,ringTimer=null,soundEnabled=true;
+function audioReady(){if(!soundEnabled)return null;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});return audioCtx}catch(e){return null}}
+function beep(freq,start,duration,volume=.09){const ctx=audioReady();if(!ctx)return;try{const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='sine';osc.frequency.setValueAtTime(freq,ctx.currentTime+start);gain.gain.setValueAtTime(0,ctx.currentTime+start);gain.gain.linearRampToValueAtTime(volume,ctx.currentTime+start+.018);gain.gain.setValueAtTime(volume,ctx.currentTime+start+Math.max(.02,duration-.04));gain.gain.linearRampToValueAtTime(0,ctx.currentTime+start+duration);osc.connect(gain);gain.connect(ctx.destination);osc.start(ctx.currentTime+start);osc.stop(ctx.currentTime+start+duration+.02)}catch(e){}}
+function playSmsSound(){beep(880,0,.13,.075);beep(1175,.19,.2,.08)}
+function ringOnce(){beep(440,0,.32,.075);beep(554,.36,.32,.075);beep(440,.78,.32,.075);beep(554,1.14,.32,.075)}
+function stopRinging(){if(ringTimer!==null){clearInterval(ringTimer);ringTimer=null}document.querySelectorAll(".phone-stage .smartphone.is-ringing").forEach(el=>el.classList.remove("is-ringing"))}
+function startRinging(){stopRinging();const phone=document.querySelector(".phone-stage .smartphone");if(phone)phone.classList.add("is-ringing");ringOnce();ringTimer=setInterval(()=>{if(step!==2||answered||callAnswered){stopRinging();return}ringOnce()},3100)}
+const $=id=>document.getElementById(id);let step=-1,answered=false,score=0,good=0,bad=0,history=[],timer=null,clockTimer=null,attempt=1,callAnswered=false,voice=null;
+const data=[
+{tag:'1 / 5 · Fałszywy e-dziennik',title:'Czy rozpoznasz fałszywą stronę?',why:'HTTPS oznacza szyfrowane połączenie, ale samo w sobie nie dowodzi, że strona należy do szkoły. Sprawdzaj adres strony w przeglądarce. Najbezpieczniej otworzyć e-dziennik z własnej zakładki lub wpisując znany adres.'},
+{tag:'2 / 5 · Nieoczekiwane prośby o logowanie',title:'Seria nieoczekiwanych powiadomień',why:'Nie zatwierdzaj prośby o logowanie, jeśli samodzielnie nie próbujesz się logować. Odrzuć ją, powiadom szkolnego administratora i sprawdź, czy konto jest bezpieczne.'},
+{tag:'3 / 5 · Wyłudzenie kodu',title:'Telefon od „pracownika IT”',why:'Jednorazowego kodu otrzymanego SMS-em nie podawaj osobie dzwoniącej, nawet jeśli przedstawia się jako szkolny informatyk. Zakończ rozmowę i skontaktuj się ze szkołą, korzystając ze znanego numeru.'},
+{tag:'4 / 5 · Sposoby potwierdzania logowania',title:'Czy oszust może zalogować się na moje konto?',why:'Klucze dostępu (passkeys) i fizyczne klucze bezpieczeństwa sprawdzają adres strony, dlatego chronią przed typowymi fałszywymi formularzami logowania. Kody z SMS-ów i aplikacji uwierzytelniającej można natomiast wyłudzić na podrobionej stronie.'},
+{tag:'5 / 5 · Incydent',title:'Ktoś włamał się na Twoje konto. Co teraz?',why:'Sama zmiana hasła może nie wystarczyć. Trzeba zgłosić podejrzenie włamania szkolnemu administratorowi, wylogować konto ze wszystkich innych urządzeń, sprawdzić, czy poczta nie przekazuje wiadomości obcej osobie, i upewnić się, że nikt nie zmienił sposobów odzyskiwania dostępu do konta. Administrator powinien także sprawdzić, czy ktoś nie uzyskał dostępu do poufnych informacji.'}
+];
+const briefs=[
+['Podejrzany e-mail','Otwierasz szkolną pocztę. Przyszła pilna wiadomość z linkiem do e-dziennika. Prawidłowy adres dziennika to https://dziennik.szkolny.example/. Sprawdź, dokąd prowadzi link, a następnie zdecyduj, jak bezpiecznie otworzyć dziennik.'],
+['Nieoczekiwane powiadomienia','Nie próbujesz się logować, ale na telefon zaczynają przychodzić prośby o zatwierdzenie logowania. Obserwuj ekran i zdecyduj, co zrobić z takim żądaniem.'],
+['Telefon z działu IT','Pracujesz w szkole i korzystasz z e-dziennika. Nagle otrzymujesz SMS z jednorazowym kodem logowania, choć samodzielnie nie próbujesz się logować. Chwilę później dzwoni osoba przedstawiająca się jako pracownik szkolnego działu IT. Możesz odebrać połączenie, wysłuchać rozmówcy i zdecydować, jak postąpić. Zwróć uwagę na to, o co prosi rozmówca. Zdecyduj, czy wolno przekazać mu kod.'],
+['Cztery sposoby ochrony konta','Trwa logowanie do e-dziennika. Prawidłowy adres serwisu to: <strong>https://dziennik.szkolny.example</strong>. Logowanie rozpoczęło się po otwarciu linku otrzymanego w wiadomości. Login i hasło zostały już wpisane. Teraz system prosi o dodatkowe potwierdzenie tożsamości. Sprawdź cztery metody, zwracając uwagę na adres strony i zachowanie urządzeń.'],
+['Niepokojące wiadomości','Jest poniedziałek rano. Pracujesz na komputerze w pokoju nauczycielskim i korzystasz ze swojego szkolnego konta. Na telefon przychodzą wiadomości od koleżanek, które zauważyły podejrzane e-maile wysyłane z Twojego adresu. Przeczytaj wiadomości, a następnie na komputerze otwórz „Moje konto”. Sprawdź ustawienia konta i poczty oraz wykonaj odpowiednie działania naprawcze, aby zabezpieczyć konto i zgłosić incydent. Jeśli zamkniesz panel, otworzysz go ponownie, klikając ikonę „Moje konto” na pulpicie.']
+];
+let briefPending=false;
+function showBrief(){if(step<0||step>4)return;$('briefBadge').textContent='Scenariusz '+(step+1)+' z 5';$('briefTitle').textContent=briefs[step][0];$('briefText').innerHTML=briefs[step][1];$('briefModal').classList.remove('hidden')}
+function closeBrief(){if(step<0)return;$('briefModal').classList.add('hidden');if(briefPending){briefPending=false;bind()}}
+let lab4TotpTimer=null;function stopLab4Totp(){if(lab4TotpTimer!==null){clearInterval(lab4TotpTimer);lab4TotpTimer=null}}
+function clean(){stopRinging();stopLab4Totp();clearTimeout(timer);timer=null;clearInterval(clockTimer);clockTimer=null;if(window.speechSynthesis)window.speechSynthesis.cancel();voice=null}
+function render(){document.body.dataset.mfaStep=String(step+1);clean();$('finishExit').classList.add('hidden');answered=false;$('feedback').className='feedback hidden';$('asideWait').classList.remove('hidden');$('scenarioLayout').classList.remove('report-mode');$('next').classList.add('hidden');$('stepTag').textContent=data[step].tag;$('stepNo').textContent=(step+1)+' / 5';$('sceneTitle').textContent=data[step].title;$('choices').innerHTML='';$('choices').classList.add('hidden');$('sceneBody').classList.remove('locked-ui');$('sceneBody').innerHTML=[fake,push,call,methods,incident][step]();const progress=document.querySelector('#progressInline');if(progress)progress.style.width=step*20+'%';const intro=$('sceneBody').querySelector(':scope > p');if(intro)intro.remove();briefPending=true;showBrief();}
+function decide(ok,detail){if(answered)return;answered=true;clean();if(ok){score+=20;good++}else bad++;history.push({title:data[step].title,ok,detail});$('sceneBody').classList.add('locked-ui');$('asideWait').classList.add('hidden');$('feedback').className='feedback '+(ok?'good':'bad');$('feedback').innerHTML='<strong>'+(ok?'✓ Bezpieczna decyzja · +20 punktów':'⚠ Ryzykowna decyzja · 0 punktów')+'</strong><p>'+detail+'</p><p>'+data[step].why+'</p><p class="small"><strong>Scenariusz zakończony.</strong> Wszystkie działania w symulacji zostały zablokowane.</p>';$('next').textContent=step===4?'Zobacz podsumowanie →':'Następny scenariusz →';$('next').classList.remove('hidden');if(step===3){const finish=$('lab4Finish');if(finish)finish.classList.add('hidden');}}
+function fake(){return `<p>W szkolnej poczcie pojawiła się pilna wiadomość. Znany, prawidłowy adres e-dziennika to <strong>https://dziennik.szkolny.example/</strong>. Sprawdź wiadomość, podejrzyj adres ukryty pod przyciskiem (najedź kursorem lub ustaw na nim fokus), a następnie zdecyduj, jak bezpiecznie otworzyć dziennik.</p><div class="desktop mail-desktop" id="simDesktop"><div class="desk-icons"><button class="deskicon" id="deskMail">✉️<br>Poczta</button><button class="deskicon" id="deskBrowser">🌐<br>Przeglądarka</button></div><div class="window" id="browserWindow"><button type="button" id="closeSimWindow" class="sim-window-close" aria-label="Zamknij okno poczty lub przeglądarki" title="Zamknij okno">×</button><div id="mailView" class="mail-app"><div class="mail-head"><b>✉️ EduMail</b><span>Szkolna poczta · konto demonstracyjne</span></div><div class="mail-layout"><aside class="mail-folders"><b>📥 Odebrane <span>1</span></b><div>⭐ Oznaczone</div><div>📤 Wysłane</div><div>🗑️ Kosz</div></aside><section class="mail-message"><div class="mail-toolbar">Odebrane / Wiadomość <span>● Nieprzeczytana</span></div><h3>⚠️ Pilne: potwierdź dostęp do e-dziennika</h3><div class="mail-sender"><span class="avatar-mail">E</span><div><b>Biuro obsługi EduPanel</b><small>powiadomienia@edupanel-pomoc.example</small><small>Do: nauczyciel@szkola.example · dziś, 09:12</small></div></div><div class="mail-content"><p>Dzień dobry,</p><p>W związku z aktualizacją zabezpieczeń wymagane jest pilne potwierdzenie konta w dzienniku elektronicznym. Brak potwierdzenia może spowodować ograniczenie dostępu.</p><p><span class="link-preview-wrap"><button id="mailPhish" class="mail-link" title="https://edupanel-weryfikacja.example/login" aria-describedby="mailLinkPreview">Potwierdź konto EduPanel ↗</button><span class="link-preview" id="mailLinkPreview" role="tooltip">Adres docelowy: <strong>https://edupanel-weryfikacja.example/login</strong></span></span></p><p>Prosimy o wykonanie czynności jeszcze dzisiaj.</p><p>Zespół wsparcia EduPanel</p><p class="mail-tip">Wskazówka: najedź kursorem na przycisk lub zaznacz go klawiszem Tab, aby sprawdzić adres docelowy przed kliknięciem.</p></div></section></div></div><div id="browserView" class="hidden browser-sim"><div class="tabs"><span id="tabTitle">🌐 Nowa karta</span><button id="newTab">＋ Nowa karta</button><button id="backMail">✉️ Poczta</button></div><div class="address" id="address">Wpisz adres lub wybierz zakładkę</div><div class="bookmark-bar" id="bookmarkBar" aria-label="Twoje zapisane zakładki"></div><div class="webpage" id="webpage"></div></div></div><div class="taskbar"><button id="taskMail">✉️ Poczta</button><button id="taskBrowser">🌐 Przeglądarka</button><span>EduOS · środowisko demonstracyjne</span></div></div><p class="small muted">Wszystkie adresy .example są fikcyjne. Nie wpisuj rzeczywistych danych.</p>`}
+function showMail(){if(answered)return;$('browserWindow').classList.remove('hidden');$('mailView').classList.remove('hidden');$('browserView').classList.add('hidden')}
+function showBrowser(){if(answered)return;$('browserWindow').classList.remove('hidden');$('mailView').classList.add('hidden');$('browserView').classList.remove('hidden')}
+const savedBookmarks=[
+ {id:'trusted',icon:'📘',name:'E-dziennik',url:'https://dziennik.szkolny.example/'},
+ {id:'library',icon:'📚',name:'Biblioteka szkolna',url:'https://biblioteka.szkolna.example/'},
+ {id:'calendar',icon:'📅',name:'Kalendarz szkoły',url:'https://kalendarz.szkolny.example/'},
+ {id:'training',icon:'🎓',name:'Szkolenia',url:'https://szkolenia.edukacja.example/'}
+];
+function bookmarkButtons(){return savedBookmarks.map(b=>`<button type="button" class="saved-bookmark" data-bookmark="${b.id}" title="Adres docelowy: ${b.url}" aria-label="${b.name}. Adres docelowy: ${b.url}"><span>${b.icon} ${b.name}</span><span class="bookmark-tooltip" role="tooltip">${b.url}</span></button>`).join('')}
+function bindBookmarks(){const bar=$('bookmarkBar');if(bar){bar.innerHTML='<span class="bookmark-bar-label">⭐ Zakładki</span>'+bookmarkButtons();bar.querySelectorAll('[data-bookmark]').forEach(btn=>btn.onclick=()=>fakeTab(btn.dataset.bookmark));}const grid=$('bookmarkGrid');if(grid)grid.querySelectorAll('[data-bookmark]').forEach(btn=>btn.onclick=()=>fakeTab(btn.dataset.bookmark));}
+function fakeTab(mode){if(answered)return;showBrowser();const trusted=mode==='trusted',phish=mode==='phish',other=savedBookmarks.find(b=>b.id===mode);$('tabTitle').textContent=trusted?'📘 EduPanel · e-dziennik':phish?'🌐 Potwierdzenie konta':other?other.icon+' '+other.name:'🌐 Nowa karta';$('address').textContent=trusted?'🔒 https://dziennik.szkolny.example/':phish?'🔒 https://edupanel-weryfikacja.example/login':other?'🔒 '+other.url:'Nowa karta · zapisane zakładki';
+$('webpage').innerHTML=trusted?'<div class="trusted-login"><div class="site-logo">📘 EduPanel · e-dziennik</div><div class="trusted-check">✓</div><h3>Logowanie zakończone pomyślnie</h3><p>Witaj w szkolnym e-dzienniku. Otworzono stronę z własnej, zapisanej zakładki.</p><p class="trusted-url">Prawidłowy adres: <strong>https://dziennik.szkolny.example/</strong></p><button id="confirmSafe">Zakończ bezpieczne logowanie</button></div>':phish?'<div class="site-logo">📘 EduPanel</div><h3>Potwierdź swoje konto</h3><p>Ze względów bezpieczeństwa zaloguj się ponownie.</p><label>Login<input id="demoUser" autocomplete="off" placeholder="Fikcyjny login"></label><label>Hasło<input id="demoPass" type="password" autocomplete="off" placeholder="Fikcyjne hasło"></label><button id="fakeLogin">Zaloguj się</button>':other?'<div class="bookmark-unavailable" role="status"><div class="bookmark-unavailable-icon">'+other.icon+'</div><h3>'+other.name+'</h3><p>Ta strona nie jest dostępna w bieżącym ćwiczeniu. Możesz wybrać inną zakładkę lub wrócić do poczty.</p><p class="bookmark-unavailable-address">Adres zakładki: <strong>'+other.url+'</strong></p><button id="backToBookmarks">Wróć do zakładek</button></div>':'<div class="bookmark-welcome"><span class="bookmark-welcome-icon">⭐</span><h3>Witaj w przeglądarce!</h3><p>Poniżej znajdują się <strong>zakładki zapisane wcześniej przez Ciebie</strong>. Ułatwiają otwieranie znanych stron bez korzystania z linków otrzymanych w wiadomościach.</p><p class="bookmark-hint">Najedź kursorem na zakładkę lub zaznacz ją klawiszem Tab, aby zobaczyć jej prawdziwy adres. Następnie wybierz stronę, którą chcesz otworzyć.</p><div class="bookmark-grid" id="bookmarkGrid">'+bookmarkButtons()+'</div></div>';
+bindBookmarks();if($('confirmSafe'))$('confirmSafe').onclick=()=>decide(true,'Otworzono prawidłowy e-dziennik z własnej zakładki. Adres w pasku przeglądarki zgadza się ze znanym adresem szkoły.');if($('fakeLogin'))$('fakeLogin').onclick=()=>decide(false,'Próba logowania na stronie z wiadomości mogłaby ujawnić dane. W symulacji niczego nie wysłano.');if($('backToBookmarks'))$('backToBookmarks').onclick=()=>fakeTab('new');}
+
+function push(){return `<p>Nie logujesz się, a telefon otrzymuje prośby o zatwierdzenie dostępu. Obserwuj powiadomienie na ekranie blokady. Pierwsze powiadomienie pojawi się po krótkiej chwili. Kolejne próby przychodzą w spokojnym tempie.</p><div class="phone-stage"><div class="smartphone"><div class="statusphone"><span class="phone-status-time">09:41</span><span class="status-icons"><span class="signal-bars" aria-label="Zasięg sieci"><i></i><i></i><i></i><i></i></span><svg width="20" height="16" viewBox="0 0 24 20" fill="none" aria-label="Wi-Fi"><path d="M2 6 Q12 -2 22 6 M6 10 Q12 5 18 10 M10 14 Q12 12 14 14" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><circle cx="12" cy="17" r="1.5" fill="currentColor"/></svg><span class="battery" aria-label="Bateria"></span></span></div><div class="phone-home"><div class="bigclock phone-lock-time">09:41</div><div class="phone-lock-date">Data</div></div><div class="floating hidden" id="pushNotice"><button type="button" id="ignorePush" class="push-dismiss" aria-label="Zignoruj powiadomienie"><span aria-hidden="true">×</span><small>Zignoruj</small></button><strong>🔐 EduPanel Authenticator</strong><div>Żądanie zatwierdzenia logowania</div><small>Nieznane urządzenie · lokalizacja niezweryfikowana</small><div id="pushCounter">Próba 1</div><div class="choicebar"><button id="rejectPush">Odrzuć i zgłoś</button><button id="approvePush" class="danger">Zatwierdź</button></div></div><div class="phone-dock"><span>📞</span><span>💬</span><span>🔐</span><span>📷</span></div></div></div>`}
+function call(){return `<div class="phone-stage"><div class="smartphone" aria-label="Symulowany telefon"><div class="statusphone"><span class="phone-status-time">09:41</span><span class="status-icons"><span class="signal-bars" aria-label="Zasięg sieci"><i></i><i></i><i></i><i></i></span><svg width="20" height="16" viewBox="0 0 24 20" fill="none" aria-label="Wi-Fi"><path d="M2 6 Q12 -2 22 6 M6 10 Q12 5 18 10 M10 14 Q12 12 14 14" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><circle cx="12" cy="17" r="1.5" fill="currentColor"/></svg><span class="battery" aria-label="Bateria"></span></span></div><div class="phone-home"><div class="bigclock phone-lock-time">09:41</div><div class="phone-lock-date">Data</div></div><div class="floating hidden" id="smsNotice" role="status"><strong>💬 Wiadomości · EduPanel</strong><div>Kod jednorazowy: <strong>482 731</strong></div><small>Nie udostępniaj tego kodu nikomu.</small></div><div class="incoming-call hidden" id="incomingCall"><div class="caller-avatar">👤</div><strong>Dział IT</strong><small>Połączenie przychodzące · numer niezweryfikowany</small><div class="incoming-actions"><button id="rejectCall" class="call-round reject" aria-label="Odrzuć połączenie">✕<span>Odrzuć</span></button><button id="answerCall" class="call-round accept" aria-label="Odbierz połączenie">☎<span>Odbierz</span></button></div></div><div class="active-call hidden" id="activeCall"><div class="caller-avatar">👤</div><strong>Dział IT</strong><small>Połączenie trwa · symulacja</small><div class="sms-in-call">💬 SMS EduPanel: <b>482 731</b></div><div class="call-decisions"><button id="shareCode" class="call-choice risky">Podaj kod rozmówcy</button><button id="safeCall" class="call-choice safe">Rozłącz się i zweryfikuj kontakt</button></div></div><div class="phone-dock" id="callDock"><span>📞</span><span>💬</span><span>🔐</span><span>📷</span></div></div><div class="explain"><h3>Treść rozmowy</h3><div class="voice-transcript" id="transcript" aria-live="polite">Oczekiwanie na połączenie…</div></div></div>`}
+const spoken='Dzień dobry, tu pomoc techniczna szkoły. Wykryliśmy próbę włamania na pana konto. Aby natychmiast zablokować intruza, proszę podać sześciocyfrowy kod z wiadomości SMS.';
+function answerCall(){if(callAnswered||answered)return;stopRinging();callAnswered=true;$('incomingCall').classList.add('hidden');$('smsNotice').classList.add('hidden');$('activeCall').classList.remove('hidden');$('callDock').classList.add('hidden');$('transcript').textContent='„'+spoken+'”';$('shareCode').onclick=()=>decide(false,'Przekazanie kodu umożliwiłoby napastnikowi dokończenie jego próby logowania.');$('safeCall').onclick=()=>decide(true,'Nie przekazano kodu. Rozmowa została zakończona. Aby sprawdzić sprawę, należy samodzielnie zadzwonić do szkolnego administratora na znany numer.');if('speechSynthesis'in window&&'SpeechSynthesisUtterance'in window){try{voice=new SpeechSynthesisUtterance(spoken);voice.lang='pl-PL';voice.rate=.88;voice.pitch=1;window.speechSynthesis.speak(voice)}catch(e){}}}
+function methods(){return `<p><strong>Ktoś poznał Twoje hasło do e-dziennika.</strong> Sprawdź, co się stanie, gdy oszust spróbuje użyć czterech różnych zabezpieczeń. Wszystko wykonasz na jednym pulpicie.</p><div class="lab4-progress-row"><div class="story-note" id="lab4Lesson" role="status" aria-live="polite"><strong>0/4 sprawdzone.</strong> Wybierz pierwszą metodę i wykonaj próbę.</div><button class="action story-finish" id="lab4Finish" disabled>Dalej</button></div><div class="lab4-toolbar"><button class="action" id="smsMethod">1. Kod z SMS · Do wykonania</button><button class="action" id="totpMethod">2. Kod z aplikacji · Do wykonania</button><button class="action" id="passMethod">3. Klucz dostępu · Do wykonania</button><button class="action" id="fidoMethod">4. Klucz fizyczny FIDO2 · Do wykonania</button></div><div class="lab4-desktop"><div class="lab4-desktop-header"><span>🖥️ EduOS — komputer nauczyciela</span><span>ŚRODOWISKO DEMONSTRACYJNE</span></div><div class="lab4-workspace"><div class="lab4-browser"><div class="lab4-top">🌐 Przeglądarka — EduPanel <span>DEMO</span></div><div class="lab4-address">https://edupanel-weryfikacja.example/login</div><div class="lab4-login-notice"><span class="lab4-login-icon">🔒</span><span><strong>Potwierdź logowanie</strong><small>Hasło zostało przyjęte. Aby kontynuować, potwierdź swoją tożsamość wybraną metodą.</small></span><span class="lab4-login-step">Etap 2 z 2</span></div><div class="lab4-screen" id="lab4Screen"><h3>Wybierz metodę ochrony</h3><p>Po wybraniu SMS lub aplikacji pojawi się telefon. Przy kluczu dostępu komputer wyświetli własne okno zabezpieczeń.</p></div></div><div class="lab4-device-area hidden" id="lab4Device"></div></div><div class="lab4-taskbar"><span>🌐 Przeglądarka</span><span>EduOS · DEMO</span></div></div>`}
+const lab4Visited=new Set(),lab4Safe=new Set();
+function lab4StepSummary(kind,safe){
+ const old=$('lab4SmsReveal');if(old)old.remove();
+ const content={
+ sms:{name:'Kod SMS',title:'Kod SMS można wyłudzić',detail:'SMS (Short Message Service, czyli usługa krótkich wiadomości tekstowych) dostarcza kod z prawdziwego serwisu. Oszust może go jednak przejąć przez fałszywy formularz i wykorzystać podczas własnej próby logowania.',steps:[['Ty','Otwierasz link z wiadomości i wpisujesz login oraz hasło na fałszywej stronie.'],['Oszust','Przejmuje dane i rozpoczyna logowanie w prawdziwym e-dzienniku.'],['Prawdziwy e-dziennik','Wysyła SMS z jednorazowym kodem na Twój telefon, ponieważ trwa próba logowania.'],['Ty i oszust','Wpisujesz otrzymany kod na fałszywej stronie. Oszust może przekazać go do prawdziwego serwisu, zanim wygaśnie.']],tip:'Prawdziwy SMS nie dowodzi, że otwarta strona jest prawdziwa. Zawsze sprawdzaj adres witryny.'},
+ totp:{name:'Kod z aplikacji (TOTP)',title:'Kod z aplikacji również można wyłudzić',detail:'TOTP (ang. Time-based One-Time Password) to jednorazowe hasło zależne od czasu, generowane w aplikacji uwierzytelniającej. Zwykle zmienia się co 30 sekund. Nie jest wysyłane SMS-em, ale można je przechwycić z fałszywej strony.',steps:[['Ty','Otwierasz link i widzisz formularz proszący o kod z aplikacji uwierzytelniającej.'],['Oszust','Posługuje się wcześniej przejętym loginem i hasłem, aby zalogować się w prawdziwym serwisie.'],['Ty','Odczytujesz aktualny kod TOTP na telefonie i wpisujesz go w formularzu fałszywej strony.'],['Oszust','Otrzymuje wpisany kod i może natychmiast użyć go w prawdziwym e-dzienniku, zanim kod wygaśnie.']],tip:'Aplikacja TOTP nie zależy od SMS ani karty SIM, lecz wpisywany kod nadal może zostać wyłudzony.'},
+ pass:{name:'Klucz dostępu (passkey)',title:'Klucz dostępu chroni przed typowym phishingiem',detail:'Passkey (klucz dostępu) wykorzystuje kryptografię i powiązanie z domeną witryny. Nie wymaga przepisywania kodu. Fałszywa strona nie może użyć klucza zarejestrowanego dla prawidłowego e-dziennika.',steps:[['Ty','Otwierasz stronę z podejrzanego linku i próbujesz potwierdzić logowanie kluczem dostępu.'],['Fałszywa strona','Posługuje się domeną edupanel-weryfikacja.example zamiast dziennik.szkolny.example.'],['Przeglądarka i urządzenie','Sprawdzają domenę powiązaną z kluczem dostępu i nie udostępniają go obcej witrynie.'],['Oszust','Nie otrzymuje potwierdzenia umożliwiającego zalogowanie się do prawdziwego e-dziennika.']],tip:'Klucz dostępu jest powiązany z witryną, a nie z wyglądem strony. Nie podajesz kodu do przechwycenia.'},
+ fido:{name:'Fizyczny klucz FIDO2',title:'Klucz FIDO2 nie uwierzytelni fałszywej domeny',detail:'FIDO2 (od ang. Fast IDentity Online 2) to standard bezpiecznego potwierdzania tożsamości, odporny na typowe fałszywe strony logowania. Fizyczny klucz bezpieczeństwa wykorzystuje powiązanie z domeną. Dotknięcie czujnika potwierdza obecność użytkownika, lecz nie znosi kontroli domeny.',steps:[['Ty','Otwierasz fałszywą stronę, podłączasz fizyczny klucz do USB i dotykasz jego czujnika.'],['Fałszywa strona','Działa pod inną domeną niż prawidłowy e-dziennik.'],['Przeglądarka i klucz','Sprawdzają domenę usługi. Klucz nie tworzy potwierdzenia dla prawidłowego e-dziennika na obcej stronie.'],['Oszust','Nie może wykorzystać tego dotknięcia do uwierzytelnienia w prawdziwym e-dzienniku.']],tip:'Samo dotknięcie czujnika nie oznacza zgody na logowanie w dowolnej witrynie.'}
+ }[kind];
+ const box=document.createElement('div');box.id='lab4SmsReveal';box.className='lab4-sms-reveal lab4-explainer lab4-summary-unified';box.setAttribute('role','dialog');box.setAttribute('aria-label','Wyjaśnienie metody '+content.name);
+ box.innerHTML=`<button type="button" class="lab4-reveal-close" aria-label="Zamknij podsumowanie">×</button><span class="lab4-summary-eyebrow">Podsumowanie metody · ${content.name}</span><h3>${safe?'✓':'⚠'} ${content.title}</h3><p class="lab4-explainer-lead">${content.detail}</p><div class="lab4-flow">${content.steps.map((x,i)=>`<div class="lab4-flow-card"><span class="lab4-flow-number">${i+1}</span><span class="lab4-role-step"><strong>${x[0]}</strong><span>${x[1]}</span></span></div>`).join('')}</div><div class="lab4-explainer-bottom"><strong>Zapamiętaj:</strong> ${content.tip}</div><button type="button" class="action lab4-summary-done">Zamknij podsumowanie i kontynuuj</button>`;
+ document.querySelector('.lab4-desktop').appendChild(box);
+ box.querySelector('.lab4-reveal-close').onclick=()=>box.remove();box.querySelector('.lab4-summary-done').onclick=()=>box.remove();
+}
+function lab4Mark(kind,safe,message){lab4Visited.add(kind);if(safe)lab4Safe.add(kind);const names={sms:'1. Kod z SMS',totp:'2. Kod z aplikacji',pass:'3. Klucz dostępu',fido:'4. Klucz fizyczny FIDO2'};for(const [k,label] of Object.entries(names)){const b=$(k+'Method');b.textContent=label+(lab4Visited.has(k)?' · ✓ Sprawdzone':' · Do wykonania');b.classList.toggle('lab4-complete',lab4Visited.has(k))}const left=Object.keys(names).filter(k=>!lab4Visited.has(k));$('lab4Lesson').innerHTML=left.length?'<strong>'+lab4Visited.size+'/4 sprawdzone.</strong> Wybierz kolejną metodę: '+left.map(k=>names[k].replace(/^\d\. /,'')).join(' lub ')+'.':'<strong>4/4 sprawdzone.</strong> Wszystkie próby zakończone. Kliknij „Dalej”, aby zobaczyć podsumowanie scenariusza.';$('lab4Finish').disabled=left.length!==0;$('lab4Finish').textContent='Dalej';if(kind==='sms'||kind==='totp')lab4StepSummary(kind,safe); }
+function methodDemo(kind){if(answered)return;const reveal=$('lab4SmsReveal');if(reveal)reveal.remove();stopLab4Totp();const el=$('lab4Screen'),device=$('lab4Device');device.innerHTML='';device.classList.remove('lab4-fido-active');document.querySelectorAll('.lab4-toolbar button').forEach(b=>b.classList.remove('selected'));$(kind+'Method').classList.add('selected');device.classList.toggle('hidden',kind==='pass');device.classList.toggle('lab4-fido-active',kind==='fido');const clock=new Intl.DateTimeFormat('pl-PL',{hour:'2-digit',minute:'2-digit'}).format(new Date());const icons=`<span class="status-icons"><span class="signal-bars" aria-label="Zasięg"><i></i><i></i><i></i><i></i></span><svg width="20" height="16" viewBox="0 0 24 20" fill="none" aria-label="Wi-Fi"><path d="M2 6 Q12 -2 22 6 M6 10 Q12 5 18 10 M10 14 Q12 12 14 14" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><circle cx="12" cy="17" r="1.5" fill="currentColor"/></svg><span class="battery" aria-label="Bateria"></span></span>`;const shell=body=>`<div class="lab4-phone"><div class="lab4-notch"></div><div class="lab4-phone-status"><span>${clock}</span>${icons}</div><div class="lab4-phone-time">${clock}</div>${body}<div class="lab4-phone-dock">📞　💬　🔐　📷</div></div>`;
+if(kind==='fido'){
+ device.classList.remove('hidden');
+ el.innerHTML=`<div class="lab4-lock">🔐</div><h3>Potwierdź logowanie kluczem bezpieczeństwa</h3><p>Podłącz zarejestrowany klucz do portu USB, a następnie dotknij jego czujnika, aby potwierdzić próbę logowania.</p><button class="action" id="lab4TryFido">1. Podłącz klucz USB</button>`;
+ device.innerHTML=`<div class="lab4-usb-overlay"><div class="lab4-usb-overlay-title">🔑 Fizyczny klucz FIDO2</div><div class="lab4-usb-stage" id="lab4UsbStage">
+ <div class="lab4-usb-track"><div class="lab4-usb-key"><span class="lab4-key-label">FIDO2</span><button type="button" class="lab4-usb-touch lab4-touch-sensor" id="lab4TouchSensor" aria-label="Dotknij czujnika na kluczu FIDO2" title="Dotknij czujnika klucza" disabled>◎</button><span class="lab4-usb-plug"></span></div><div class="lab4-usb-port-box"><div class="lab4-usb-port"></div><small>USB</small></div></div>
+ <div class="lab4-usb-status" id="lab4UsbStatus">Klucz niepodłączony</div>
+ <button type="button" class="lab4-touch-button hidden" id="lab4TouchKey">2. Dotknij pola na kluczu</button></div>
+ <div class="lab4-usb-result hidden" id="lab4FidoModal"><strong>🔒 Nie udało się potwierdzić logowania</strong><p>Nie można potwierdzić logowania: adres otwartej strony nie zgadza się z adresem e-dziennika, dla którego zarejestrowano klucz. Klucz FIDO2 nie uwierzytelni tej witryny.</p><div class="lab4-domain-comparison"><div><span>Prawidłowy adres e-dziennika</span><strong>dziennik.szkolny.example</strong></div><div><span>Adres otwartej strony</span><strong>edupanel-weryfikacja.example</strong></div></div><button class="action" id="lab4FidoClose">Zamknij komunikat</button></div></div>`;
+ const stage=$('lab4UsbStage');
+ // W każdej klatce ogranicz widoczną wysokość metalu do odległości od górnej
+ // krawędzi czarnego gniazda. Metal skraca się dokładnie z prędkością wsuwania.
+ const key=stage.querySelector('.lab4-usb-key');
+ const port=stage.querySelector('.lab4-usb-port');
+ const metal=stage.querySelector('.lab4-usb-plug');
+ function syncUsbMetal(){
+  if(!stage.isConnected||$('lab4UsbStage')!==stage)return;
+  const keyRect=key.getBoundingClientRect();
+  const portRect=port.getBoundingClientRect();
+  const metalBottom=keyRect.top+5;
+  const allowed=Math.max(0,Math.min(27,metalBottom-portRect.top));
+  metal.style.setProperty('--usb-visible-metal',allowed.toFixed(2)+'px');
+ }
+ syncUsbMetal();
+ $('lab4TryFido').onclick=()=>{
+  if(answered||stage.classList.contains('plugged'))return;
+  stage.classList.add('plugging');
+  const started=performance.now();
+  function animateMetal(now){
+   if(!stage.isConnected||$('lab4UsbStage')!==stage)return;
+   syncUsbMetal();
+   if(now-started<1250)requestAnimationFrame(animateMetal);
+  }
+  requestAnimationFrame(animateMetal);
+  $('lab4UsbStatus').textContent='Wpinanie klucza do portu USB…';
+  $('lab4TryFido').disabled=true;
+  setTimeout(()=>{
+   if(!$('lab4UsbStage')||$('lab4UsbStage')!==stage||!$('fidoMethod').classList.contains('selected'))return;
+   stage.classList.remove('plugging');stage.classList.add('plugged');syncUsbMetal();
+   $('lab4UsbStatus').textContent='Klucz podłączony. Wymagane dotknięcie.';
+   $('lab4TouchKey').classList.remove('hidden');
+   $('lab4TouchSensor').disabled=false;
+  },1150);
+ };
+ const confirmFidoTouch=()=>{
+  if(!stage.classList.contains('plugged')||answered)return;
+  stage.classList.add('touched');
+  $('lab4TouchKey').disabled=true;
+  $('lab4TouchSensor').disabled=true;
+  $('lab4UsbStatus').textContent='Potwierdzono dotknięcie · sprawdzanie domeny…';
+  setTimeout(()=>{
+   if(!$('lab4UsbStage')||$('lab4UsbStage')!==stage||!$('fidoMethod').classList.contains('selected'))return;
+   $('lab4UsbStatus').textContent='Nieprawidłowa domena — logowanie zablokowane';
+   $('lab4FidoModal').classList.remove('hidden');
+   lab4Mark('fido',true,'Fizyczny klucz nie uwierzytelnił fałszywej domeny. Dotknięcie potwierdza obecność użytkownika, ale nie omija kontroli domeny.');
+  },650);
+ };
+ $('lab4TouchKey').onclick=confirmFidoTouch;
+ $('lab4TouchSensor').onclick=confirmFidoTouch;
+ $('lab4FidoClose').onclick=()=>{$('lab4FidoModal').classList.add('hidden');lab4StepSummary('fido',true);};
+ return;
+}
+if(kind==='pass'){el.innerHTML=`<div class="lab4-lock">🔑</div><h3>Zaloguj się kluczem dostępu</h3><p>Użyj klucza dostępu zapisanego na tym urządzeniu, aby potwierdzić swoją tożsamość.</p><button class="action" id="lab4TryPass">🔑 Zaloguj kluczem dostępu</button><div class="lab4-pass-modal hidden" id="lab4PassModal" role="dialog" aria-modal="false" aria-label="Wynik sprawdzenia klucza dostępu"><div class="lab4-system-head">🔐 Zabezpieczenia urządzenia</div><h3>Sprawdzenie adresu strony</h3><p>Twój klucz zapisano dla:</p><div class="lab4-domain">dziennik.szkolny.example</div><p>Ta strona ma adres:</p><div class="lab4-domain">edupanel-weryfikacja.example</div><div class="lab4-system-warning">⛔ Adresy nie pasują. Komputer nie użyje klucza na tej stronie.</div><button class="action" id="lab4PassClose">Rozumiem — zamknij komunikat</button></div>`;$('lab4Lesson').innerHTML='<strong>'+lab4Visited.size+'/4 sprawdzone.</strong> Kliknij „Zaloguj kluczem dostępu” na ekranie komputera.';$('lab4TryPass').onclick=()=>{if(answered)return;$('lab4PassModal').classList.remove('hidden');$('lab4TryPass').disabled=true;lab4Mark('pass',true,'Komputer rozpoznał, że strona oszusta ma inny adres niż strona, dla której zapisano klucz. Nie udostępnił klucza.');};$('lab4PassClose').onclick=()=>{$('lab4PassModal').classList.add('hidden');lab4StepSummary('pass',true);};return}
+const sms=kind==='sms';let code=sms?'482731':'';el.innerHTML=`<div class="lab4-lock">${sms?'💬':'📱'}</div><h3>${sms?'Weryfikacja kodem SMS':'Kod z aplikacji uwierzytelniającej'}</h3><p>${sms?'Wysłaliśmy sześciocyfrowy kod na numer telefonu przypisany do konta. Wpisz kod, aby potwierdzić logowanie.':'Otwórz aplikację uwierzytelniającą na telefonie i wpisz sześciocyfrowy kod przypisany do konta EduPanel. Kod zmienia się co 30 sekund. '}</p><label class="lab4-label">${sms?'Kod weryfikacyjny SMS':'Kod z aplikacji uwierzytelniającej'}<input id="lab4Code" inputmode="numeric" maxlength="6" placeholder="6 cyfr" autocomplete="off"></label><div class="lab4-decision-row"><button class="action" id="lab4Send">Potwierdź kod</button><button class="action" id="lab4Refuse">${sms?'Anuluj logowanie':'Anuluj logowanie'}</button></div>`;device.innerHTML=shell(sms?`<div class="lab4-phone-card"><div class="lab4-app-heading">💬 Wiadomości</div><div class="lab4-message"><strong>EduPanel</strong><p>Kod weryfikacyjny do logowania:</p><div class="lab4-code">482 731</div><small>Nie udostępniaj kodu innym osobom.</small><button type="button" class="lab4-fill-code" id="lab4FillCode" aria-label="Wstaw kod SMS do formularza">Wstaw kod do formularza ↗</button></div></div>`:`<div class="lab4-phone-card"><div class="lab4-app-heading">🔐 Authenticator</div><div class="lab4-auth-entry"><div><span class="lab4-auth-logo">🔐</span><strong>EduPanel</strong></div><p class="lab4-auth-title">Konto szkolne · kod jednorazowy</p><div class="lab4-code" id="lab4LiveCode" aria-live="off">••• •••</div><div class="lab4-totp-progress" role="progressbar" aria-label="Pozostały czas ważności kodu" aria-valuemin="0" aria-valuemax="30" id="lab4TotpBar"><span id="lab4TotpFill"></span></div><div class="lab4-totp-caption"><span>Nowy kod za <strong id="lab4TotpSeconds">30</strong> s</span><span>Odświeżanie co 30 s</span></div><small>Kod jest ważny przez 30 sekund.</small><button type="button" class="lab4-fill-code" id="lab4FillCode" aria-label="Wstaw kod z aplikacji do formularza">Wstaw kod do formularza ↗</button></div></div>`);const fillButton=$('lab4FillCode');if(fillButton){fillButton.onclick=()=>{if(answered)return;const input=$('lab4Code');if(!input)return;input.value=code;input.dispatchEvent(new Event('input',{bubbles:true}));input.focus();fillButton.textContent='✓ Kod wpisany do formularza';};}if(!sms){const updateTotp=()=>{if(answered||step!==3){stopLab4Totp();return}const slot=Math.floor(Date.now()/30000);const remain=30-(Date.now()%30000)/1000;const generated=String((Math.imul(slot ^ 0x51a3b, 2654435761)>>>0)%1000000).padStart(6,'0');code=generated;const shown=$('lab4LiveCode'),fill=$('lab4TotpFill'),seconds=$('lab4TotpSeconds'),bar=$('lab4TotpBar');if(!shown||!fill||!seconds||!bar){stopLab4Totp();return}shown.textContent=generated.slice(0,3)+' '+generated.slice(3);fill.style.width=(remain/30*100).toFixed(2)+'%';fill.style.background=remain<6?'#d97706':'#2563eb';seconds.textContent=Math.ceil(remain);bar.setAttribute('aria-valuenow',String(Math.ceil(remain)))};updateTotp();lab4TotpTimer=setInterval(updateTotp,200)}$('lab4Lesson').innerHTML='<strong>'+lab4Visited.size+'/4 sprawdzone.</strong> '+(sms?'Sprawdź adres w pasku przeglądarki. Kod możesz wstawić z telefonu jednym kliknięciem.':'Porównaj adres strony z prawidłowym adresem e-dziennika. Kod możesz wstawić z telefonu jednym kliknięciem.');$('lab4Send').onclick=()=>{const v=$('lab4Code').value.replace(/\s/g,'');if(v!==code){$('lab4Code').setCustomValidity('Kod jest niepoprawny lub wygasł. Sprawdź aktualny kod na telefonie.');$('lab4Code').reportValidity();$('lab4Code').setCustomValidity('');return}lab4Mark(kind,false,'Kod został wpisany na stronie o nieprawidłowym adresie. W rzeczywistym ataku oszust może przekazać go natychmiast do prawdziwego e-dziennika. Kod z aplikacji nie przechodzi przez operatora SMS, ale nadal można go wyłudzić.');$('lab4Send').disabled=true;$('lab4Refuse').disabled=true};$('lab4Refuse').onclick=()=>{lab4Mark(kind,true,'Bezpieczna decyzja: nie przekazano kodu stronie o nieprawidłowym adresie. Otwórz e-dziennik samodzielnie, korzystając ze znanej domeny.');$('lab4Send').disabled=true;$('lab4Refuse').disabled=true}}
+function incident(){return `<div class="incident-desktop" id="incidentDesktop">
+<div class="incident-os-top"><strong>🖥️ EduOS — komputer nauczyciela</strong><span>ŚRODOWISKO DEMONSTRACYJNE</span></div>
+<div class="incident-os-screen">
+<div class="incident-os-icons"><button id="incidentAccountIcon" class="incident-os-icon">👤<span>Moje konto</span></button><button id="incidentMailIcon" class="incident-os-icon">✉️<span>EduMail</span></button></div>
+<div class="incident-os-window hidden" id="incidentWindow"><div class="incident-window-head"><strong id="incidentWindowTitle">Moje konto</strong><button id="incidentWindowClose" aria-label="Zamknij okno">×</button></div><div id="incidentWindowBody" class="incident-window-body"></div></div>
+<div class="incident-phone-wrap" id="incidentPhoneWrap"><div class="smartphone incident-phone"><div class="statusphone"><span class="incident-time">08:15</span><span class="status-icons"><span class="signal-bars"><i></i><i></i><i></i><i></i></span><span class="wifi-symbol">◉</span><span class="battery-symbol">▰</span></span></div><div class="phone-home"><div class="bigclock incident-bigclock">08:15</div><div class="incident-date">Poniedziałek</div></div><div class="incident-messages" id="incidentMessages"></div><div class="phone-dock"><span>📞</span><span>💬</span><span>🔒</span><span>📷</span></div></div><button id="incidentPutAway" class="incident-putaway" disabled>Odłóż telefon i sprawdź konto</button></div>
+</div><div class="incident-os-taskbar"><span>⊞ EduOS</span><span>🔐 Moje konto</span><span>EduOS · DEMO</span></div></div>
+<div class="incident-bottom"><span id="incidentProgress">Wykonano 0 z 4 działań zabezpieczających.</span><button class="action incident-ignore" id="dismissIncident">Zignoruj sygnały</button><button class="action incident-confirm" id="finishIncident">Zatwierdź działania</button></div>`}
+function bindIncident(){
+const done=new Set();let phoneAway=false;let currentPage='home';let smsCount=0;
+const incidentInfo=(purpose,action)=>`<div class="incident-help"><div><strong>Do czego służy ten panel?</strong><p>${purpose}</p></div><div><strong>Co należy zrobić?</strong><p>${action}</p></div></div>`;
+const pages={
+ home:['Moje konto',`<h3>Moje konto szkolne</h3>${incidentInfo('To centrum zarządzania bezpieczeństwem szkolnego konta. Można tutaj sprawdzić aktywne logowania, ustawienia poczty i hasło oraz zgłosić podejrzaną aktywność.','Otwórz kolejno dostępne sekcje, sprawdź niepokojące ustawienia i wykonaj działania zabezpieczające. Jeśli zamkniesz okno, kliknij ponownie ikonę „Moje konto” na pulpicie.')}<div class="incident-menu"><button data-page="sessions">💻 Urządzenia i logowania</button><button data-page="mail">✉️ Ustawienia poczty</button><button data-page="password">🔑 Hasło i dostęp</button><button data-page="report">📞 Kontakt z administratorem</button></div>`],
+ sessions:['Urządzenia i logowania',`<h3>Urządzenia, na których konto jest zalogowane</h3>${incidentInfo('Ta lista pokazuje komputery i telefony, na których konto pozostaje zalogowane. Nieznane urządzenie może oznaczać, że ktoś obcy uzyskał dostęp.','Sprawdź, czy rozpoznajesz wszystkie urządzenia na liście. Jeśli widzisz obce logowanie, wybierz wylogowanie pozostałych urządzeń, aby przerwać dostęp do konta.')}<div class="incident-data-row">💻 Komputer w pokoju nauczycielskim <small>Warszawa · dziś 08:12</small></div><div class="incident-data-row" id="unknownSession">⚠️ Inne urządzenie <small>Nieznana lokalizacja · dziś 07:58</small></div><button class="incident-do" id="revokeSessions">Wyloguj pozostałe urządzenia</button>`],
+ mail:['Ustawienia poczty',`<h3>Reguły i przekazywanie wiadomości</h3>${incidentInfo('Reguły poczty mogą automatycznie przesyłać kopie przychodzących wiadomości na inny adres. Oszust czasem dodaje taką regułę, aby nadal otrzymywać korespondencję.','Sprawdź adres odbiorcy i wyłącz regułę, której nie rozpoznajesz. W rzeczywistym koncie należy przejrzeć również pozostałe reguły i przekazywanie poczty.')}<div class="incident-rule-card"><div class="incident-rule-head"><span>✉️ Reguła przekazywania</span><span class="incident-rule-badge" id="incidentRuleBadge">Aktywna</span></div><div class="incident-rule-grid"><span>Działanie</span><strong>Przesyłaj kopię przychodzących wiadomości</strong><span>Adres odbiorcy</span><strong class="incident-rule-address">archiwum-kontakt@poczta.example</strong></div><div class="incident-rule-warning" id="forwardRule">⚠️ Reguła może ujawniać treść szkolnej korespondencji osobie nieuprawnionej.</div></div><button class="incident-do" id="removeRule">Wyłącz przekazywanie kopii</button>`],
+ password:['Hasło i dostęp',`<h3>Hasło i zabezpieczenie dostępu</h3>${incidentInfo('Hasło chroni dostęp do szkolnego konta. Jeśli ktoś je poznał, może próbować ponownie się zalogować, nawet po wylogowaniu innych urządzeń.','Zmień hasło na nowe, unikatowe i silne. Nie używaj hasła z innych usług. W razie podejrzenia przejęcia konta sprawdź także metody odzyskiwania dostępu.')}<div class="incident-data-row" id="passwordState">Hasło nie było ostatnio zmieniane.</div><button class="incident-do" id="changePassword">Zmień hasło</button>`],
+ report:['Kontakt z administratorem',`<h3>Zgłoszenie incydentu</h3>${incidentInfo('Administrator szkolny może sprawdzić historię logowań, zabezpieczyć konto i ocenić, czy ujawniono dane lub wysłano wiadomości do innych osób.','Zgłoś podejrzenie przejęcia konta, nawet jeśli hasło i ustawienia zostały już poprawione. Podaj czas zdarzenia i zaobserwowane objawy.')}<div class="incident-data-row" id="reportState">Szkolny administrator nie otrzymał jeszcze zgłoszenia.</div><button class="incident-do" id="reportIncident">Wyślij zgłoszenie do administratora</button>`]
+};
+const completed={revokeSessions:'Pozostałe urządzenia zostały wylogowane.',removeRule:'Przekazywanie kopii wyłączone.',changePassword:'Hasło zostało zmienione.',reportIncident:'Zgłoszenie wysłane do szkolnego administratora.'};
+function showPage(page){if(answered||!phoneAway)return;currentPage=page;const [title,html]=pages[page]||pages.home;$('incidentWindow').classList.remove('hidden');$('incidentWindowTitle').textContent=title;$('incidentWindowBody').innerHTML=html;if(page!=='home'){$('incidentWindowBody').insertAdjacentHTML('afterbegin','<button class="incident-back" id="incidentBack" type="button">← Wróć do Moje konto</button>');$('incidentBack').onclick=()=>showPage('home')}document.querySelectorAll('#incidentWindowBody [data-page]').forEach(b=>b.onclick=()=>showPage(b.dataset.page));for(const id of Object.keys(completed)){const b=$(id);if(b){if(done.has(id)){b.disabled=true;b.textContent='✓ Wykonano';if(id==='revokeSessions')$('unknownSession').textContent='Pozostałe urządzenia wylogowane';if(id==='removeRule'){$('forwardRule').textContent='✓ Przekazywanie kopii jest wyłączone';$('forwardRule').classList.add('incident-rule-safe');$('incidentRuleBadge').textContent='Wyłączona';$('incidentRuleBadge').classList.add('is-off')};if(id==='changePassword')$('passwordState').textContent='Hasło zostało zmienione';if(id==='reportIncident')$('reportState').textContent='Administrator otrzymał zgłoszenie'}else b.onclick=()=>{done.add(id);showPage(page);$('incidentProgress').textContent='Wykonano '+done.size+' z 4 działań zabezpieczających.';}}}}
+$('incidentAccountIcon').onclick=()=>showPage('home');$('incidentMailIcon').onclick=()=>showPage('mail');$('incidentWindowClose').onclick=()=>$('incidentWindow').classList.add('hidden');
+const notices=[['Anna · 08:15','Hej, wysłałeś mi przed chwilą prośbę o hasło?'],['Kasia · 08:16','Dostałam od Ciebie dziwny link. Czy ktoś korzysta z Twojej poczty?']];
+function nextSms(){if(answered||smsCount>=2)return;const [who,message]=notices[smsCount++];const el=document.createElement('div');el.className='incident-sms';el.innerHTML='<strong>💬 '+who+'</strong><p>'+message+'</p>';$('incidentMessages').appendChild(el);if(smsCount===2){document.querySelectorAll('#incidentPhoneWrap .incident-time, #incidentPhoneWrap .incident-bigclock').forEach(clock=>clock.textContent='08:16');$('incidentPutAway').disabled=false}else timer=setTimeout(nextSms,3300)}
+timer=setTimeout(nextSms,1400);
+$('incidentPutAway').onclick=()=>{if(smsCount<2)return;phoneAway=true;$('incidentPhoneWrap').classList.add('hidden');showPage('home')};
+$('finishIncident').onclick=()=>{if(answered)return;const remaining=4-done.size;const question=remaining>0?'Wykonano '+done.size+' z 4 działań zabezpieczających. Pozostało '+remaining+'. Czy na pewno chcesz zakończyć scenariusz i ocenić dotychczasowe działania?':'Wykonano wszystkie 4 działania zabezpieczające. Czy zakończyć scenariusz i wyświetlić ocenę?';if(!window.confirm(question))return;const missing=Object.keys(completed).filter(id=>!done.has(id));const completedNames=Object.keys(completed).filter(id=>done.has(id)).map(id=>completed[id]);const detail='Wykonano '+done.size+' z 4 działań. '+(completedNames.length?'Wykonane: '+completedNames.join(' '):'Nie wykonano działań zabezpieczających. ')+(missing.length?'Pozostało do wykonania: '+missing.map(id=>({revokeSessions:'wylogowanie obcych urządzeń',removeRule:'wyłączenie przekazywania poczty',changePassword:'zmiana hasła',reportIncident:'zgłoszenie incydentu'}[id])).join(', ')+'. Konto może nadal być zagrożone.':' Wszystkie podstawowe działania zostały wykonane. Administrator powinien ocenić możliwe ujawnienie danych.');decide(missing.length===0,detail)};
+$('dismissIncident').onclick=()=>decide(false,'Zignorowanie wiadomości i oznak włamania może pozwolić napastnikowi nadal korzystać z konta.');
+}
+function bind(){if(step===0){$('closeSimWindow').onclick=()=>{if(!answered)$('browserWindow').classList.add('hidden')};$('deskMail').onclick=showMail;$('taskMail').onclick=showMail;$('deskBrowser').onclick=()=>fakeTab('new');$('taskBrowser').onclick=()=>fakeTab('new');$('mailPhish').onclick=()=>fakeTab('phish');$('newTab').onclick=()=>fakeTab('new');$('backMail').onclick=showMail;}
+if(step===1){
+ const fmt=new Intl.DateTimeFormat('pl-PL',{hour:'2-digit',minute:'2-digit',hour12:false});
+ const dateFmt=new Intl.DateTimeFormat('pl-PL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+ const updateClock=()=>{const now=new Date();document.querySelectorAll('.phone-status-time,.phone-lock-time').forEach(el=>el.textContent=fmt.format(now));const el=document.querySelector('.phone-lock-date');if(el)el.textContent=dateFmt.format(now)};
+ updateClock();clockTimer=setInterval(updateClock,15000);
+ $('rejectPush').onclick=()=>decide(true,'Odrzucono nieoczekiwane prośby o logowanie i powiadomiono szkolnego administratora.');
+ $('approvePush').onclick=()=>decide(false,'Zatwierdzenie nieoczekiwanego żądania mogłoby otworzyć napastnikowi dostęp do konta.');
+ $('ignorePush').onclick=()=>decide(false,'Nie zatwierdzono żądania, ale zabrakło zgłoszenia i sprawdzenia konta.');
+ attempt=0;
+ const tick=()=>{if(answered||step!==1)return;
+  attempt++;
+  $('pushCounter').textContent='Próba '+attempt;
+  $('pushNotice').classList.remove('hidden');
+  // Każdy monit pozostaje widoczny przez 8 sekund, potem znika na 2 sekundy.
+  timer=setTimeout(()=>{
+   if(answered||step!==1)return;
+   $('pushNotice').classList.add('hidden');
+   timer=setTimeout(tick,2000);
+  },8000);
+ };
+ timer=setTimeout(tick,3000);
+}
+if(step===2){callAnswered=false;
+ const fmt=new Intl.DateTimeFormat('pl-PL',{hour:'2-digit',minute:'2-digit',hour12:false});
+ const dateFmt=new Intl.DateTimeFormat('pl-PL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+ const updateClock=()=>{const now=new Date();document.querySelectorAll('.phone-status-time,.phone-lock-time').forEach(el=>el.textContent=fmt.format(now));const el=document.querySelector('.phone-lock-date');if(el)el.textContent=dateFmt.format(now)};
+ updateClock();clockTimer=setInterval(updateClock,15000);
+ timer=setTimeout(()=>{if(answered||step!==2)return;$('smsNotice').classList.remove('hidden');playSmsSound();$('transcript').textContent='Oczekiwanie na połączenie…';timer=setTimeout(()=>{if(answered||step!==2)return;$('incomingCall').classList.remove('hidden');startRinging();$('callDock').classList.add('hidden');$('transcript').textContent='Połączenie przychodzące…';$('answerCall').onclick=answerCall;$('rejectCall').onclick=()=>{stopRinging();decide(true,'Odrzucono podejrzane połączenie. Kod pozostał poufny; tożsamość rozmówcy należy sprawdzić niezależnym kanałem.');};},3500)},2500);
+}
+if(step===3){lab4Visited.clear();lab4Safe.clear();$('smsMethod').onclick=()=>methodDemo('sms');$('totpMethod').onclick=()=>methodDemo('totp');$('passMethod').onclick=()=>methodDemo('pass');$('fidoMethod').onclick=()=>methodDemo('fido');$('lab4Finish').onclick=()=>{if(lab4Visited.size!==4)return;decide(lab4Safe.size===4,'Sprawdzono wszystkie cztery sposoby potwierdzania logowania. '+lab4Safe.size+' z 4 prób zakończyło się bez ujawnienia kodu. SMS jest lepszy niż samo hasło, lecz podatny na wyłudzenie i ataki na numer telefonu. Kod z aplikacji uwierzytelniającej (TOTP — jednorazowe hasło zależne od czasu) nie jest przesyłany SMS-em, ale także może zostać wyłudzony. Klucz dostępu (passkey) i fizyczny klucz bezpieczeństwa FIDO2 sprawdzają adres strony i chronią przed typowym wyłudzeniem danych na fałszywej witrynie. Fizyczny klucz nie musi być bezpieczniejszy od klucza dostępu zapisanego na urządzeniu.')} }
+if(step===4)bindIncident()}
+function finish(){document.body.dataset.mfaStep='report';clean();$('finishExit').classList.remove('hidden');$('stepTag').textContent='Podsumowanie szkolenia';$('stepNo').textContent='5 / 5';$('sceneTitle').textContent='Wyniki i przebieg symulacji';$('sceneBody').classList.remove('locked-ui');$('scenarioLayout').classList.add('report-mode');$('asideWait').classList.add('hidden');$('sceneBody').innerHTML=`<div class="result-grid"><div><strong>${score} / 100</strong>Wynik</div><div><strong>${good}</strong>Bezpieczne decyzje</div><div><strong>${bad}</strong>Ryzykowne decyzje</div></div><h3>Historia decyzji</h3><table class="reporttable"><thead><tr><th>Scenariusz</th><th>Ocena</th><th>Konsekwencja</th></tr></thead><tbody>${history.map(h=>'<tr><td>'+h.title+'</td><td>'+(h.ok?'✓ Bezpiecznie':'⚠ Ryzyko')+'</td><td>'+h.detail+'</td></tr>').join('')}</tbody></table><h3>Sposoby potwierdzania logowania — przypomnienie</h3><table class="reporttable"><thead><tr><th>Metoda</th><th>Ważna cecha</th></tr></thead><tbody><tr><td>SMS</td><td>Kod może zostać wyłudzony lub numer przejęty.</td></tr><tr><td>Kod z aplikacji (TOTP)</td><td>Jednorazowe hasło zależne od czasu (ang. Time-based One-Time Password), zwykle zmieniane co 30 sekund. Oszust może je wyłudzić na fałszywej stronie.</td></tr><tr><td>Powiadomienie w aplikacji</td><td>Nie zatwierdzaj prośby o logowanie, jeśli nie próbujesz się zalogować.</td></tr><tr><td>Klucz dostępu (passkey)</td><td>Sprawdza adres strony i chroni przed typowym wyłudzeniem danych na podrobionej witrynie.</td></tr></tbody></table><div class="hint"><strong>Najważniejsze zasady:</strong> Sprawdzaj adres strony, nie podawaj kodów innym osobom, odrzucaj nieoczekiwane prośby o logowanie, zgłaszaj podejrzenia włamania oraz sprawdzaj urządzenia zalogowane na konto i ustawienia przekazywania poczty.</div><p class="small muted">Ćwiczenie edukacyjne; wynik nie stanowi audytu bezpieczeństwa. Wszystkie konta, dane i domeny są fikcyjne.</p>`;$('feedback').className='feedback hidden';$('asideWait').classList.add('hidden');$('scenarioLayout').classList.add('report-mode');$('next').classList.add('hidden');$('choices').innerHTML='';}
+function start(){clean();audioReady();score=good=bad=0;history=[];step=0;$('modal').classList.add('hidden');render()}
+function reset(){clean();$('finishExit').classList.add('hidden');$('consent').checked=false;step=-1;answered=false;score=good=bad=0;history=[];$('stepTag').textContent='Wprowadzenie';$('stepNo').textContent='0 / 5';$('sceneTitle').textContent='Witaj w laboratorium';$('sceneBody').classList.remove('locked-ui');$('sceneBody').innerHTML='<p>Rozpocznij symulację pięciu sytuacji związanych z bezpieczeństwem kont w szkole.</p>';$('feedback').className='feedback hidden';$('asideWait').classList.remove('hidden');$('scenarioLayout').classList.remove('report-mode');$('next').classList.add('hidden');$('briefModal').classList.add('hidden');briefPending=false;$('modal').classList.remove('hidden');$('begin').classList.remove('hidden');$('closeHelp').classList.add('hidden')}
+$('briefClose').onclick=closeBrief;$('briefOpen').onclick=showBrief;$('next').onclick=()=>{if(!answered)return;if(step===4)finish();else{step++;render()}};$('restart').onclick=reset;$('finishExit').onclick=reset;$('help').onclick=()=>{$('modal').classList.remove('hidden');$('begin').classList.toggle('hidden',step>=0);$('closeHelp').classList.toggle('hidden',step<0)};$('closeHelp').onclick=()=>$('modal').classList.add('hidden');$('begin').onclick=()=>{if($('consent').checked)start();else alert('Potwierdź używanie wyłącznie fikcyjnych danych.')};reset();
+// Panel prowadzącego: kod stanowi blokadę interfejsu szkoleniowego, nie zabezpieczenie serwerowe.
+// W statycznym pliku HTML kod może zostać odczytany ze źródła; nie używać jako ochrony danych.
+const TEACHER_PIN='254';let teacherUnlocked=false;
+const teacherNames=['Fałszywy e-dziennik','Nieoczekiwane powiadomienia MFA','Wyłudzenie kodu przez telefon','Porównanie metod MFA','Reagowanie na przejęcie konta'];
+function teacherOpen(){const modal=$('teacherModal');modal.classList.remove('hidden');$('teacherGate').classList.toggle('hidden',teacherUnlocked);$('teacherPicker').classList.toggle('hidden',!teacherUnlocked);$('teacherError').classList.add('hidden');$('teacherPin').value='';if(!teacherUnlocked)$('teacherPin').focus();}
+function teacherClose(){$('teacherModal').classList.add('hidden')}
+function teacherUnlock(){if($('teacherPin').value!==TEACHER_PIN){$('teacherError').classList.remove('hidden');$('teacherPin').select();return}teacherUnlocked=true;$('teacherGate').classList.add('hidden');$('teacherPicker').classList.remove('hidden')}
+function teacherJump(index){if(!teacherUnlocked)return;teacherClose();clean();$('modal').classList.add('hidden');$('briefModal').classList.add('hidden');$('consent').checked=true;score=good=bad=0;history=[];step=index;render()}
+$('teacherScenarios').innerHTML=teacherNames.map((name,i)=>'<button class="btn" type="button" data-scene="'+i+'"><span>'+(i+1)+'.</span> '+name+'</button>').join('');
+$('teacherScenarios').addEventListener('click',e=>{const b=e.target.closest('button[data-scene]');if(b)teacherJump(Number(b.dataset.scene))});
+$('teacherOpen').onclick=teacherOpen;$('teacherClose').onclick=teacherClose;$('teacherUnlock').onclick=teacherUnlock;$('teacherPin').addEventListener('keydown',e=>{if(e.key==='Enter')teacherUnlock()});$('teacherLock').onclick=()=>{teacherUnlocked=false;teacherOpen()};$('teacherModal').addEventListener('click',e=>{if(e.target===$('teacherModal'))teacherClose()});
+const soundToggle=$('soundToggle');if(soundToggle)soundToggle.addEventListener('click',()=>{soundEnabled=!soundEnabled;soundToggle.setAttribute('aria-pressed',String(soundEnabled));soundToggle.textContent=soundEnabled?'🔊 Dźwięk włączony':'🔇 Dźwięk wyłączony';if(!soundEnabled)stopRinging();else{audioReady();if(step===2&&!answered&&!callAnswered&&$('incomingCall')&&!$('incomingCall').classList.contains('hidden'))startRinging()}});
+})();
+</script><style id="mfalab-v65-fullhd">
+/* Blokada niewystarczającej przestrzeni roboczej; pełne okno Full HD pozostaje dostępne. */
+body.mfalab-screen-too-small > .wrap,body.mfalab-screen-too-small > .modalback{display:none!important}
+body.mfalab-screen-too-small > .screen-requirement{display:flex!important;position:fixed;inset:0;z-index:99999;overflow:auto;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 75% 0%,#1b3454,#08111f 70%);color:#eef5ff}
+@media(min-width:1100px){.wrap{width:min(100%,1920px);max-width:1920px;padding:clamp(12px,1.2vw,24px)}.scenario-layout,.scenario-main,.scene,.panel{min-width:0}.scenario-main{overflow:visible}.scenario-aside{min-width:0}.lab4-desktop,.desktop.mail-desktop,.incident-desktop{max-width:100%}.modalback .modal{max-height:calc(100dvh - 40px);overflow-y:auto}}
+@media(min-width:1600px){.wrap{padding-inline:28px}.scenario-layout{gap:20px}.scene{min-height:0}.lab4-desktop{height:min(660px,70vh)!important;min-height:0!important;max-height:660px!important}.incident-os-screen{height:min(590px,65vh)}.desktop.mail-desktop{height:min(690px,70vh)!important;min-height:0!important}}
+</style>
+<script id="mfalab-v65-screen-check">(function(){'use strict';
+ function checkScreen(){
+  // Ekran Full HD (w pikselach fizycznych) i wystarczająco duży obszar przeglądarki.
+  // DPR uwzględnia skalowanie systemu, choć przy ręcznym zoomie może być niedokładny.
+  var dpr=window.devicePixelRatio||1;
+  var physicalW=Math.round(screen.width*dpr),physicalH=Math.round(screen.height*dpr);
+  var fullHD=physicalW>=1900&&physicalH>=1060;
+  var usable=window.innerWidth>=1350&&window.innerHeight>=720;
+  document.body.classList.toggle('mfalab-screen-too-small',!(fullHD&&usable));
+ }
+ window.addEventListener('resize',checkScreen,{passive:true});
+ window.addEventListener('orientationchange',checkScreen,{passive:true});
+ checkScreen();
+})();</script>
+</body></html>
